@@ -1,0 +1,163 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  border: 1px solid #d9d6ce;
+  border-radius: 4px;
+  padding: 24px 20px;
+  color: #1a1a1a;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.subTitle {
+  font-size: 11px;
+  color: #555555;
+  letter-spacing: 0.05em;
+}
+
+.dashedRule {
+  width: 100%;
+  height: 0;
+  border-top: 1.5px dashed #444444;
+}
+
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.itemRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+}
+
+.itemKey {
+  font-weight: 700;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  color: #1a1a1a;
+}
+
+.itemDots {
+  flex: 1;
+  border-bottom: 1.5px dotted #999999;
+  min-width: 16px;
+  margin-bottom: 2px;
+}
+
+.itemVal {
+  color: #222222;
+  text-align: right;
+  flex-shrink: 0;
+  max-width: 60%;
+  word-break: break-word;
+}
+
+.reviewSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.reviewLabel {
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+.reviewText {
+  margin: 0;
+  color: #222222;
+}
+
+.totalBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border: 2px solid #141414;
+  padding: 10px 14px;
+  text-align: center;
+}
+
+.totalLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #333333;
+}
+
+.totalValue {
+  font-size: clamp(18px, 4vw, 24px);
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #141414;
+}
+
+.barcodeBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding-top: 4px;
+}
+
+.barcodeSvg {
+  width: 100%;
+  max-width: 260px;
+  height: 48px;
+}
+
+.barcodeCaption {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #444444;
+}
+
+.footer {
+  display: flex;
+  justify-content: center;
+  font-size: 10px;
+  color: #666666;
+  letter-spacing: 0.05em;
+  padding-top: 6px;
+}
+
+.footer strong {
+  color: #141414;
+  margin-left: 4px;
+}
