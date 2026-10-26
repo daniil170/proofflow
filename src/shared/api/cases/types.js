@@ -1,15 +1,19 @@
 export const CASE_STATUS = Object.freeze({
   PROCESSING: 'processing',
   REVIEW: 'review',
+  READY: 'ready',
   DRAFT: 'draft',
   PUBLISHED: 'published',
+  FAILED: 'failed',
 })
 
 export const CASE_STATUS_LABELS = Object.freeze({
   [CASE_STATUS.PROCESSING]: 'Обработка',
   [CASE_STATUS.REVIEW]: 'На проверке',
+  [CASE_STATUS.READY]: 'Готов к публикации',
   [CASE_STATUS.DRAFT]: 'Черновик',
   [CASE_STATUS.PUBLISHED]: 'Опубликован',
+  [CASE_STATUS.FAILED]: 'Ошибка',
 })
 
 export const CASE_STORAGE_KEY = 'proofflow_cases_store'

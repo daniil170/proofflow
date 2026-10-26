@@ -117,4 +117,16 @@ export const mockCaseRepository = Object.freeze({
     notifyListeners()
     return newExamples
   },
+
+  async saveFeedback({ caseId, rating, comment, userId }) {
+    const payload = {
+      id: `mock-feedback-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      caseId,
+      rating,
+      comment: comment || '',
+      userId: userId || null,
+      createdAt: Date.now(),
+    }
+    return payload
+  },
 })

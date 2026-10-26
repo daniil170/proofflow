@@ -123,4 +123,20 @@ export const firestoreCaseRepository = Object.freeze({
     }
     return created
   },
+
+  async saveFeedback({ caseId, rating, comment, userId }) {
+    const db = getDbInstance()
+    const payload = {
+      caseId,
+      rating,
+      comment: comment || '',
+      userId: userId || null,
+      createdAt: Date.now(),
+    }
+    const docRef = await addDoc(collection(db, 'feedback'), payload)
+    return {
+      id: docRef.id,
+      ...payload,
+    }
+  },
 })

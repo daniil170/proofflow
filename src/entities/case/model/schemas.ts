@@ -84,6 +84,7 @@ export const caseDraftSchema = z.object({
   quote: caseDraftQuoteSchema,
   tags: z.array(z.string()).default([]),
   missingFields: z.array(z.string()).default([]),
+  needsReview: z.array(z.string()).default([]),
 })
 
 export const caseCardVariantSchema = z.enum(['dark', 'newspaper', 'whatsapp', 'receipt', 'minimal'])
