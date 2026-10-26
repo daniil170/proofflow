@@ -58,6 +58,23 @@ export const firestoreCaseRepository = Object.freeze({
     )
   },
 
+  subscribeById(id, onUpdate, onError) {
+    const db = getDbInstance()
+    const docRef = doc(db, COLLECTION_NAME, id)
+
+    return onSnapshot(
+      docRef,
+      (docSnap) => {
+        onUpdate(normalizeDoc(docSnap))
+      },
+      (error) => {
+        if (onError) {
+          onError(error)
+        }
+      }
+    )
+  },
+
   async getById(id) {
     const db = getDbInstance()
     const docRef = doc(db, COLLECTION_NAME, id)

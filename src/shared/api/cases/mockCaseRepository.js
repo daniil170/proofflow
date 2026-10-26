@@ -23,10 +23,15 @@ const saveCases = (cases) => {
 let casesStore = loadCases()
 
 const notifyListeners = () => {
-  listeners.forEach(({ ownerId, onUpdate }) => {
-    const filtered = ownerId ? casesStore.filter((item) => item.ownerId === ownerId) : casesStore
-    const sorted = [...filtered].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
-    onUpdate(sorted)
+  listeners.forEach((record) => {
+    if (record.caseId) {
+      const found = casesStore.find((item) => item.id === record.caseId)
+      record.onUpdate(found ? { ...found } : null)
+    } else if (record.onUpdate) {
+      const filtered = record.ownerId ? casesStore.filter((item) => item.ownerId === record.ownerId) : casesStore
+      const sorted = [...filtered].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+      record.onUpdate(sorted)
+    }
   })
 }
 
@@ -39,6 +44,20 @@ export const mockCaseRepository = Object.freeze({
       const filtered = ownerId ? casesStore.filter((item) => item.ownerId === ownerId) : casesStore
       const sorted = [...filtered].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
       onUpdate(sorted)
+    })
+
+    return () => {
+      listeners.delete(listenerRecord)
+    }
+  },
+
+  subscribeById(id, onUpdate) {
+    const listenerRecord = { caseId: id, onUpdate }
+    listeners.add(listenerRecord)
+
+    queueMicrotask(() => {
+      const found = casesStore.find((item) => item.id === id)
+      onUpdate(found ? { ...found } : null)
     })
 
     return () => {
