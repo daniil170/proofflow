@@ -1,122 +1,103 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
-
-function App() {
-  const [count, setCount] = useState(0)
-
+export default function App() {
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '2rem',
+      textAlign: 'center'
+    }}>
+      <div style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '0.5rem',
+        padding: '0.35rem 0.85rem',
+        borderRadius: '9999px',
+        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+        color: '#16a34a',
+        fontSize: '0.875rem',
+        fontWeight: 600,
+        marginBottom: '1.5rem'
+      }}>
+        <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#22c55e', display: 'inline-block' }} />
+        Активная фаза валидации (CustDev)
+      </div>
+
+      <h1 style={{
+        fontSize: 'clamp(2.5rem, 5vw, 4rem)',
+        fontWeight: 800,
+        letterSpacing: '-0.025em',
+        marginBottom: '1rem',
+        background: 'linear-gradient(135deg, #4f46e5 0%, #9333ea 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent'
+      }}>
+        ProofFlow
+      </h1>
+
+      <p style={{
+        maxWidth: '640px',
+        fontSize: '1.25rem',
+        color: '#64748b',
+        lineHeight: 1.6,
+        marginBottom: '2rem'
+      }}>
+        AI-инструмент для автоматической упаковки сырого контента (созвонов, видео, скриншотов)
+        в готовые B2B-кейсы и виджеты социального доказательства за 1 минуту.
+      </p>
+
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+        gap: '1rem',
+        maxWidth: '800px',
+        width: '100%',
+        marginTop: '1rem'
+      }}>
+        <div style={{
+          padding: '1.5rem',
+          borderRadius: '12px',
+          border: '1px solid rgba(226, 232, 240, 0.8)',
+          backgroundColor: 'rgba(255, 255, 255, 0.6)',
+          backdropFilter: 'blur(8px)',
+          textAlign: 'left'
+        }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}>🎙️ Транскрибация</h3>
+          <p style={{ fontSize: '0.875rem', color: '#64748b' }}>
+            Автоматическое распознавание речи созвонов и видео через Whisper.
           </p>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+        <div style={{
+          padding: '1.5rem',
+          borderRadius: '12px',
+          border: '1px solid rgba(226, 232, 240, 0.8)',
+          backgroundColor: 'rgba(255, 255, 255, 0.6)',
+          backdropFilter: 'blur(8px)',
+          textAlign: 'left'
+        }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}>⚡ AI-Анализ & Кейсы</h3>
+          <p style={{ fontSize: '0.875rem', color: '#64748b' }}>
+            Выделение болей, процесса и метрик в продающий текст силами Claude/GPT-4o.
+          </p>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+        <div style={{
+          padding: '1.5rem',
+          borderRadius: '12px',
+          border: '1px solid rgba(226, 232, 240, 0.8)',
+          backgroundColor: 'rgba(255, 255, 255, 0.6)',
+          backdropFilter: 'blur(8px)',
+          textAlign: 'left'
+        }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}>🧩 Embed Widget</h3>
+          <p style={{ fontSize: '0.875rem', color: '#64748b' }}>
+            Интерактивный виджет отзывов и кейсов для вставки на сайт в один клик.
+          </p>
+        </div>
+      </div>
+    </div>
   )
 }
-
-export default App
