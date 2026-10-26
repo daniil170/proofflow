@@ -25,5 +25,5 @@ export type { BetaOfferContent, BetaOfferFormContent } from './beta-offer'
 export { FAQ_CONTENT } from './faq'
 export type { FaqContent, FaqItem } from './faq'
 
-export { BUSINESS_TYPE_OPTIONS } from './form-options'
-export type { BusinessTypeOption } from './form-options'
+export { BUSINESS_TYPE_OPTIONS, CASES_VOLUME_OPTIONS } from './form-options'
+export type { BusinessTypeOption, CasesVolumeOption } from './form-options'
