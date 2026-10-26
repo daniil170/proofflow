@@ -1,0 +1,164 @@
+.comparisonSection {
+  padding-top: var(--space-16);
+  padding-bottom: var(--space-16);
+  background-color: var(--color-bg-base);
+}
+
+.title {
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+  max-width: 600px;
+  margin-bottom: var(--space-10);
+}
+
+.tableWrapper {
+  display: none;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.tableHeadRow {
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.th {
+  padding: var(--space-3) var(--space-4);
+  font-size: 13px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.th:first-child {
+  padding-left: 0;
+  width: 25%;
+}
+
+.th:nth-child(2) {
+  width: 37.5%;
+}
+
+.th:last-child {
+  padding-right: 0;
+  width: 37.5%;
+}
+
+.row {
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.td {
+  padding: var(--space-4) var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-normal);
+  vertical-align: top;
+}
+
+.td:first-child {
+  padding-left: 0;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.td:last-child {
+  padding-right: 0;
+  color: var(--color-text-primary);
+}
+
+.summaryRow {
+  border-bottom: none;
+}
+
+.summaryTd {
+  padding-top: var(--space-6);
+  padding-bottom: var(--space-6);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+}
+
+.summaryHighlight {
+  background-color: var(--color-accent);
+  color: var(--color-accent-text);
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  display: inline-block;
+  font-weight: var(--font-weight-bold);
+}
+
+.mobileCardsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.mobileCard {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.mobileCardTitle {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border-light);
+  padding-bottom: var(--space-2);
+}
+
+.mobileCardField {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mobileCardLabel {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.mobileCardText {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.mobileCardTextStrong {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.mobileSummaryCard {
+  background-color: rgba(214, 249, 76, 0.15);
+  border: 2px solid var(--color-accent);
+}
+
+@media (min-width: 768px) {
+  .comparisonSection {
+    padding-top: var(--space-20);
+    padding-bottom: var(--space-20);
+  }
+
+  .tableWrapper {
+    display: block;
+  }
+
+  .mobileCardsList {
+    display: none;
+  }
+}
