@@ -81,4 +81,14 @@ export class MemoryCaseRepository implements CaseRepositoryPort {
   setCase(caseItem: Case): void {
     this.cases.set(caseItem.id, { ...caseItem })
   }
+
+  async countCasesByOwner(ownerId: string): Promise<number> {
+    let count = 0
+    for (const item of this.cases.values()) {
+      if (item.ownerId === ownerId) {
+        count++
+      }
+    }
+    return count
+  }
 }

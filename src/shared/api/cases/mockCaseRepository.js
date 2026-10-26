@@ -70,6 +70,11 @@ export const mockCaseRepository = Object.freeze({
     return found ? { ...found } : null
   },
 
+  async countByOwner(ownerId) {
+    if (!ownerId) return 0
+    return casesStore.filter((item) => item.ownerId === ownerId).length
+  },
+
   async create(caseData) {
     const timestamp = Date.now()
     const newCase = {

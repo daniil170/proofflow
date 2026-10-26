@@ -55,6 +55,29 @@ export const runPipeline = async ({
       throw new Error(`Case ${caseId} not found`)
     }
 
+    if (caseRepository.countCasesByOwner && currentCase.ownerId) {
+      const caseCount = await caseRepository.countCasesByOwner(currentCase.ownerId)
+      const maxAllowed = Number(process.env.MAX_CASES_PER_ACCOUNT) || 50
+      if (caseCount > maxAllowed) {
+        await caseRepository.failCase(
+          caseId,
+          'preparing',
+          `Превышен лимит кейсов на аккаунт (максимум ${maxAllowed})`
+        )
+        return {
+          report: {
+            isQuoteVerified: false,
+            isMetricVerified: false,
+            missingFields: ['metric', 'problem', 'solution', 'result', 'quote'],
+            needsReview: ['metric', 'problem', 'solution', 'result', 'quote'],
+            unverifiedQuotes: [],
+            unverifiedMetrics: [],
+            evidences: [],
+          },
+        }
+      }
+    }
+
     currentStage = 'preparing'
     await caseRepository.updateStage(
       caseId,
