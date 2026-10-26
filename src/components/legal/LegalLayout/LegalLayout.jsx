@@ -44,7 +44,6 @@ export const LegalLayout = ({ doc, children }) => {
 
   return (
     <div className={styles.page}>
-      {/* Sticky top navigation */}
       <header className={styles.topNav}>
         <div className={styles.navContainer}>
           <div className={styles.navLeft}>
@@ -78,7 +77,6 @@ export const LegalLayout = ({ doc, children }) => {
         </div>
       </header>
 
-      {/* Tabs bar */}
       <nav className={styles.tabsBar} aria-label="Юридические документы">
         <div className={styles.tabsContainer}>
           {tabs.map((tab) => {
@@ -96,7 +94,6 @@ export const LegalLayout = ({ doc, children }) => {
         </div>
       </nav>
 
-      {/* Main layout with TOC + Article */}
       <div className={styles.mainContainer}>
         <aside className={styles.sidebar}>
           <div className={styles.tocSticky}>

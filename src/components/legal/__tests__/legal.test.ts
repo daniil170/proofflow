@@ -84,13 +84,17 @@ describe('Cookie Consent Storage Logic', () => {
       },
     }
 
-    // @ts-expect-error mock window in test
-    globalThis.window = {
+    const mockWindow = {
       localStorage: mockLocalStorage,
       dispatchEvent: () => true,
       addEventListener: () => {},
       removeEventListener: () => {},
     }
+    Object.defineProperty(globalThis, 'window', {
+      value: mockWindow,
+      writable: true,
+      configurable: true,
+    })
   })
 
   afterEach(() => {

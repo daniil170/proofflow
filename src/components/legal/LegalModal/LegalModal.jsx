@@ -61,7 +61,6 @@ export const LegalModal = ({ isOpen, onClose, initialDoc = 'terms' }) => {
       aria-labelledby="legal-modal-title"
     >
       <div className={styles.modal}>
-        {/* Header */}
         <div className={styles.header}>
           <div className={styles.titleArea}>
             <div className={styles.titleIcon}>
@@ -97,7 +96,6 @@ export const LegalModal = ({ isOpen, onClose, initialDoc = 'terms' }) => {
           </div>
         </div>
 
-        {/* Tabs */}
         <div className={styles.tabsRow}>
           <button
             type="button"
@@ -122,7 +120,6 @@ export const LegalModal = ({ isOpen, onClose, initialDoc = 'terms' }) => {
           </button>
         </div>
 
-        {/* Scrollable Body */}
         <div className={styles.body}>
           {currentDoc.sections.map((section) => (
             <div key={section.id} className={styles.section}>
@@ -141,7 +138,6 @@ export const LegalModal = ({ isOpen, onClose, initialDoc = 'terms' }) => {
           ))}
         </div>
 
-        {/* Footer */}
         <div className={styles.footer}>
           <button type="button" onClick={onClose} className={styles.btnOk}>
             Понятно, закрыть
