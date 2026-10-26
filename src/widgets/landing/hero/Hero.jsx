@@ -1,5 +1,7 @@
 import { Button, Container } from '@/shared/ui'
 import { HERO_CONTENT } from '@/pages/landing'
+import { CaseCard } from '@/widgets/case-card'
+import { HERO_CASE_DATA } from '@/entities/case'
 import styles from './Hero.module.css'
 
 export const Hero = () => {
@@ -83,38 +85,8 @@ export const Hero = () => {
               </div>
             </div>
 
-            <div className={styles.caseCard}>
-              <div className={styles.caseHeader}>
-                <span>{HERO_CONTENT.casePreview.status}</span>
-                <span>B2B · Кейс · виджет</span>
-              </div>
-
-              <div className={styles.caseTitle}>{HERO_CONTENT.casePreview.title}</div>
-
-              <div className={styles.metricsGrid}>
-                <div className={styles.metricItem}>
-                  <span className={styles.metricLabel}>
-                    {HERO_CONTENT.casePreview.before.label}
-                  </span>
-                  <span className={styles.metricValue}>
-                    {HERO_CONTENT.casePreview.before.value}
-                  </span>
-                </div>
-
-                <div className={styles.metricItem}>
-                  <span className={styles.metricLabel}>{HERO_CONTENT.casePreview.after.label}</span>
-                  <span className={styles.metricValue}>{HERO_CONTENT.casePreview.after.value}</span>
-                </div>
-
-                <div className={styles.metricItem}>
-                  <span className={styles.metricLabel}>
-                    {HERO_CONTENT.casePreview.result.label}
-                  </span>
-                  <span className={styles.metricValueHighlight}>
-                    {HERO_CONTENT.casePreview.result.value}
-                  </span>
-                </div>
-              </div>
+            <div className={styles.heroCaseCardWrapper}>
+              <CaseCard variant="dark" data={HERO_CASE_DATA} />
             </div>
           </div>
         </div>

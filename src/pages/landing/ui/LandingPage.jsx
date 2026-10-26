@@ -3,6 +3,7 @@ import {
   Audience,
   BetaForm,
   BetaOffer,
+  CaseStylesShowcase,
   Comparison,
   Faq,
   Footer,
@@ -22,6 +23,7 @@ export const LandingPage = () => {
         <Audience />
         <Steps />
         <Comparison />
+        <CaseStylesShowcase />
         <Trust />
         <Faq />
         <section id="beta-form" className={styles.betaSection} aria-labelledby="beta-offer-title">

@@ -1,0 +1,122 @@
+.section {
+  padding: var(--space-8) 0;
+  background-color: var(--color-bg-primary);
+}
+
+@media (min-width: 768px) {
+  .section {
+    padding: var(--space-12) 0;
+  }
+}
+
+.header {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto var(--space-8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  background-color: rgba(214, 249, 76, 0.25);
+  color: var(--color-text-primary);
+  border: 1px solid rgba(214, 249, 76, 0.8);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--space-3);
+}
+
+.title {
+  margin: 0 0 var(--space-3);
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+.description {
+  margin: 0;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-secondary);
+}
+
+.tabsContainer {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-8);
+}
+
+.tabsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.04);
+  padding: 6px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  max-width: 100%;
+}
+
+@media (max-width: 520px) {
+  .tabsList {
+    border-radius: var(--radius-lg);
+    gap: 6px;
+  }
+}
+
+.tabButton {
+  appearance: none;
+  background: transparent;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tabButton:hover {
+  color: var(--color-text-primary);
+}
+
+.tabButtonActive {
+  background-color: var(--color-bg-dark);
+  color: #ffffff;
+  font-weight: var(--font-weight-bold);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.tabButtonActive:hover {
+  color: #ffffff;
+}
+
+.cardContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.cardWrapper {
+  width: 100%;
+  max-width: 540px;
+  box-sizing: border-box;
+}
+
+.caption {
+  text-align: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-top: var(--space-4);
+}

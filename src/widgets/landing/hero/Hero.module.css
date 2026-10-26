@@ -157,74 +157,18 @@
   font-weight: var(--font-weight-medium);
 }
 
-.caseCard {
+.heroCaseCardWrapper {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
   margin-top: calc(-1 * var(--space-4));
-  background-color: var(--color-bg-dark);
-  color: var(--color-text-inverse);
-  border-radius: var(--radius-xl);
-  padding: var(--space-5);
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
   position: relative;
   z-index: 2;
 }
 
-.caseHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-inverse-secondary);
-  margin-bottom: var(--space-3);
-}
-
-.caseTitle {
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-bold);
-  line-height: var(--line-height-snug);
-  color: var(--color-text-inverse);
-  margin-bottom: var(--space-4);
-}
-
-.metricsGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-3);
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--color-border-dark);
-}
-
-.metricItem {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.metricLabel {
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-inverse-secondary);
-}
-
-.metricValue {
-  font-size: 13px;
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-inverse);
-}
-
-.metricValueHighlight {
-  color: var(--color-accent);
-  font-size: 13px;
-  font-weight: var(--font-weight-bold);
-}
-
-@media (min-width: 480px) {
-  .metricsGrid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-2);
+@media (max-width: 768px) {
+  .heroCaseCardWrapper {
+    margin-top: var(--space-2);
   }
 }
 
