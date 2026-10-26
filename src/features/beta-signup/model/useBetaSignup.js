@@ -61,6 +61,7 @@ export const useBetaSignup = (customGateway = null) => {
           casesVolume: formData.casesVolume,
           currentProcess: formData.currentProcess.trim(),
           consent: formData.consent,
+          source: 'web',
         }
 
         await gateway.submit(payload)
