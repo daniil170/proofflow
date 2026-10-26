@@ -1,0 +1,231 @@
+.timelineContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.timelineList {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.timelineItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  position: relative;
+  padding-bottom: 24px;
+}
+
+.timelineItem:last-child {
+  padding-bottom: 0;
+}
+
+.connectorLine {
+  position: absolute;
+  top: 36px;
+  left: 17px;
+  bottom: 0;
+  width: 2px;
+  background-color: rgba(255, 255, 255, 0.1);
+  transition: background-color 0.3s ease;
+}
+
+.connectorLineDone {
+  background-color: #10b981;
+}
+
+.indicatorWrap {
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+.indicator {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  background-color: #16181e;
+  color: #9ca3af;
+  transition: all 0.25s ease;
+}
+
+.indicatorCompleted {
+  background-color: #10b981;
+  border-color: #10b981;
+  color: #0b111e;
+}
+
+.indicatorActive {
+  background-color: rgba(16, 185, 129, 0.15);
+  border-color: #10b981;
+  color: #10b981;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12);
+}
+
+.indicatorFailed {
+  background-color: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+  color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12);
+}
+
+.indicatorPending {
+  opacity: 0.5;
+  background-color: #101216;
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #6b7280;
+}
+
+.pulseRing {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10b981;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+.content {
+  flex: 1;
+  padding-top: 6px;
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.label {
+  font-size: 16px;
+  font-weight: 500;
+  color: #f3f4f6;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.labelPending {
+  color: #9ca3af;
+}
+
+.labelActive {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.labelFailed {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.description {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #9ca3af;
+}
+
+.descriptionPending {
+  color: #6b7280;
+}
+
+.activeBadge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.emailNoteCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 18px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  margin-top: 8px;
+}
+
+.mailIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: #10b981;
+  margin-top: 1px;
+}
+
+.emailNoteText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #d1d5db;
+}
+
+.longWaitBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 18px;
+  background-color: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 12px;
+  color: #bfdbfe;
+}
+
+.longWaitIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: #60a5fa;
+  margin-top: 1px;
+}
+
+.longWaitText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #dbeafe;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulseRing {
+    animation: none;
+    transform: none;
+    opacity: 1;
+  }
+}
