@@ -1,3 +1,4 @@
+import { Container } from '@/shared/ui'
 import {
   Audience,
   BetaForm,
@@ -10,6 +11,7 @@ import {
   Steps,
   Trust,
 } from '@/widgets'
+import styles from './LandingPage.module.css'
 
 export const LandingPage = () => {
   return (
@@ -21,9 +23,15 @@ export const LandingPage = () => {
         <Steps />
         <Comparison />
         <Trust />
-        <BetaOffer />
         <Faq />
-        <BetaForm />
+        <section id="beta-form" className={styles.betaSection} aria-labelledby="beta-offer-title">
+          <Container>
+            <div className={styles.betaGrid}>
+              <BetaOffer />
+              <BetaForm />
+            </div>
+          </Container>
+        </section>
       </main>
       <Footer />
     </>

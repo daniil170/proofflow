@@ -1,0 +1,26 @@
+.betaSection {
+  padding-top: var(--space-16);
+  padding-bottom: var(--space-20);
+  background-color: var(--color-bg-base);
+}
+
+.betaGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  align-items: center;
+}
+
+@media (min-width: 1024px) {
+  .betaSection {
+    padding-top: var(--space-20);
+    padding-bottom: var(--space-24);
+  }
+
+  .betaGrid {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-12);
+  }
+}

@@ -1,43 +1,11 @@
-.formSection {
-  padding-top: var(--space-12);
-  padding-bottom: var(--space-20);
-  background-color: var(--color-bg-base);
-}
-
-.inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
 .formCard {
   width: 100%;
-  max-width: 520px;
+  max-width: 480px;
   background-color: var(--color-bg-surface);
   border: 1px solid var(--color-border-light);
   border-radius: var(--radius-2xl);
-  padding: var(--space-8);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.04);
-}
-
-.cardHeader {
-  margin-bottom: var(--space-6);
-  text-align: left;
-}
-
-.cardTitle {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-bold);
-  line-height: var(--line-height-snug);
-  letter-spacing: -0.02em;
-  color: var(--color-text-primary);
-  margin-bottom: var(--space-2);
-}
-
-.cardSubtitle {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  line-height: var(--line-height-relaxed);
+  padding: var(--space-6);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.05);
 }
 
 .form {
@@ -51,7 +19,7 @@
 }
 
 .directContact {
-  margin-top: var(--space-4);
+  margin-top: var(--space-3);
   text-align: center;
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
@@ -70,12 +38,7 @@
 }
 
 @media (min-width: 768px) {
-  .formSection {
-    padding-top: var(--space-16);
-    padding-bottom: var(--space-24);
-  }
-
   .formCard {
-    padding: var(--space-10);
+    padding: var(--space-8);
   }
 }
