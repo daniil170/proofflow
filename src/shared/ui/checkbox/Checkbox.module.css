@@ -1,0 +1,74 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.labelRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  cursor: pointer;
+  user-select: none;
+}
+
+.labelRowDisabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.box {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-light);
+  background-color: var(--color-bg-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.input:focus-visible + .box {
+  border-color: var(--color-border-strong);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+
+.boxChecked {
+  background-color: var(--color-bg-dark);
+  border-color: var(--color-bg-dark);
+}
+
+.boxError {
+  border-color: var(--color-danger);
+}
+
+.checkIcon {
+  width: 14px;
+  height: 14px;
+  color: var(--color-text-inverse);
+}
+
+.labelText {
+  font-size: var(--font-size-xs);
+  line-height: 1.45;
+  color: var(--color-text-secondary);
+}
+
+.errorText {
+  font-size: var(--font-size-xs);
+  color: var(--color-danger);
+  margin-left: calc(20px + var(--space-3));
+}
