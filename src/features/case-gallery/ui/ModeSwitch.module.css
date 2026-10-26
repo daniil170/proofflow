@@ -1,0 +1,42 @@
+.switchGroup {
+  display: flex;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 4px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  gap: 4px;
+}
+
+.switchButton {
+  appearance: none;
+  background: transparent;
+  border: none;
+  padding: 8px 18px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.switchButton:hover {
+  color: var(--color-text-primary);
+}
+
+.switchButtonActive {
+  background-color: var(--color-bg-dark);
+  color: #ffffff;
+  font-weight: var(--font-weight-bold);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.switchButtonActive:hover {
+  color: #ffffff;
+}

@@ -1,0 +1,13 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.cardWrapper {
+  width: 100%;
+  max-width: 520px;
+  box-sizing: border-box;
+}
