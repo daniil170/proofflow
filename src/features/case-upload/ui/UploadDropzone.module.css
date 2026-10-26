@@ -1,0 +1,99 @@
+.dropzone {
+  border: 2px dashed var(--color-border-light);
+  border-radius: var(--radius-2xl);
+  background-color: var(--color-bg-surface);
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  min-height: 200px;
+  outline: none;
+}
+
+@media (min-width: 640px) {
+  .dropzone {
+    padding: var(--space-12) var(--space-8);
+    min-height: 240px;
+  }
+}
+
+.dropzone:hover,
+.dropzone:focus-visible {
+  border-color: var(--color-border-strong);
+  background-color: #faf9f4;
+}
+
+.dropzoneActive {
+  border-color: var(--color-text-primary);
+  background-color: rgba(214, 249, 76, 0.15);
+  transform: scale(0.99);
+}
+
+.iconCircle {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-bg-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+}
+
+.title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  max-width: 440px;
+  line-height: var(--line-height-normal);
+  margin: 0;
+}
+
+.pasteBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  background-color: var(--color-bg-base);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.selectButton {
+  min-height: 44px;
+  padding: 0 var(--space-5);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-text-primary);
+  color: var(--color-text-inverse);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  border: none;
+  cursor: pointer;
+  margin-top: var(--space-2);
+  transition: opacity var(--transition-fast);
+}
+
+.selectButton:hover {
+  opacity: 0.9;
+}
