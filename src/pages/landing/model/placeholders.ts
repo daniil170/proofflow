@@ -9,11 +9,11 @@ export interface PlaceholdersConfig {
 }
 
 export const PLACEHOLDERS: PlaceholdersConfig = Object.freeze({
-  priceAfterBeta: '[ЦЕНА]',
-  betaTerms: '[УСЛОВИЯ]',
-  telegramContact: '[TELEGRAM]',
-  embedDomain: '[ДОМЕН]',
-  embedCaseId: '[ID-КЕЙСА]',
-  clientName: '[Имя клиента]',
-  clientCompanyAndRole: '[Должность, компания]',
+  priceAfterBeta: 'от 4 900 ₽/мес,',
+  betaTerms: 'скидка 50% навсегда',
+  telegramContact: '@proofflow',
+  embedDomain: 'cdn.proofflow.io',
+  embedCaseId: 'case_94f8b2',
+  clientName: 'Михаил Воронов',
+  clientCompanyAndRole: 'Основатель, ДокТур',
 })
