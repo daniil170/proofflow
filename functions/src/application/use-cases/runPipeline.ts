@@ -5,6 +5,7 @@ import { PipelineStage, VerificationReport } from '../../domain/types.js'
 import { CaseAnalyzer } from '../../infrastructure/ports/CaseAnalyzer.js'
 import { CaseRepositoryPort } from '../../infrastructure/ports/CaseRepositoryPort.js'
 import { ChatReader } from '../../infrastructure/ports/ChatReader.js'
+import { EmailNotifier } from '../../infrastructure/ports/EmailNotifier.js'
 import { MediaNormalizer } from '../../infrastructure/ports/MediaNormalizer.js'
 import { StoragePort } from '../../infrastructure/ports/StoragePort.js'
 import { Transcriber } from '../../infrastructure/ports/Transcriber.js'
@@ -23,6 +24,8 @@ export interface RunPipelineInput {
   transcriber: Transcriber
   chatReader: ChatReader
   analyzer: CaseAnalyzer
+  emailNotifier?: EmailNotifier
+  userEmail?: string
   workDir?: string
 }
 
@@ -38,6 +41,8 @@ export const runPipeline = async ({
   transcriber,
   chatReader,
   analyzer,
+  emailNotifier,
+  userEmail,
   workDir,
 }: RunPipelineInput): Promise<RunPipelineResult> => {
   const targetDir =
@@ -123,6 +128,26 @@ export const runPipeline = async ({
       evidences,
       finalStatus: 'review',
     })
+
+    if (emailNotifier) {
+      const recipientEmail =
+        userEmail ||
+        (currentCase as { ownerEmail?: string }).ownerEmail ||
+        process.env.DEFAULT_NOTIFICATION_EMAIL
+
+      if (recipientEmail) {
+        const appBaseUrl =
+          process.env.APP_BASE_URL || 'https://proofflow.web.app'
+        await emailNotifier
+          .sendReviewReadyEmail({
+            toEmail: recipientEmail,
+            caseId,
+            clientLabel: currentCase.clientLabel,
+            caseUrl: `${appBaseUrl}/app/cases/${caseId}`,
+          })
+          .catch(() => {})
+      }
+    }
 
     await caseRepository.updateStage(caseId, 'done', 100, 'Готово к проверке')
 

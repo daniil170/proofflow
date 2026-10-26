@@ -6,6 +6,7 @@ import {
   MemoryCaseRepository,
   MockCaseAnalyzer,
   MockChatReader,
+  MockEmailNotifier,
   MockTranscriber,
 } from '../../../infrastructure/adapters/index.js'
 import { runPipeline } from '../runPipeline.js'
@@ -55,6 +56,7 @@ describe('runPipeline end-to-end integration', () => {
     const transcriber = new MockTranscriber()
     const chatReader = new MockChatReader()
     const analyzer = new MockCaseAnalyzer()
+    const emailNotifier = new MockEmailNotifier()
 
     const { report } = await runPipeline({
       caseId,
@@ -64,6 +66,8 @@ describe('runPipeline end-to-end integration', () => {
       transcriber,
       chatReader,
       analyzer,
+      emailNotifier,
+      userEmail: 'owner@example.com',
     })
 
     const updatedCase = await repo.getCase(caseId)
@@ -81,6 +85,9 @@ describe('runPipeline end-to-end integration', () => {
     expect(updatedCase?.draft).toBeDefined()
     expect(updatedCase?.draft?.quote.text).toBeTruthy()
     expect(report.evidences.length).toBeGreaterThan(0)
+    expect(emailNotifier.sentEmails).toHaveLength(1)
+    expect(emailNotifier.sentEmails[0].toEmail).toBe('owner@example.com')
+    expect(emailNotifier.sentEmails[0].caseId).toBe(caseId)
   })
 
   it('marks case as failed when error occurs in use case', async () => {

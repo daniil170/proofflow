@@ -5,10 +5,12 @@ import {
   ClaudeCaseAnalyzer,
   ClaudeChatReader,
   FirebaseStorageAdapter,
+  FirebaseTriggerEmailNotifier,
   FirestoreCaseRepository,
   MediaNormalizerImpl,
   MockCaseAnalyzer,
   MockChatReader,
+  MockEmailNotifier,
   MockTranscriber,
   WhisperTranscriber,
 } from '../infrastructure/adapters/index.js'
@@ -58,6 +60,11 @@ export const onCaseProcessTrigger = onDocumentWritten(
         ? new MockCaseAnalyzer()
         : new ClaudeCaseAnalyzer(process.env.ANTHROPIC_API_KEY)
 
+    const emailNotifier =
+      useMocks || process.env.NODE_ENV !== 'production'
+        ? new MockEmailNotifier()
+        : new FirebaseTriggerEmailNotifier()
+
     await runPipeline({
       caseId,
       caseRepository,
@@ -66,6 +73,7 @@ export const onCaseProcessTrigger = onDocumentWritten(
       transcriber,
       chatReader,
       analyzer,
+      emailNotifier,
     })
   }
 )
