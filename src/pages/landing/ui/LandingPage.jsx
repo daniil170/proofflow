@@ -3,13 +3,13 @@ import {
   Audience,
   BetaForm,
   BetaOffer,
-  CaseStylesShowcase,
   Comparison,
   Faq,
   Footer,
   Header,
   Hero,
   Steps,
+  StylePicker,
   Trust,
 } from '@/widgets'
 import styles from './LandingPage.module.css'
@@ -23,7 +23,7 @@ export const LandingPage = () => {
         <Audience />
         <Steps />
         <Comparison />
-        <CaseStylesShowcase />
+        <StylePicker />
         <Trust />
         <Faq />
         <section id="beta-form" className={styles.betaSection} aria-labelledby="beta-offer-title">
