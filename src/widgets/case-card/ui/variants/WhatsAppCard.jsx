@@ -7,10 +7,7 @@ export const WhatsAppCard = ({ data, className }) => {
   const messages =
     data.chatMessages && data.chatMessages.length > 0
       ? data.chatMessages
-      : [
-          'Это было невероятно вкусно!',
-          data.quote.replace(/^[«"]/, '').replace(/[»"]$/, ''),
-        ]
+      : ['Это было невероятно вкусно!', data.quote.replace(/^[«"]/, '').replace(/[»"]$/, '')]
 
   return (
     <div className={`${styles.card} ${className || ''}`}>
@@ -54,9 +51,7 @@ export const WhatsAppCard = ({ data, className }) => {
         </div>
       </div>
 
-      <div className={styles.transcriptHeader}>
-        ОРИГИНАЛ · ПЕРЕПИСКА В WHATSAPP
-      </div>
+      <div className={styles.transcriptHeader}>ОРИГИНАЛ · ПЕРЕПИСКА В WHATSAPP</div>
 
       <div className={styles.chatBox}>
         {messages[0] && <div className={styles.bubbleGray}>{messages[0]}</div>}
@@ -73,9 +68,7 @@ export const WhatsAppCard = ({ data, className }) => {
             </div>
             <div className={styles.authorMeta}>
               <span className={styles.authorName}>{data.author}</span>
-              <span className={styles.authorRole}>
-                Клиент {data.company || 'кондитерской'}
-              </span>
+              <span className={styles.authorRole}>Клиент {data.company || 'кондитерской'}</span>
             </div>
           </div>
 

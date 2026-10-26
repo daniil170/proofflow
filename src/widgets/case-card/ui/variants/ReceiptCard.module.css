@@ -9,8 +9,9 @@
   border-radius: 4px;
   padding: 24px 20px;
   color: #1a1a1a;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
-    'Courier New', monospace;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
   position: relative;
 }
@@ -56,6 +57,7 @@
   justify-content: space-between;
   gap: 6px;
   width: 100%;
+  flex-wrap: wrap;
 }
 
 .itemKey {
@@ -76,7 +78,7 @@
   color: #222222;
   text-align: right;
   flex-shrink: 0;
-  max-width: 60%;
+  max-width: 100%;
   word-break: break-word;
 }
 

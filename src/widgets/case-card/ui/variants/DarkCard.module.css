@@ -71,7 +71,7 @@
   gap: 10px;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .statsGrid {
     grid-template-columns: 1fr;
   }
@@ -85,6 +85,8 @@
   border-radius: 12px;
   background-color: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.04);
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .statBoxHighlight {
@@ -95,6 +97,8 @@
   border-radius: 12px;
   background-color: #d6f94c;
   color: #0e1714;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .statLabel {
@@ -118,6 +122,7 @@
   line-height: 1.35;
   color: #ffffff;
   font-weight: 500;
+  word-break: break-word;
 }
 
 .statTextHighlight {
@@ -125,6 +130,7 @@
   line-height: 1.35;
   color: #0e1714;
   font-weight: 700;
+  word-break: break-word;
 }
 
 .tagsRow {

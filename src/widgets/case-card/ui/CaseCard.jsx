@@ -1,8 +1,5 @@
 import PropTypes from 'prop-types'
-import {
-  DEFAULT_CASE_DATA,
-  CONFECTIONERY_CASE_DATA,
-} from '@/entities/case'
+import { DEFAULT_CASE_DATA, CONFECTIONERY_CASE_DATA } from '@/entities/case'
 import { DarkCard } from './variants/DarkCard'
 import { NewspaperCard } from './variants/NewspaperCard'
 import { WhatsAppCard } from './variants/WhatsAppCard'

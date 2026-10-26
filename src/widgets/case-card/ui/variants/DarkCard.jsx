@@ -7,9 +7,7 @@ export const DarkCard = ({ data, className }) => {
   return (
     <div className={`${styles.card} ${className || ''}`}>
       <div className={styles.header}>
-        <span className={styles.category}>
-          КЕЙС · {data.category || 'SMM-СТРАТЕГИЯ'}
-        </span>
+        <span className={styles.category}>КЕЙС · {data.category || 'SMM-СТРАТЕГИЯ'}</span>
         {data.isVerifiedByChat && (
           <span className={styles.verified}>
             <svg

@@ -6,9 +6,7 @@ export const ReceiptCard = ({ data, className }) => {
     <div className={`${styles.card} ${className || ''}`}>
       <div className={styles.header}>
         <h4 className={styles.title}>ЧЕК ОТ КЛИЕНТА</h4>
-        <span className={styles.subTitle}>
-          {data.company} · [дата отзыва]
-        </span>
+        <span className={styles.subTitle}>{data.company} · [дата отзыва]</span>
       </div>
 
       <div className={styles.dashedRule} aria-hidden="true" />
