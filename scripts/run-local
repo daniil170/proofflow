@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -e
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+npx --prefix "$PROJECT_ROOT/functions" tsx "$PROJECT_ROOT/functions/scripts/run-local.ts" "$@"
