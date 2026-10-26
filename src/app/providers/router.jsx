@@ -7,6 +7,9 @@ import {
   NewCasePage,
   PublicCasePage,
   SettingsPage,
+  TermsPage,
+  PrivacyPage,
+  CookiesPage,
 } from '@/pages'
 import { ProtectedRoute } from '@/features/auth'
 import { AppLayout } from '@/widgets'
@@ -23,6 +26,18 @@ export const router = createBrowserRouter([
   {
     path: '/c/:id',
     element: <PublicCasePage />,
+  },
+  {
+    path: '/terms',
+    element: <TermsPage />,
+  },
+  {
+    path: '/privacy',
+    element: <PrivacyPage />,
+  },
+  {
+    path: '/cookies',
+    element: <CookiesPage />,
   },
   {
     path: '/app',

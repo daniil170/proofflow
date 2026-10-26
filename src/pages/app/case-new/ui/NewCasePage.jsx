@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth'
+import { UploadTrustNotice } from '@/components/legal'
 import { CASE_STATUS, getCaseRepository } from '@/shared/api'
 import styles from './NewCasePage.module.css'
 
@@ -168,6 +169,8 @@ export const NewCasePage = () => {
               disabled={isSubmitting}
             />
           </div>
+
+          <UploadTrustNotice />
 
           <div className={styles.actions}>
             <Link to="/app" className={styles.cancelButton}>
