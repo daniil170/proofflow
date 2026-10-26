@@ -122,7 +122,8 @@
   line-height: 1.35;
   color: #ffffff;
   font-weight: 500;
-  word-break: break-word;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .statTextHighlight {
@@ -130,7 +131,8 @@
   line-height: 1.35;
   color: #0e1714;
   font-weight: 700;
-  word-break: break-word;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .tagsRow {
