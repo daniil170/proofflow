@@ -9,8 +9,8 @@ export interface PlaceholdersConfig {
 }
 
 export const PLACEHOLDERS: PlaceholdersConfig = Object.freeze({
-  priceAfterBeta: 'от 4 900 ₽/мес,',
-  betaTerms: 'скидка 50% навсегда',
+  priceAfterBeta: 'от 19$/мес,',
+  betaTerms: 'скидка 20% навсегда',
   telegramContact: '@proofflow',
   embedDomain: 'cdn.proofflow.io',
   embedCaseId: 'case_94f8b2',
