@@ -21,3 +21,5 @@ export {
   firestoreCaseRepository,
   mockCaseRepository,
 } from './cases/index.js'
+
+export { getSourceUploader, firebaseSourceUploader, mockSourceUploader } from './storage/index.js'
