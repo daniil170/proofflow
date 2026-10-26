@@ -302,6 +302,19 @@
   font-style: normal;
 }
 
+.contentBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.contentHeading {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
 .loadingBox,
 .errorBox {
   padding: var(--space-16) var(--space-4);

@@ -1,55 +1,27 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { CASE_STATUS, CASE_STATUS_LABELS, getCaseRepository } from '@/shared/api'
+import { ProcessingScreen, useCaseProgress } from '@/features/case-progress'
 import styles from './CaseProcessPage.module.css'
 
 export const CaseProcessPage = () => {
   const { id } = useParams()
-  const [caseItem, setCaseItem] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const progressState = useCaseProgress({ caseId: id })
+  const { caseItem, isLoading, error, status } = progressState
   const [isUpdating, setIsUpdating] = useState(false)
-  const [error, setError] = useState(null)
-
-  useEffect(() => {
-    let isMounted = true
-    const repository = getCaseRepository()
-
-    repository
-      .getById(id)
-      .then((item) => {
-        if (!isMounted) return
-        if (!item) {
-          setError('Кейс не найден')
-        } else {
-          setCaseItem(item)
-        }
-      })
-      .catch((err) => {
-        if (!isMounted) return
-        setError(err?.message || 'Ошибка загрузки данных кейса')
-      })
-      .finally(() => {
-        if (isMounted) {
-          setIsLoading(false)
-        }
-      })
-
-    return () => {
-      isMounted = false
-    }
-  }, [id])
+  const [actionError, setActionError] = useState(null)
 
   const handleStatusChange = async (newStatus) => {
     if (!caseItem) return
     setIsUpdating(true)
+    setActionError(null)
     try {
       const repository = getCaseRepository()
-      const updated = await repository.update(caseItem.id, {
+      await repository.update(caseItem.id, {
         status: newStatus,
       })
-      setCaseItem((prev) => ({ ...prev, ...updated, status: newStatus }))
     } catch (err) {
-      setError(err?.message || 'Не удалось обновить статус')
+      setActionError(err?.message || 'Не удалось обновить статус')
     } finally {
       setIsUpdating(false)
     }
@@ -64,7 +36,7 @@ export const CaseProcessPage = () => {
     )
   }
 
-  if (error || !caseItem) {
+  if ((error && !caseItem) || !caseItem) {
     return (
       <div className={styles.errorBox}>
         <p>{error || 'Кейс не найден'}</p>
@@ -74,6 +46,18 @@ export const CaseProcessPage = () => {
       </div>
     )
   }
+
+  if (status === 'processing' || status === 'failed') {
+    return <ProcessingScreen progressState={progressState} />
+  }
+
+  const clientLabel = caseItem.clientLabel || caseItem.client || 'Клиент'
+  const title = caseItem.title || `Кейс для ${clientLabel}`
+  const draft = caseItem.draft
+  const metricValue = draft?.metric?.value || caseItem.metric
+  const metricLabel = draft?.metric?.label || caseItem.metricLabel
+  const quoteText = draft?.quote?.text || caseItem.quote
+  const authorLabel = draft?.quote?.authorLabel || caseItem.author
 
   return (
     <div className={styles.container}>
@@ -95,14 +79,24 @@ export const CaseProcessPage = () => {
         )}
       </div>
 
+      {actionError && (
+        <div className={styles.errorBox}>
+          <p>{actionError}</p>
+        </div>
+      )}
+
       <div className={styles.headerCard}>
         <div className={styles.titleRow}>
           <div>
-            <div className={styles.clientTag}>{caseItem.client}</div>
-            <h1 className={styles.title}>{caseItem.title}</h1>
+            <div className={styles.clientTag}>{clientLabel}</div>
+            <h1 className={styles.title}>{title}</h1>
           </div>
 
-          <div className={`${styles.statusBadge} ${styles[`status_${caseItem.status}`] || ''}`}>
+          <div
+            className={`${styles.statusBadge} ${
+              styles[`status_${caseItem.status}`] || ''
+            }`}
+          >
             <span className={styles.statusDot} />
             <span>{CASE_STATUS_LABELS[caseItem.status] || caseItem.status}</span>
           </div>
@@ -153,82 +147,51 @@ export const CaseProcessPage = () => {
         </div>
       </div>
 
-      <div className={styles.stepsSection}>
-        <h2 className={styles.sectionTitle}>Этапы создания кейса</h2>
-
-        <div className={styles.stepsList}>
-          <div className={styles.stepItem}>
-            <div className={`${styles.stepNumber} ${styles.stepDone}`}>✓</div>
-            <div className={styles.stepContent}>
-              <div className={styles.stepTitle}>1. Исходные материалы загружены</div>
-              <div className={styles.stepDescription}>
-                Формат: {caseItem.sourceType || 'аудио'}. Данные успешно приняты платформой.
-              </div>
-            </div>
-          </div>
-
-          <div className={styles.stepItem}>
-            <div
-              className={`${styles.stepNumber} ${
-                caseItem.status === CASE_STATUS.PROCESSING ? styles.stepActive : styles.stepDone
-              }`}
-            >
-              {caseItem.status === CASE_STATUS.PROCESSING ? '2' : '✓'}
-            </div>
-            <div className={styles.stepContent}>
-              <div className={styles.stepTitle}>2. AI-анализ и выделение ключевых метрик</div>
-              <div className={styles.stepDescription}>
-                {caseItem.status === CASE_STATUS.PROCESSING
-                  ? 'Выполняется поиск твердых фактов и ключевых цитат...'
-                  : 'Смыслы и цитаты верифицированы.'}
-              </div>
-            </div>
-          </div>
-
-          <div className={styles.stepItem}>
-            <div
-              className={`${styles.stepNumber} ${
-                caseItem.status === CASE_STATUS.PUBLISHED
-                  ? styles.stepDone
-                  : caseItem.status === CASE_STATUS.REVIEW
-                    ? styles.stepActive
-                    : styles.stepPending
-              }`}
-            >
-              {caseItem.status === CASE_STATUS.PUBLISHED ? '✓' : '3'}
-            </div>
-            <div className={styles.stepContent}>
-              <div className={styles.stepTitle}>
-                3. Карточка и виджет социального доказательства
-              </div>
-              <div className={styles.stepDescription}>
-                {caseItem.status === CASE_STATUS.PUBLISHED
-                  ? 'Кейс опубликован и доступен по ссылке.'
-                  : 'Готово к публикации и встраиванию на сайт.'}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div className={styles.previewCard}>
-        <h2 className={styles.sectionTitle}>Предпросмотр контента</h2>
+        <h2 className={styles.sectionTitle}>Проверка материалов кейса</h2>
 
-        {caseItem.metric && (
+        {metricValue && (
           <div className={styles.metricBanner}>
-            <span className={styles.metricValue}>{caseItem.metric}</span>
-            <span className={styles.metricLabel}>{caseItem.metricLabel}</span>
+            <span className={styles.metricValue}>{metricValue}</span>
+            {metricLabel && (
+              <span className={styles.metricLabel}>{metricLabel}</span>
+            )}
           </div>
         )}
 
-        {caseItem.quote && (
+        {draft?.problem && (
+          <div className={styles.contentBlock}>
+            <h3 className={styles.contentHeading}>Проблема</h3>
+            <p className={styles.stepDescription}>{draft.problem}</p>
+          </div>
+        )}
+
+        {draft?.solution && (
+          <div className={styles.contentBlock}>
+            <h3 className={styles.contentHeading}>Решение</h3>
+            <p className={styles.stepDescription}>{draft.solution}</p>
+          </div>
+        )}
+
+        {draft?.result && (
+          <div className={styles.contentBlock}>
+            <h3 className={styles.contentHeading}>Результат</h3>
+            <p className={styles.stepDescription}>{draft.result}</p>
+          </div>
+        )}
+
+        {quoteText && (
           <div className={styles.quoteBlock}>
-            <p>«{caseItem.quote}»</p>
-            {caseItem.author && <div className={styles.authorText}>— {caseItem.author}</div>}
+            <p>«{quoteText}»</p>
+            {authorLabel && (
+              <div className={styles.authorText}>— {authorLabel}</div>
+            )}
           </div>
         )}
 
-        {caseItem.summary && <p className={styles.stepDescription}>{caseItem.summary}</p>}
+        {caseItem.summary && !draft && (
+          <p className={styles.stepDescription}>{caseItem.summary}</p>
+        )}
       </div>
     </div>
   )
