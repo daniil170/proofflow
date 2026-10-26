@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { Button, Container } from '@/shared/ui'
 import logoSvg from '@/assets/logo/proofflow-logo-horizontal-on-light.svg'
 import styles from './Header.module.css'
@@ -37,6 +38,9 @@ export const Header = () => {
           </nav>
 
           <div className={styles.actionGroup}>
+            <Link to="/login" className={styles.loginLink}>
+              Войти
+            </Link>
             <Button
               variant="primary"
               size="sm"
