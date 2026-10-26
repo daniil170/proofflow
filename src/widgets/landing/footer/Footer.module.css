@@ -30,6 +30,25 @@
   color: var(--color-text-muted);
 }
 
+.legalNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: center;
+  justify-content: center;
+}
+
+.legalLink {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.legalLink:hover {
+  color: var(--color-text-primary);
+}
+
 @media (min-width: 768px) {
   .inner {
     flex-direction: row;

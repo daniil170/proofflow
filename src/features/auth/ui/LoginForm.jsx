@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { AuthLegalNotice } from '@/components/legal'
 import { useAuth } from '../model/useAuth.js'
 import styles from './LoginForm.module.css'
 
@@ -259,6 +260,8 @@ export const LoginForm = ({ onSuccess }) => {
             <button type="submit" disabled={isSubmitting} className={styles.submitButton}>
               {isSubmitting ? 'Отправляем...' : 'Получить ссылку для входа'}
             </button>
+
+            <AuthLegalNotice />
           </form>
         </>
       )}

@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth'
 import { CaseUploadForm, useCaseUpload } from '@/features/case-upload'
+import { UploadTrustNotice } from '@/components/legal'
 import styles from './NewCasePage.module.css'
 
 export const NewCasePage = () => {
@@ -28,6 +29,8 @@ export const NewCasePage = () => {
       </header>
 
       <CaseUploadForm uploadState={uploadState} />
+
+      <UploadTrustNotice />
     </div>
   )
 }
