@@ -1,3 +1,22 @@
+export type {
+  Case,
+  CaseBranding,
+  CaseCardVariantType,
+  CaseDraft,
+  CaseDraftMetric,
+  CaseDraftQuote,
+  CaseStatus,
+  ChatExtraction,
+  ChatMessage,
+  ChatMessageSide,
+  Evidence,
+  EvidenceKind,
+  Source,
+  SourceKind,
+  Transcript,
+  TranscriptSegment,
+} from './schemas.ts'
+
 export interface CaseData {
   readonly metric: string
   readonly metricLabel: string
