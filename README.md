@@ -120,8 +120,71 @@ proofflow/
 │   ├── App.jsx          # Главный компонент приложения
 │   ├── index.css        # Базовые стили
 │   └── main.jsx         # Точка входа React
+├── functions/           # Cloud Functions (Node.js, TypeScript)
+├── firestore.rules      # Правила безопасности Firestore
+├── storage.rules        # Правила безопасности Cloud Storage
+├── firestore.indexes.json # Составные индексы Firestore
+├── firebase.json        # Конфигурация Firebase CLI и эмуляторов
 ├── index.html           # HTML-шаблон
 ├── package.json         # Зависимости и скрипты
 ├── vite.config.js       # Конфигурация Vite
 └── README.md            # Документация проекта
+```
+
+---
+
+## 9. Деплой (Deployment)
+
+### Предварительные требования
+
+1. Установлен Firebase CLI: `npm install -g firebase-tools`
+2. Авторизация в аккаунте: `firebase login`
+3. Выбор активного проекта: `firebase use <PROJECT_ID>`
+
+### 1. Настройка секретов (Secret Manager)
+
+Чувствительные API-ключи внешних AI-провайдеров хранятся в Google Cloud Secret Manager через Firebase Functions Secrets:
+
+```bash
+# Ключ OpenAI (для Whisper транскрибации)
+firebase functions:secrets:set OPENAI_API_KEY
+
+# Ключ Anthropic (для Claude 3.5 анализа кейса и OCR)
+firebase functions:secrets:set ANTHROPIC_API_KEY
+```
+
+### 2. Деплой правил безопасности и индексов
+
+Перед деплоем бэкенда примените правила доступа и индексы базы данных:
+
+```bash
+# Деплой правил Firestore и Cloud Storage
+firebase deploy --only firestore:rules,storage
+
+# Деплой составных индексов базы данных
+firebase deploy --only firestore:indexes
+```
+
+### 3. Сборка и деплой Cloud Functions
+
+Соберите TypeScript-код функций и запустите деплой:
+
+```bash
+# Сборка функций
+npm --prefix functions run build
+
+# Деплой триггеров пайплайна обработки
+firebase deploy --only functions
+```
+
+### 4. Локальное тестирование и эмуляторы
+
+Для проверки правил безопасности и локальной разработки используйте встроенные эмуляторы:
+
+```bash
+# Запуск юнит-тестов правил безопасности (поднимает эмуляторы Firestore и Storage)
+npm run test:rules
+
+# Запуск полного стека эмуляторов
+firebase emulators:start
 ```
