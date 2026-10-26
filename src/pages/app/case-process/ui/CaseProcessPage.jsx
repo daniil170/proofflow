@@ -2,7 +2,39 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { CASE_STATUS, CASE_STATUS_LABELS, getCaseRepository } from '@/shared/api'
 import { ProcessingScreen, useCaseProgress } from '@/features/case-progress'
+import { CaseReviewEditor, useCaseReview } from '@/features/case-review'
 import styles from './CaseProcessPage.module.css'
+
+const CaseReviewSection = ({ caseItem, onStatusChange, isUpdating }) => {
+  const reviewState = useCaseReview({
+    caseItem,
+    onVerified: () => {
+      onStatusChange(CASE_STATUS.READY)
+    },
+  })
+
+  return (
+    <>
+      {caseItem.status === CASE_STATUS.READY && (
+        <div className={styles.publishAllowedBanner}>
+          <p className={styles.publishAllowedText}>
+            ✓ Черновик успешно проверен. Теперь кейс можно опубликовать на сайте.
+          </p>
+          <button
+            type="button"
+            className={styles.publishButton}
+            onClick={() => onStatusChange(CASE_STATUS.PUBLISHED)}
+            disabled={isUpdating}
+          >
+            Опубликовать кейс
+          </button>
+        </div>
+      )}
+
+      <CaseReviewEditor reviewState={reviewState} />
+    </>
+  )
+}
 
 export const CaseProcessPage = () => {
   const { id } = useParams()
@@ -53,11 +85,9 @@ export const CaseProcessPage = () => {
 
   const clientLabel = caseItem.clientLabel || caseItem.client || 'Клиент'
   const title = caseItem.title || `Кейс для ${clientLabel}`
-  const draft = caseItem.draft
-  const metricValue = draft?.metric?.value || caseItem.metric
-  const metricLabel = draft?.metric?.label || caseItem.metricLabel
-  const quoteText = draft?.quote?.text || caseItem.quote
-  const authorLabel = draft?.quote?.authorLabel || caseItem.author
+  const isPublishAllowed =
+    caseItem.status === CASE_STATUS.READY ||
+    caseItem.status === CASE_STATUS.PUBLISHED
 
   return (
     <div className={styles.container}>
@@ -85,7 +115,7 @@ export const CaseProcessPage = () => {
         </div>
       )}
 
-      <div className={styles.headerCard}>
+      <header className={styles.headerCard}>
         <div className={styles.titleRow}>
           <div>
             <div className={styles.clientTag}>{clientLabel}</div>
@@ -124,7 +154,7 @@ export const CaseProcessPage = () => {
               На проверку
             </button>
           )}
-          {caseItem.status !== CASE_STATUS.PUBLISHED && (
+          {isPublishAllowed && caseItem.status !== CASE_STATUS.PUBLISHED && (
             <button
               type="button"
               className={styles.statusButton}
@@ -145,54 +175,13 @@ export const CaseProcessPage = () => {
             </button>
           )}
         </div>
-      </div>
+      </header>
 
-      <div className={styles.previewCard}>
-        <h2 className={styles.sectionTitle}>Проверка материалов кейса</h2>
-
-        {metricValue && (
-          <div className={styles.metricBanner}>
-            <span className={styles.metricValue}>{metricValue}</span>
-            {metricLabel && (
-              <span className={styles.metricLabel}>{metricLabel}</span>
-            )}
-          </div>
-        )}
-
-        {draft?.problem && (
-          <div className={styles.contentBlock}>
-            <h3 className={styles.contentHeading}>Проблема</h3>
-            <p className={styles.stepDescription}>{draft.problem}</p>
-          </div>
-        )}
-
-        {draft?.solution && (
-          <div className={styles.contentBlock}>
-            <h3 className={styles.contentHeading}>Решение</h3>
-            <p className={styles.stepDescription}>{draft.solution}</p>
-          </div>
-        )}
-
-        {draft?.result && (
-          <div className={styles.contentBlock}>
-            <h3 className={styles.contentHeading}>Результат</h3>
-            <p className={styles.stepDescription}>{draft.result}</p>
-          </div>
-        )}
-
-        {quoteText && (
-          <div className={styles.quoteBlock}>
-            <p>«{quoteText}»</p>
-            {authorLabel && (
-              <div className={styles.authorText}>— {authorLabel}</div>
-            )}
-          </div>
-        )}
-
-        {caseItem.summary && !draft && (
-          <p className={styles.stepDescription}>{caseItem.summary}</p>
-        )}
-      </div>
+      <CaseReviewSection
+        caseItem={caseItem}
+        onStatusChange={handleStatusChange}
+        isUpdating={isUpdating}
+      />
     </div>
   )
 }

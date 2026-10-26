@@ -118,6 +118,51 @@
   background-color: #4f46e5;
 }
 
+.status_ready {
+  background-color: #ecfdf5;
+  color: #065f46;
+}
+.status_ready .statusDot {
+  background-color: #10b981;
+}
+
+.publishAllowedBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background-color: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.publishAllowedText {
+  color: #d1fae5;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.publishButton {
+  min-height: 44px;
+  padding: 0 20px;
+  background-color: #10b981;
+  color: #0c0d10;
+  font-weight: 700;
+  font-size: 14px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.publishButton:hover:not(:disabled) {
+  background-color: #059669;
+}
+
 .status_draft {
   background-color: #f3f4f6;
   color: #4b5563;
