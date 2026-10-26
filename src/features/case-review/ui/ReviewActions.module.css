@@ -1,0 +1,248 @@
+.actionsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background-color: #12141a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.saveIndicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.saveDotSaved {
+  color: #10b981;
+}
+
+.saveDotSaving {
+  color: #f59e0b;
+}
+
+.buttonsRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.regenerateButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #e5e7eb;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.regenerateButton:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.09);
+}
+
+.verifyButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 24px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0c0d10;
+  background-color: #10b981;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.25);
+}
+
+.verifyButton:hover:not(:disabled) {
+  background-color: #059669;
+}
+
+.verifyButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.disabledHint {
+  font-size: 12px;
+  color: #9ca3af;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.regenerateMenu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: #181a20;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 14px;
+  animation: fadeIn 0.15s ease;
+}
+
+.menuTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f3f4f6;
+  margin: 0 0 6px;
+}
+
+.menuOption {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 44px;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.menuOption:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+  border-color: #10b981;
+}
+
+.optionLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f3f4f6;
+}
+
+.optionDesc {
+  font-size: 11px;
+  color: #9ca3af;
+  margin: 2px 0 0;
+}
+
+.feedbackSection {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.feedbackTitle {
+  font-size: 14px;
+  font-weight: 500;
+  color: #d1d5db;
+  margin: 0;
+}
+
+.ratingButtons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ratingButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 16px;
+  font-size: 16px;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ratingButton:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.ratingButtonActive {
+  background-color: rgba(16, 185, 129, 0.15);
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.feedbackForm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.commentInput {
+  min-height: 60px;
+  padding: 10px 12px;
+  background-color: #0c0d10;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 13px;
+  resize: vertical;
+}
+
+.commentInput:focus {
+  outline: none;
+  border-color: #10b981;
+}
+
+.submitFeedbackButton {
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #f3f4f6;
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.submitFeedbackButton:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.14);
+}
+
+.feedbackThankYou {
+  font-size: 13px;
+  color: #10b981;
+  margin: 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

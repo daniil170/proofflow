@@ -1,0 +1,169 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background-color: #12141a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.sourceHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sourceBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #9ca3af;
+}
+
+.audioPlayerBox {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.audioControls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.playButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  background-color: #10b981;
+  color: #0c0d10;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.playButton:hover {
+  background-color: #059669;
+}
+
+.waveformSimulation {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 24px;
+  flex: 1;
+}
+
+.waveBar {
+  width: 3px;
+  border-radius: 2px;
+  background-color: rgba(16, 185, 129, 0.4);
+  transition: height 0.2s ease;
+}
+
+.waveBarPlaying {
+  background-color: #10b981;
+}
+
+.highlightedTextCard {
+  background-color: rgba(16, 185, 129, 0.08);
+  border-left: 3px solid #10b981;
+  padding: 12px 14px;
+  border-radius: 4px;
+}
+
+.quoteLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #10b981;
+  margin: 0 0 4px;
+}
+
+.quoteText {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #f3f4f6;
+  margin: 0;
+}
+
+.screenshotComparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 640px) {
+  .screenshotComparison {
+    grid-template-columns: 1fr;
+  }
+}
+
+.screenshotBox {
+  background-color: #181a20;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.screenshotPlaceholder {
+  height: 160px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #9ca3af;
+  font-size: 12px;
+  text-align: center;
+  padding: 12px;
+}
+
+.mockChatMessage {
+  background-color: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 8px 8px 8px 2px;
+  padding: 8px 12px;
+  color: #f3f4f6;
+  font-size: 13px;
+  max-width: 90%;
+  align-self: flex-start;
+}
+
+.extractedBox {
+  background-color: #181a20;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.columnHeading {
+  font-size: 12px;
+  font-weight: 600;
+  color: #9ca3af;
+  margin: 0 0 8px;
+}
