@@ -12,6 +12,39 @@ const bootstrap = async (): Promise<void> => {
 
   const bot = createBot()
 
+  const isWebhook = config.mode === 'webhook'
+  const webhookHandler = isWebhook
+    ? webhookCallback(bot, 'http', {
+        secretToken: config.webhookSecretToken,
+      })
+    : null
+
+  if (isWebhook && config.webhookUrl) {
+    await bot.api.setWebhook(config.webhookUrl, {
+      secret_token: config.webhookSecretToken,
+    })
+    logger.info('Webhook registered', { webhookUrl: config.webhookUrl })
+  }
+
+  const server = createServer(async (req, res) => {
+    if (isWebhook && req.method === 'POST' && req.url === '/webhook') {
+      return webhookHandler!(req, res)
+    }
+    if (req.url === '/health' || req.url === '/') {
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ status: 'ok', mode: config.mode }))
+      return
+    }
+    res.writeHead(404)
+    res.end('Not Found')
+  })
+
+  server.listen(config.port, () => {
+    logger.info(`Server listening on port ${config.port}`, {
+      mode: config.mode,
+    })
+  })
+
   let isStopping = false
   const gracefulShutdown = async (signal: string) => {
     if (isStopping) return
@@ -19,6 +52,7 @@ const bootstrap = async (): Promise<void> => {
     logger.info(`Received ${signal}, initiating graceful shutdown...`)
 
     try {
+      server.close()
       if (bot.isInited()) {
         await bot.stop()
       }
@@ -33,37 +67,7 @@ const bootstrap = async (): Promise<void> => {
   process.on('SIGINT', () => gracefulShutdown('SIGINT'))
   process.on('SIGTERM', () => gracefulShutdown('SIGTERM'))
 
-  if (config.mode === 'webhook') {
-    if (config.webhookUrl) {
-      await bot.api.setWebhook(config.webhookUrl, {
-        secret_token: config.webhookSecretToken,
-      })
-      logger.info('Webhook registered', { webhookUrl: config.webhookUrl })
-    }
-
-    const handler = webhookCallback(bot, 'http', {
-      secretToken: config.webhookSecretToken,
-    })
-
-    const server = createServer(async (req, res) => {
-      if (req.method === 'POST' && req.url === '/webhook') {
-        return handler(req, res)
-      }
-      if (req.method === 'GET' && req.url === '/health') {
-        res.writeHead(200, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify({ status: 'ok' }))
-        return
-      }
-      res.writeHead(404)
-      res.end('Not Found')
-    })
-
-    server.listen(config.port, () => {
-      logger.info(`Webhook server running on port ${config.port}`, {
-        mode: 'webhook',
-      })
-    })
-  } else {
+  if (!isWebhook) {
     logger.info('Starting bot in long polling mode...', {
       storageType: config.storageType,
     })
