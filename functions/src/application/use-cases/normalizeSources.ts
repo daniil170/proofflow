@@ -57,10 +57,16 @@ export const normalizeSources = async ({
         audioChunks: chunks,
       })
     } else if (src.kind === 'audio' || src.kind === 'voice') {
-      const chunks = await normalizer.chunkAudio(localTarget)
+      const isMp3 = ext.toLowerCase() === '.mp3'
+      let finalAudioPath = localTarget
+      if (!isMp3) {
+        const audioDestination = path.join(workDir, `${src.id}-converted.mp3`)
+        finalAudioPath = await normalizer.convertToMp3(localTarget, audioDestination)
+      }
+      const chunks = await normalizer.chunkAudio(finalAudioPath)
       audios.push({
         source: src,
-        localFilePath: localTarget,
+        localFilePath: finalAudioPath,
         audioChunks: chunks,
       })
     } else if (src.kind === 'screenshot') {

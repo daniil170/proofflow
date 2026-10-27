@@ -13,6 +13,7 @@ export interface ChunkedTranscriptItem {
 
 export interface MediaNormalizer {
   extractAudio(videoFilePath: string, outputAudioPath: string): Promise<string>
+  convertToMp3(inputAudioPath: string, outputAudioPath: string): Promise<string>
   chunkAudio(audioFilePath: string, maxChunkBytes?: number): Promise<AudioChunk[]>
   stitchTranscripts(items: ChunkedTranscriptItem[]): Transcript
 }
