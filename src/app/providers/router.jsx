@@ -2,11 +2,13 @@ import { createBrowserRouter } from 'react-router-dom'
 import {
   CaseProcessPage,
   CasesListPage,
+  InvitePage,
   LandingPage,
   LoginPage,
   NewCasePage,
   PublicCasePage,
   SettingsPage,
+  WelcomePage,
   TermsPage,
   PrivacyPage,
   CookiesPage,
@@ -22,6 +24,10 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />,
+  },
+  {
+    path: '/invite/:code',
+    element: <InvitePage />,
   },
   {
     path: '/c/:id',
@@ -50,6 +56,10 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <CasesListPage />,
+      },
+      {
+        path: 'welcome',
+        element: <WelcomePage />,
       },
       {
         path: 'cases/new',
