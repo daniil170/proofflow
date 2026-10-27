@@ -5,7 +5,7 @@ const generateMockCode = () => {
   const chars = '23456789ABCDEFGHJKMNPQRSTUVWXYZ'
   const rand = (len) =>
     Array.from({ length: len }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
-  return `PF-${rand(4)}-${rand(2)}`
+  return `PF-${rand(5)}-${rand(5)}`
 }
 
 const INITIAL_MOCK_APPLICATIONS = [

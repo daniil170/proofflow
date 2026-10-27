@@ -1,25 +1,10 @@
 import admin from 'firebase-admin'
 import { onRequest } from 'firebase-functions/v2/https'
+import { RATE_LIMIT_CONFIGS } from '../domain/rateLimits.js'
+import { FirestoreRateLimiter } from '../infrastructure/adapters/FirestoreRateLimiter.js'
 
 if (!admin.apps.length) {
   admin.initializeApp()
-}
-
-const clientRequestTimestamps = new Map<string, number[]>()
-
-const isPublicRateLimited = (clientIp: string): boolean => {
-  const now = Date.now()
-  const windowMs = 60 * 1000
-  const maxRequests = 60
-  const timestamps = (clientRequestTimestamps.get(clientIp) || []).filter(
-    (t) => now - t < windowMs
-  )
-  if (timestamps.length >= maxRequests) {
-    return true
-  }
-  timestamps.push(now)
-  clientRequestTimestamps.set(clientIp, timestamps)
-  return false
 }
 
 export const extractCaseId = (req: {
@@ -61,7 +46,12 @@ export const getPublicCase = onRequest(
     }
 
     const clientIp = (req.headers['x-forwarded-for'] as string) || req.ip || 'unknown'
-    if (isPublicRateLimited(clientIp)) {
+    const rateLimiter = new FirestoreRateLimiter(admin.firestore())
+    const isLimited = await rateLimiter.isRateLimited(
+      `case_${clientIp}`,
+      RATE_LIMIT_CONFIGS.PUBLIC_CASE_READ
+    )
+    if (isLimited) {
       res.status(429).json({ error: 'Слишком много запросов. Попробуйте позже' })
       return
     }
@@ -97,6 +87,17 @@ export const ogPage = onRequest(
       return
     }
 
+    const clientIp = (req.headers['x-forwarded-for'] as string) || req.ip || 'unknown'
+    const rateLimiter = new FirestoreRateLimiter(admin.firestore())
+    const isLimited = await rateLimiter.isRateLimited(
+      `og_${clientIp}`,
+      RATE_LIMIT_CONFIGS.PUBLIC_CASE_READ
+    )
+    if (isLimited) {
+      res.status(429).send('Too many requests')
+      return
+    }
+
     const caseId = extractCaseId(req)
     if (!caseId) {
       res.status(404).send('<!DOCTYPE html><html><head><title>Кейс не найден</title></head><body><h1>Кейс не найден</h1></body></html>')
@@ -118,39 +119,39 @@ export const ogPage = onRequest(
     const imageUrl = data.ogImageUrl || 'https://proofflow.ru/og-default.png'
     const pageUrl = `https://proofflow.ru/c/${caseId}`
 
-    res.set('Cache-Control', 'public, max-age=60, s-maxage=300')
-    res.status(200).send(`<!DOCTYPE html>
+    const html = `<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
   <title>${escapeHtml(title)}</title>
   <meta name="description" content="${escapeHtml(description)}" />
-  <meta property="og:type" content="article" />
   <meta property="og:title" content="${escapeHtml(title)}" />
   <meta property="og:description" content="${escapeHtml(description)}" />
-  <meta property="og:url" content="${escapeHtml(pageUrl)}" />
   <meta property="og:image" content="${escapeHtml(imageUrl)}" />
+  <meta property="og:url" content="${escapeHtml(pageUrl)}" />
+  <meta property="og:type" content="article" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="${escapeHtml(title)}" />
   <meta name="twitter:description" content="${escapeHtml(description)}" />
   <meta name="twitter:image" content="${escapeHtml(imageUrl)}" />
-  <meta http-equiv="refresh" content="0;url=/c/${caseId}" />
-  <script>
-    window.location.replace('/c/' + ${JSON.stringify(caseId)})
-  </script>
+  <meta http-equiv="refresh" content="0; url=${escapeHtml(pageUrl)}" />
 </head>
 <body>
-  <p>Загрузка кейса... Если перенаправление не произошло, <a href="/c/${caseId}">нажмите здесь</a>.</p>
+  <h1>${escapeHtml(title)}</h1>
+  <p>${escapeHtml(description)}</p>
+  <p><a href="${escapeHtml(pageUrl)}">Перейти к кейсу</a></p>
 </body>
-</html>`)
+</html>`
+
+    res.set('Cache-Control', 'public, max-age=300, s-maxage=600')
+    res.status(200).send(html)
   }
 )
 
-const escapeHtml = (str: string): string => {
-  return str
+const escapeHtml = (unsafe: string): string =>
+  unsafe
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-}
+    .replace(/'/g, '&#039;')

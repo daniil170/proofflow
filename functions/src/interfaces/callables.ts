@@ -14,6 +14,9 @@ import {
   UnpublishCaseError,
 } from '../application/use-cases/unpublishCase.js'
 
+import { RATE_LIMIT_CONFIGS } from '../domain/rateLimits.js'
+import { FirestoreRateLimiter } from '../infrastructure/adapters/FirestoreRateLimiter.js'
+
 if (!admin.apps.length) {
   admin.initializeApp()
 }
@@ -23,27 +26,13 @@ const UNAMBIGUOUS_CHARS = '23456789ABCDEFGHJKMNPQRSTUVWXYZ'
 export const generateInviteCode = (): string => {
   const getRandomChar = () =>
     UNAMBIGUOUS_CHARS[crypto.randomInt(0, UNAMBIGUOUS_CHARS.length)]
-  const part1 = Array.from({ length: 4 }, getRandomChar).join('')
-  const part2 = Array.from({ length: 2 }, getRandomChar).join('')
+  const part1 = Array.from({ length: 5 }, getRandomChar).join('')
+  const part2 = Array.from({ length: 5 }, getRandomChar).join('')
   return `PF-${part1}-${part2}`
 }
 
-const submissionTimestamps = new Map<string, number[]>()
-
-const isRateLimited = (identifier: string): boolean => {
-  const now = Date.now()
-  const windowMs = 10 * 60 * 1000
-  const maxRequests = 10
-  const timestamps = (submissionTimestamps.get(identifier) || []).filter(
-    (t) => now - t < windowMs
-  )
-  if (timestamps.length >= maxRequests) {
-    return true
-  }
-  timestamps.push(now)
-  submissionTimestamps.set(identifier, timestamps)
-  return false
-}
+const getRateLimiter = (): FirestoreRateLimiter =>
+  new FirestoreRateLimiter(admin.firestore())
 
 const getAdminEmails = (): string[] => {
   const raw = process.env.ADMIN_EMAILS || 'admin@proofflow.ru,owner@proofflow.ru'
@@ -114,8 +103,12 @@ export const submitApplication = onCall(
       return { success: true, id: 'hp-blocked' }
     }
 
-    const clientIp = request.rawRequest.ip || 'anonymous'
-    if (isRateLimited(clientIp)) {
+    const clientIp = request.rawRequest?.ip || 'anonymous'
+    const isLimited = await getRateLimiter().isRateLimited(
+      `app_${clientIp}`,
+      RATE_LIMIT_CONFIGS.APPLICATION_SUBMISSION
+    )
+    if (isLimited) {
       throw new HttpsError(
         'resource-exhausted',
         'Слишком много запросов. Пожалуйста, подождите несколько минут.'
@@ -212,14 +205,15 @@ export const syncAdminClaims = onCall(
 
     const uid = request.auth.uid
     const email = (request.auth.token.email as string) || ''
+    const emailVerified = Boolean(request.auth.token.email_verified)
 
     const userDoc = await admin.firestore().collection('users').doc(uid).get()
     const userData = userDoc.exists ? userDoc.data() : null
 
-    const isAdmin = checkIsAdmin(
-      email || userData?.email,
-      userData?.telegramUserId
-    )
+    const effectiveEmail = email || userData?.email || ''
+    const isEmailInAdminList = checkIsAdmin(effectiveEmail)
+
+    const isAdmin = Boolean(emailVerified && isEmailInAdminList)
 
     const existingClaims = request.auth.token
     const targetClaims = {
@@ -568,11 +562,17 @@ export const redeemInvite = onCall(
       throw new HttpsError('invalid-argument', 'Не указан код приглашения')
     }
 
+    const clientIp =
+      request.rawRequest?.ip ||
+      (request.rawRequest?.headers?.['x-forwarded-for'] as string) ||
+      ''
+
     try {
       const result = await executeRedeemInvite({
         code,
         uid: request.auth.uid,
         userEmail: (request.auth.token.email as string) || '',
+        ip: clientIp,
         db: admin.firestore(),
         auth: admin.auth(),
       })
