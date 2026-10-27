@@ -70,7 +70,7 @@ export const DEFAULT_ALLOWED_MIME_TYPES = Object.freeze([
 export const MAX_CASES_PER_ACCOUNT = parseNumber('VITE_MAX_CASES_PER_ACCOUNT', 50)
 export const MAX_FILES_PER_CASE = parseNumber('VITE_MAX_FILES_PER_CASE', 10)
 export const MAX_FILE_SIZE_BYTES = parseNumber('VITE_MAX_FILE_SIZE_BYTES', 100 * 1024 * 1024)
-export const MAX_RECORDING_DURATION_SEC = parseNumber('VITE_MAX_RECORDING_DURATION_SEC', 7200)
+export const MAX_RECORDING_DURATION_SEC = parseNumber('VITE_MAX_RECORDING_DURATION_SEC', 3600)
 export const STORAGE_RETENTION_DAYS = parseNumber('VITE_STORAGE_RETENTION_DAYS', 14)
 export const SUPPORT_TELEGRAM_URL = getEnvValue('VITE_TELEGRAM_SUPPORT_URL') || 'https://t.me/proofflowbot'
 
@@ -90,7 +90,7 @@ export const getCaseLimits = (): CaseLimits => ({
   maxCasesPerAccount: parseNumber('VITE_MAX_CASES_PER_ACCOUNT', 50),
   maxFilesPerCase: parseNumber('VITE_MAX_FILES_PER_CASE', 10),
   maxFileSizeBytes: parseNumber('VITE_MAX_FILE_SIZE_BYTES', 100 * 1024 * 1024),
-  maxRecordingDurationSec: parseNumber('VITE_MAX_RECORDING_DURATION_SEC', 7200),
+  maxRecordingDurationSec: parseNumber('VITE_MAX_RECORDING_DURATION_SEC', 3600),
   storageRetentionDays: parseNumber('VITE_STORAGE_RETENTION_DAYS', 14),
   allowedMimeTypes: parseList('VITE_ALLOWED_MIME_TYPES', DEFAULT_ALLOWED_MIME_TYPES),
   supportUrl: getEnvValue('VITE_TELEGRAM_SUPPORT_URL') || 'https://t.me/proofflowbot',
