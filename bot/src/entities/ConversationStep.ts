@@ -5,4 +5,6 @@ export type ConversationStep =
   | 'awaiting_feedback'
   | 'awaiting_consent'
   | 'awaiting_delete_confirmation'
+  | 'account_linking'
+  | 'linked'
   | 'completed'

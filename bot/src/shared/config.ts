@@ -2,6 +2,8 @@ import 'dotenv/config'
 
 export interface BotConfig {
   readonly botToken: string
+  readonly botSecret: string
+  readonly functionsBaseUrl?: string
   readonly adminChatId?: number
   readonly mode: 'polling' | 'webhook'
   readonly port: number
@@ -28,6 +30,8 @@ const getEnvNumber = (key: string, defaultValue: number): number => {
 
 export const config: BotConfig = Object.freeze({
   botToken: process.env.BOT_TOKEN || '',
+  botSecret: process.env.TELEGRAM_BOT_SECRET || process.env.BOT_SECRET || '',
+  functionsBaseUrl: process.env.FUNCTIONS_BASE_URL,
   adminChatId: process.env.ADMIN_CHAT_ID ? parseInt(process.env.ADMIN_CHAT_ID, 10) : undefined,
   mode: (process.env.BOT_MODE === 'webhook' ? 'webhook' : 'polling') as 'polling' | 'webhook',
   port: getEnvNumber('PORT', 3000),
