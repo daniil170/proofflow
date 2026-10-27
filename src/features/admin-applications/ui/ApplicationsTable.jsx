@@ -34,7 +34,7 @@ export const ApplicationsTable = ({
 }) => {
   const formatDate = (timestamp) => {
     if (!timestamp) return '—'
-    const d = new Date(timestamp)
+    const d = timestamp?.toDate ? timestamp.toDate() : new Date(timestamp)
     return d.toLocaleString('ru-RU', {
       day: 'numeric',
       month: 'short',
@@ -147,7 +147,7 @@ export const ApplicationsTable = ({
                           {app.email}
                         </a>
                       )}
-                      {app.telegramUsername && (
+                      {app.telegramUsername ? (
                         <a
                           href={`https://t.me/${app.telegramUsername.replace(/^@/, '')}`}
                           target="_blank"
@@ -157,7 +157,11 @@ export const ApplicationsTable = ({
                         >
                           @{app.telegramUsername.replace(/^@/, '')} ↗
                         </a>
-                      )}
+                      ) : app.telegramUserId ? (
+                        <span className={styles.contactMuted}>
+                          ID: {app.telegramUserId}
+                        </span>
+                      ) : null}
                     </div>
                   </td>
                   <td className={styles.td}>
@@ -211,7 +215,19 @@ export const ApplicationsTable = ({
 
               <div className={styles.contactCol}>
                 {app.email && <div>{app.email}</div>}
-                {app.telegramUsername && <div>@{app.telegramUsername}</div>}
+                {app.telegramUsername ? (
+                  <a
+                    href={`https://t.me/${app.telegramUsername.replace(/^@/, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className={styles.contactLink}
+                  >
+                    @{app.telegramUsername.replace(/^@/, '')} ↗
+                  </a>
+                ) : app.telegramUserId ? (
+                  <div className={styles.contactMuted}>ID: {app.telegramUserId}</div>
+                ) : null}
               </div>
 
               <div className={styles.contactMuted}>

@@ -8,6 +8,10 @@ export interface VoiceAttachment {
 export interface BetaApplication {
   readonly id?: string
   readonly source: SignupSource
+  readonly channel?: 'web' | 'telegram'
+  readonly status?: 'new' | 'approved' | 'invited' | 'activated' | 'rejected'
+  readonly email?: string | null
+  readonly currentProcess?: string
   readonly deepLink?: string
   readonly telegramUserId: number
   readonly telegramUsername?: string

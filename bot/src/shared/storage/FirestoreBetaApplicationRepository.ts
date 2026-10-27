@@ -51,6 +51,10 @@ export class FirestoreBetaApplicationRepository implements BetaApplicationReposi
     return {
       id: docSnapshot.id,
       source: data.source,
+      channel: data.channel || data.source,
+      status: data.status,
+      email: data.email,
+      currentProcess: data.currentProcess,
       deepLink: data.deepLink,
       telegramUserId: data.telegramUserId,
       telegramUsername: data.telegramUsername,
@@ -69,14 +73,32 @@ export class FirestoreBetaApplicationRepository implements BetaApplicationReposi
     application: Omit<BetaApplication, 'id' | 'createdAt' | 'updatedAt'>
   ): Promise<BetaApplication> {
     const col = collection(this.db, COLLECTION_NAME)
-    const docRef = await addDoc(col, {
+    const docData = {
       ...application,
+      channel: 'telegram',
+      source: 'telegram',
+      status: application.status || 'new',
+      email: null,
+      currentProcess: application.feedbackText || application.currentProcess || '',
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-    })
+      history: [
+        {
+          action: 'created',
+          timestamp: Date.now(),
+          performedBy: 'bot',
+        },
+      ],
+    }
+    const docRef = await addDoc(col, docData)
     return {
       ...application,
       id: docRef.id,
+      channel: 'telegram',
+      source: 'telegram',
+      status: 'new',
+      email: null,
+      currentProcess: application.feedbackText || application.currentProcess || '',
       createdAt: new Date(),
       updatedAt: new Date(),
     }

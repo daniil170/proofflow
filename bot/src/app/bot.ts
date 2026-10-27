@@ -8,8 +8,11 @@ import { initialSessionData } from '../features/signup/machine.js'
 import { createRateLimiter } from './middleware/rateLimiter.js'
 import type { BotContext, SessionData } from './types.js'
 
-export const createBot = (token = config.botToken): Bot<BotContext> => {
-  const bot = new Bot<BotContext>(token)
+export const createBot = (
+  token = config.botToken,
+  botConfig?: ConstructorParameters<typeof Bot<BotContext>>[1]
+): Bot<BotContext> => {
+  const bot = new Bot<BotContext>(token, botConfig)
 
   bot.use(
     session({

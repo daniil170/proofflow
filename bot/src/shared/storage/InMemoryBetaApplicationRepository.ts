@@ -21,6 +21,11 @@ export class InMemoryBetaApplicationRepository implements BetaApplicationReposit
     const saved: BetaApplication = {
       ...application,
       id,
+      channel: 'telegram',
+      source: 'telegram',
+      status: application.status || 'new',
+      email: null,
+      currentProcess: application.feedbackText || application.currentProcess || '',
       createdAt: now,
       updatedAt: now,
     }

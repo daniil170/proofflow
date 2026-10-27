@@ -10,69 +10,78 @@ export const BetaOffer = () => {
 
       <p className={styles.description}>
         {BETA_OFFER_CONTENT.descriptionPrefix} <strong>{BETA_OFFER_CONTENT.priceNotice}</strong>{' '}
-        <span>{BETA_OFFER_CONTENT.termsNotice}</span>
+        <span className={styles.discountBadge}>{BETA_OFFER_CONTENT.termsNotice}</span>
       </p>
 
       <div className={styles.conditionsList}>
         <div className={styles.conditionItem}>
-          <svg
-            className={styles.conditionIcon}
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-              clipRule="evenodd"
-            />
-          </svg>
+          <div className={styles.iconWrap}>
+            <svg
+              className={styles.conditionIcon}
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                fillRule="evenodd"
+                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
           <div className={styles.conditionTextWrap}>
             <span className={styles.conditionTitle}>Бесплатный доступ</span>
             <span className={styles.conditionText}>
-              Полный доступ к транскрибации, сборке кейсов и виджету на весь период беты.
+              7 дней полного безлимитного доступа ко всем 4 форматам карточек и первый кейс «под
+              ключ» вместе с фаундером за 15 минут в Zoom.
             </span>
           </div>
         </div>
 
         <div className={styles.conditionItem}>
-          <svg
-            className={styles.conditionIcon}
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-              clipRule="evenodd"
-            />
-          </svg>
+          <div className={styles.iconWrap}>
+            <svg
+              className={styles.conditionIcon}
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                fillRule="evenodd"
+                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
           <div className={styles.conditionTextWrap}>
             <span className={styles.conditionTitle}>Лимиты беты</span>
             <span className={styles.conditionText}>
-              До 10 готовых кейсов на команду в месяц без скрытых платежей.
+              Всего 10 мест в первой когорте, прямой контакт с фаундером в Telegram без ботов и
+              тикетов.
             </span>
           </div>
         </div>
 
         <div className={styles.conditionItem}>
-          <svg
-            className={styles.conditionIcon}
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-              clipRule="evenodd"
-            />
-          </svg>
+          <div className={styles.iconWrap}>
+            <svg
+              className={styles.conditionIcon}
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                fillRule="evenodd"
+                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
           <div className={styles.conditionTextWrap}>
             <span className={styles.conditionTitle}>Что взамен</span>
             <span className={styles.conditionText}>
-              Честный отзыв и короткий 20-минутный созвон с фаундером после теста.
+              Архив переписок или отзывов, честный фидбек и 10-минутный созвон. Взамен — пожизненная
+              скидка 50% (Founder-тариф).
             </span>
           </div>
         </div>

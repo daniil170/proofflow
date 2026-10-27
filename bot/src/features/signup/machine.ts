@@ -33,6 +33,37 @@ export const signupReducer = (
       }
     }
 
+    case 'START_LINK': {
+      return {
+        nextState: {
+          ...initialSessionData,
+          step: 'account_linking',
+          linkToken: action.token,
+        },
+      }
+    }
+
+    case 'LINK_SUCCESS': {
+      return {
+        nextState: {
+          ...state,
+          step: 'linked',
+          linkedUserId: action.uid,
+          linkError: undefined,
+        },
+      }
+    }
+
+    case 'LINK_FAILED': {
+      return {
+        nextState: {
+          ...state,
+          step: 'idle',
+          linkError: action.error,
+        },
+      }
+    }
+
     case 'SELECT_HOW_IT_WORKS': {
       return {
         nextState: {

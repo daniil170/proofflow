@@ -140,6 +140,23 @@ export const ApplicationDetailsDrawer = ({
                     Вернуть в новые
                   </button>
                 )}
+
+                {application.telegramUsername && (
+                  <a
+                    href={`https://t.me/${application.telegramUsername.replace(/^@/, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.secondaryBtn}
+                    style={{
+                      textDecoration: 'none',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    Открыть в Telegram ↗
+                  </a>
+                )}
               </div>
 
               {rejectPromptOpen && (
@@ -280,11 +297,20 @@ export const ApplicationDetailsDrawer = ({
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>Telegram</span>
                 <span className={styles.fieldValue}>
-                  {application.telegramUsername
-                    ? `@${application.telegramUsername}`
-                    : application.telegramUserId
-                      ? `ID: ${application.telegramUserId}`
-                      : '—'}
+                  {application.telegramUsername ? (
+                    <a
+                      href={`https://t.me/${application.telegramUsername.replace(/^@/, '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.contactLink}
+                    >
+                      @{application.telegramUsername.replace(/^@/, '')} ↗
+                    </a>
+                  ) : application.telegramUserId ? (
+                    `ID: ${application.telegramUserId}`
+                  ) : (
+                    '—'
+                  )}
                 </span>
               </div>
               <div className={styles.field}>

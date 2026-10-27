@@ -1,6 +1,7 @@
 import { Composer } from 'grammy'
 import type { BotContext } from '../../app/types.js'
 import {
+  createAlreadySubmittedKeyboard,
   createBusinessTypesKeyboard,
   createCasesVolumeKeyboard,
   createConsentKeyboard,
@@ -117,8 +118,21 @@ signupComposer.callbackQuery('signup:consent_yes', async (ctx) => {
   }
 
   const repo = getRepository()
+  const existing = await repo.findByTelegramUserId(userId)
+  if (existing && existing.id) {
+    ctx.session.signup = {
+      ...initialSessionData,
+      existingApplicationId: existing.id,
+    }
+    await ctx.reply(TEXTS.results.alreadySubmitted, {
+      reply_markup: createAlreadySubmittedKeyboard(),
+    })
+    return
+  }
+
   const app = await repo.create({
     source: 'telegram',
+    channel: 'telegram',
     deepLink: ctx.session.signup.deepLink,
     telegramUserId: userId,
     telegramUsername: ctx.from?.username,

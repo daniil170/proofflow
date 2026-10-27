@@ -8,10 +8,16 @@ export interface SignupSessionData {
   feedbackText?: string
   voiceAttachment?: VoiceAttachment
   existingApplicationId?: string
+  linkToken?: string
+  linkedUserId?: string
+  linkError?: string
 }
 
 export type SignupAction =
   | { type: 'START'; deepLink?: string }
+  | { type: 'START_LINK'; token: string }
+  | { type: 'LINK_SUCCESS'; uid: string }
+  | { type: 'LINK_FAILED'; error: string }
   | { type: 'SELECT_HOW_IT_WORKS' }
   | { type: 'SELECT_BUSINESS_TYPE'; payload: string }
   | { type: 'SELECT_CASES_VOLUME'; payload: string }

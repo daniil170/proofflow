@@ -162,4 +162,30 @@ describe('signupReducer state machine', () => {
     expect(res.nextState.step).toBe('idle')
     expect(res.nextState.businessType).toBeUndefined()
   })
+
+  it('handles account linking state machine transitions', () => {
+    const initial: SignupSessionData = { step: 'idle' }
+
+    const linkingStep = signupReducer(initial, {
+      type: 'START_LINK',
+      token: 'tok_abc123',
+    })
+    expect(linkingStep.nextState.step).toBe('account_linking')
+    expect(linkingStep.nextState.linkToken).toBe('tok_abc123')
+
+    const successStep = signupReducer(linkingStep.nextState, {
+      type: 'LINK_SUCCESS',
+      uid: 'user_456',
+    })
+    expect(successStep.nextState.step).toBe('linked')
+    expect(successStep.nextState.linkedUserId).toBe('user_456')
+    expect(successStep.nextState.linkError).toBeUndefined()
+
+    const failedStep = signupReducer(linkingStep.nextState, {
+      type: 'LINK_FAILED',
+      error: 'expired_token',
+    })
+    expect(failedStep.nextState.step).toBe('idle')
+    expect(failedStep.nextState.linkError).toBe('expired_token')
+  })
 })
