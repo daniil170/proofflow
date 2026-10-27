@@ -8,10 +8,12 @@ import {
   mockAnalyticsRepository,
   mockApplicationRepository,
 } from './mockAdminRepository.js'
+import { assertNoMocksInProduction } from '../guard.js'
 
 export { ADMIN_STORAGE_KEYS } from './types.ts'
 
 export const getApplicationRepository = () => {
+  assertNoMocksInProduction()
   const isMockExplicitlyRequested = import.meta.env.VITE_USE_MOCK_API === 'true'
   const hasFirebaseProjectId = Boolean(import.meta.env.VITE_FIREBASE_PROJECT_ID)
 
@@ -23,6 +25,7 @@ export const getApplicationRepository = () => {
 }
 
 export const getAdminInviteRepository = () => {
+  assertNoMocksInProduction()
   const isMockExplicitlyRequested = import.meta.env.VITE_USE_MOCK_API === 'true'
   const hasFirebaseProjectId = Boolean(import.meta.env.VITE_FIREBASE_PROJECT_ID)
 
@@ -34,6 +37,7 @@ export const getAdminInviteRepository = () => {
 }
 
 export const getAnalyticsRepository = () => {
+  assertNoMocksInProduction()
   const isMockExplicitlyRequested = import.meta.env.VITE_USE_MOCK_API === 'true'
   const hasFirebaseProjectId = Boolean(import.meta.env.VITE_FIREBASE_PROJECT_ID)
 

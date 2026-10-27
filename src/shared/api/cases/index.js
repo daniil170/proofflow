@@ -1,5 +1,6 @@
 import { firestoreCaseRepository } from './firestoreCaseRepository.js'
 import { mockCaseRepository } from './mockCaseRepository.js'
+import { assertNoMocksInProduction } from '../guard.js'
 
 export {
   CASE_STATUS,
@@ -11,6 +12,7 @@ export { firestoreCaseRepository } from './firestoreCaseRepository.js'
 export { mockCaseRepository } from './mockCaseRepository.js'
 
 export const getCaseRepository = () => {
+  assertNoMocksInProduction()
   const isMockExplicitlyRequested = import.meta.env.VITE_USE_MOCK_API === 'true'
   const hasFirebaseProjectId = Boolean(import.meta.env.VITE_FIREBASE_PROJECT_ID)
 
