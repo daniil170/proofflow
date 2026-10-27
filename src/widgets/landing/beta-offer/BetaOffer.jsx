@@ -30,7 +30,8 @@ export const BetaOffer = () => {
           <div className={styles.conditionTextWrap}>
             <span className={styles.conditionTitle}>Бесплатный доступ</span>
             <span className={styles.conditionText}>
-              Полный доступ к транскрибации, сборке кейсов и виджету на весь период беты.
+              7 дней полного безлимитного доступа ко всем 4 форматам карточек и первый кейс «под
+              ключ» вместе с фаундером за 15 минут в Zoom.
             </span>
           </div>
         </div>
@@ -51,7 +52,8 @@ export const BetaOffer = () => {
           <div className={styles.conditionTextWrap}>
             <span className={styles.conditionTitle}>Лимиты беты</span>
             <span className={styles.conditionText}>
-              До 10 готовых кейсов на команду в месяц без скрытых платежей.
+              Всего 10 мест в первой когорте, прямой контакт с фаундером в Telegram без ботов и
+              тикетов.
             </span>
           </div>
         </div>
@@ -72,7 +74,8 @@ export const BetaOffer = () => {
           <div className={styles.conditionTextWrap}>
             <span className={styles.conditionTitle}>Что взамен</span>
             <span className={styles.conditionText}>
-              Честный отзыв и короткий 20-минутный созвон с фаундером после теста.
+              Архив переписок или отзывов, честный фидбек и 10-минутный созвон. Взамен — пожизненная
+              скидка 50% (Founder-тариф).
             </span>
           </div>
         </div>

@@ -12,6 +12,7 @@ import {
   StylePicker,
   Trust,
 } from '@/widgets'
+import BetaProgramSection from '@/components/landing/BetaProgramSection'
 import styles from './LandingPage.module.css'
 
 export const LandingPage = () => {
@@ -25,6 +26,7 @@ export const LandingPage = () => {
         <Comparison />
         <StylePicker />
         <Trust />
+        <BetaProgramSection />
         <Faq />
         <section id="beta-form" className={styles.betaSection} aria-labelledby="beta-offer-title">
           <Container>
