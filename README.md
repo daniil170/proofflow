@@ -151,6 +151,9 @@ firebase functions:secrets:set OPENAI_API_KEY
 
 # Ключ Anthropic (для Claude 3.5 анализа кейса и OCR)
 firebase functions:secrets:set ANTHROPIC_API_KEY
+
+# Общий секрет бота для подтверждения привязки аккаунтов
+firebase functions:secrets:set TELEGRAM_BOT_SECRET
 ```
 
 ### 2. Деплой правил безопасности и индексов
@@ -218,3 +221,32 @@ firebase emulators:start
 ```
 
 Скрипт обновляет статус `accessStatus: "active"` в коллекции Firestore `users/{uid}`, а также выставляет Custom User Claims в Firebase Auth (`access: "active"`, и опционально `admin: true`).
+
+---
+
+## 12. Telegram-бот (`bot`)
+
+Бот принимает заявки в закрытую бету и выполняет безопасную привязку Telegram-аккаунтов пользователей (`/start link_<токен>`).
+
+### Настройка секрета бота
+
+Вызов функции подтверждения привязки `confirmTelegramLink` защищён общим секретом:
+
+- В production (Secret Manager):
+  ```bash
+  firebase functions:secrets:set TELEGRAM_BOT_SECRET
+  ```
+- Локально в `functions/.env` и `bot/.env`:
+  ```bash
+  TELEGRAM_BOT_SECRET=ваш_секретный_ключ
+  ```
+
+### Локальный запуск бота
+
+```bash
+cd bot
+cp .env.example .env
+# Укажите BOT_TOKEN и TELEGRAM_BOT_SECRET в bot/.env
+npm install
+npm run dev
+```
