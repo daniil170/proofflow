@@ -198,6 +198,30 @@ export const LoginForm = ({ onSuccess }) => {
           >
             Указать другой адрес
           </button>
+
+          {import.meta.env.VITE_USE_MOCK_API === 'true' && (
+            <button
+              type="button"
+              onClick={async () => {
+                setIsSubmitting(true)
+                try {
+                  await signInWithEmailLink(
+                    email,
+                    `${window.location.origin}/login?mockSignIn=true`
+                  )
+                  handleCompleteSuccess()
+                } catch (err) {
+                  setLocalError(err?.message || 'Ошибка входа')
+                } finally {
+                  setIsSubmitting(false)
+                }
+              }}
+              className={styles.submitButton}
+              style={{ marginTop: '1rem', width: '100%' }}
+            >
+              Войти прямо сейчас (тестовый режим)
+            </button>
+          )}
         </div>
       ) : (
         <>
@@ -262,6 +286,90 @@ export const LoginForm = ({ onSuccess }) => {
             </button>
 
             <AuthLegalNotice />
+
+            {import.meta.env.VITE_USE_MOCK_API === 'true' && (
+              <div
+                style={{
+                  marginTop: '1.25rem',
+                  paddingTop: '1rem',
+                  borderTop: '1px dashed #d1d5db',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.5rem',
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: '0.75rem',
+                    color: '#6b7280',
+                    textAlign: 'center',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                  }}
+                >
+                  Тестовый быстрый вход (Mock)
+                </span>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setIsSubmitting(true)
+                    try {
+                      await signInWithEmailLink(
+                        'admin@proofflow.ru',
+                        `${window.location.origin}/login?mockSignIn=true`
+                      )
+                      navigate('/admin/applications', { replace: true })
+                    } catch (err) {
+                      setLocalError(err?.message || 'Ошибка входа')
+                    } finally {
+                      setIsSubmitting(false)
+                    }
+                  }}
+                  style={{
+                    padding: '0.625rem 0.75rem',
+                    borderRadius: '8px',
+                    background: '#111827',
+                    color: '#ffffff',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    border: 'none',
+                  }}
+                >
+                  👑 Войти как Администратор
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setIsSubmitting(true)
+                    try {
+                      await signInWithEmailLink(
+                        'client@proofflow.ru',
+                        `${window.location.origin}/login?mockSignIn=true`
+                      )
+                      navigate('/app', { replace: true })
+                    } catch (err) {
+                      setLocalError(err?.message || 'Ошибка входа')
+                    } finally {
+                      setIsSubmitting(false)
+                    }
+                  }}
+                  style={{
+                    padding: '0.625rem 0.75rem',
+                    borderRadius: '8px',
+                    background: '#f3f4f6',
+                    color: '#111827',
+                    border: '1px solid #d1d5db',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  🚀 Войти как Пользователь
+                </button>
+              </div>
+            )}
           </form>
         </>
       )}

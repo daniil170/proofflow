@@ -39,10 +39,20 @@ export const mockUserRepository = Object.freeze({
   async getUser(uid) {
     if (!uid) return null
     if (!activeUserDoc || activeUserDoc.id !== uid) {
+      let authEmail = 'mock@example.com'
+      if (typeof window !== 'undefined' && window.localStorage) {
+        try {
+          const authUser = JSON.parse(window.localStorage.getItem('proofflow:auth:mock_user') || '{}')
+          if (authUser?.email) authEmail = authUser.email
+        } catch {
+          authEmail = 'mock@example.com'
+        }
+      }
       activeUserDoc = {
         id: uid,
-        email: 'mock@example.com',
-        accessStatus: 'waitlist',
+        email: authEmail,
+        accessStatus: 'active',
+        isOnboarded: true,
         workspaceId: uid,
         createdAt: Date.now(),
         updatedAt: Date.now(),
@@ -59,10 +69,20 @@ export const mockUserRepository = Object.freeze({
     }
     listeners.add(callback)
     if (!activeUserDoc || activeUserDoc.id !== uid) {
+      let authEmail = 'mock@example.com'
+      if (typeof window !== 'undefined' && window.localStorage) {
+        try {
+          const authUser = JSON.parse(window.localStorage.getItem('proofflow:auth:mock_user') || '{}')
+          if (authUser?.email) authEmail = authUser.email
+        } catch {
+          authEmail = 'mock@example.com'
+        }
+      }
       activeUserDoc = {
         id: uid,
-        email: 'mock@example.com',
-        accessStatus: 'waitlist',
+        email: authEmail,
+        accessStatus: 'active',
+        isOnboarded: true,
         workspaceId: uid,
         createdAt: Date.now(),
         updatedAt: Date.now(),

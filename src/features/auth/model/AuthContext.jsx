@@ -117,11 +117,16 @@ export const AuthProvider = ({
     }
   }, [gateway, setIsAdmin, setUserRecord])
 
-  const value = useMemo(
-    () => ({
+  const value = useMemo(() => {
+    const accessStatus = isAdmin ? 'active' : userRecord?.accessStatus || 'active'
+    const isOnboarded = isAdmin ? true : Boolean(userRecord?.isOnboarded ?? userRecord?.profile?.name ?? true)
+
+    return {
       user,
       userRecord,
       isAdmin,
+      accessStatus,
+      isOnboarded,
       isLoading: isLoadingAuth || isLoadingRecord,
       isLoadingAuth,
       isLoadingRecord,
@@ -134,8 +139,8 @@ export const AuthProvider = ({
       isAuthenticated: Boolean(user),
       isEmailLink: (href) => gateway.isEmailLink(href),
       getStoredEmailForSignIn: () => gateway.getStoredEmailForSignIn(),
-    }),
-    [
+    }
+  }, [
       user,
       userRecord,
       isAdmin,
