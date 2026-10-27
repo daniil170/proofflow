@@ -2,7 +2,7 @@
 
 ## Настройка секретов (Secret Manager)
 
-Для работы с AI API (OpenAI Whisper и Anthropic Claude) в production-окружении секреты задаются через Google Cloud Secret Manager с помощью Firebase CLI:
+Для работы с AI API в production-окружении секреты задаются через Google Cloud Secret Manager с помощью Firebase CLI:
 
 ```bash
 # Ключ OpenAI API (Whisper транскрибация)
@@ -10,20 +10,83 @@ firebase functions:secrets:set OPENAI_API_KEY
 
 # Ключ Anthropic API (Claude анализ и OCR)
 firebase functions:secrets:set ANTHROPIC_API_KEY
+
+# Ключ Gemini API (опционально, только для GEMINI_MODE=api)
+firebase functions:secrets:set GEMINI_API_KEY
 ```
 
-## Переменные окружения
+## Выбор AI-провайдеров для пайплайна
 
-Переменные конфигурации задаются в файле `.env` для локальной разработки или через параметры деплоя:
+Каждый шаг конвейера обработки настраивается независимо через переменные окружения:
 
-- `ANTHROPIC_MODEL`: название актуальной модели Claude (например, `claude-3-5-sonnet-latest`). Обязательный параметр в production.
-- `STORAGE_BUCKET`: имя бакета Firebase Storage.
-- `APP_BASE_URL`: базовый URL клиентского приложения.
-- `MAX_CASES_PER_ACCOUNT`: лимит кейсов на аккаунт (по умолчанию 3 для беты).
-- `MAX_RECORDING_DURATION_SEC`: максимальная длительность одной аудио/видео записи в секундах (по умолчанию 1200 = 20 минут).
-- `USE_MOCK_ADAPTERS`: `false` для реального API. В продакшене флаг `true` блокируется на уровне рантайма.
-- `FFMPEG_PATH`: опциональный кастомный путь к бинарнику ffmpeg.
-- `FFPROBE_PATH`: опциональный кастомный путь к бинарнику ffprobe.
+- `TRANSCRIBER_PROVIDER`: `openai` (по умолчанию, Whisper), `google` (Gemini), `google-speech` (Google Cloud Speech-to-Text), `mock`.
+- `CHAT_READER_PROVIDER`: `anthropic` (по умолчанию, Claude), `google` (Gemini), `mock`.
+- `ANALYZER_PROVIDER`: `anthropic` (по умолчанию, Claude), `google` (Gemini), `mock`.
+
+Поведение по умолчанию (если переменные не заданы) остается неизменным: Whisper для транскрибации, Claude для OCR скриншотов и анализа кейса.
+
+## Подключение Gemini через Vertex AI (рекомендуемый режим)
+
+По умолчанию для `google` используется режим корпоративного Vertex AI (`GEMINI_MODE=vertex`) без передачи API-ключей: авторизация происходит автоматически через сервисный аккаунт Cloud Functions.
+
+### 1. Включение Vertex AI API в проекте Google Cloud
+
+```bash
+gcloud services enable aiplatform.googleapis.com --project <ID_ПРОЕКТА>
+```
+
+### 2. Назначение роли сервисному аккаунту Cloud Functions
+
+Сервисному аккаунту функций (обычно `<project-id>@appspot.gserviceaccount.com` или `<project-number>-compute@developer.gserviceaccount.com`) требуется роль **Vertex AI User**:
+
+```bash
+gcloud projects add-iam-policy-binding <ID_ПРОЕКТА> \
+  --member="serviceAccount:<СЕРВИСНЫЙ_АККАУНТ>" \
+  --role="roles/aiplatform.user"
+```
+
+### 3. Переменные окружения Gemini
+
+- `GEMINI_MODE`: `vertex` (по умолчанию) или `api`.
+- `GEMINI_REGION` или `VERTEX_REGION`: регион размещения модели (например, `us-central1`, `europe-west4`). Значения по умолчанию отсутствуют — регион задается явно.
+- `GEMINI_MODEL`: имя модели Gemini (например, `gemini-1.5-flash`, `gemini-1.5-pro`, `gemini-2.0-flash`). Значения по умолчанию отсутствуют.
+- `GEMINI_TIER`: уровень тарифа (`pay-as-you-go` или `paid`). В production-окружении значение `free` запрещено и приводит к немедленному завершению с ошибкой безопасности, так как бесплатный тариф разрешает использование данных для дообучения моделей.
+- `GEMINI_API_KEY`: API-ключ в Secret Manager (требуется только при явном указании `GEMINI_MODE=api`).
+
+## Подключение Google Speech-to-Text (адаптер GoogleSpeechTranscriber)
+
+Адаптер `google-speech` реализует распознавание речи с таймкодами слов через Google Cloud Speech-to-Text v1 API:
+
+```bash
+# Включение Speech-to-Text API
+gcloud services enable speech.googleapis.com --project <ID_ПРОЕКТА>
+
+# Назначение роли Cloud Speech Client
+gcloud projects add-iam-policy-binding <ID_ПРОЕКТА> \
+  --member="serviceAccount:<СЕРВИСНЫЙ_АККАУНТ>" \
+  --role="roles/speech.client"
+```
+
+Опциональные переменные:
+- `GOOGLE_SPEECH_REGION`: региональная конечная точка (по умолчанию глобальная).
+- `GOOGLE_SPEECH_LANGUAGE`: язык аудио (по умолчанию `ru-RU`).
+
+## Сравнение провайдеров (scripts/compare-providers)
+
+Скрипт запускает конвейер на тестовых материалах для разных конфигураций провайдеров, замеряет скорость, оценку стоимости, число токенов, проверяет качество верификации цитат (`verifyDraft`) и расхождение таймкодов относительно эталона Whisper. Результаты выводятся в таблицу и сохраняются в JSON-файл рядом с материалами без записи в Firestore.
+
+> ⚠️ **Предупреждение по безопасности данных:**
+> Для тестирования и сравнения внешних провайдеров используйте строго обезличенные тестовые данные либо материалы, на передачу которых третьим лицам получено официальное согласие заказчика.
+
+### Запуск сравнения:
+
+```bash
+# Базовый запуск на папке с материалами (проверяет default-current, all-gemini, google-speech-gemini)
+./scripts/compare-providers <путь_к_папке_с_материалами>
+
+# Запуск с указанием конкретных конфигураций
+./scripts/compare-providers <путь_к_папке> --configs default-current,all-gemini
+```
 
 ## Ресурсы функции обработки пайплайна
 
