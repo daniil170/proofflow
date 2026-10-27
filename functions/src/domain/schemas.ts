@@ -118,6 +118,8 @@ export const caseBrandingSchema = z.object({
   primaryColor: z.string().nullable().optional(),
   accentColor: z.string().nullable().optional(),
   badgeText: z.string().nullable().optional(),
+  companyName: z.string().nullable().optional(),
+  logoPath: z.string().nullable().optional(),
 })
 
 export const caseSchema = z.object({
