@@ -18,6 +18,24 @@
       ]
     }
   ],
+  "hosting": {
+    "public": "dist",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/c/**",
+        "function": "ogPage"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
   "emulators": {
     "auth": {
       "port": 9099

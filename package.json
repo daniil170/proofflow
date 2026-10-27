@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && vite build --config embed/vite.config.js",
+    "build:embed": "vite build --config embed/vite.config.js",
     "lint": "eslint .",
     "test": "vitest run",
     "test:rules": "bash scripts/test-rules.sh",

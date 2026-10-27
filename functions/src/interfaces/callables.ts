@@ -5,6 +5,14 @@ import {
   executeRedeemInvite,
   RedeemInviteError,
 } from '../application/use-cases/redeemInvite.js'
+import {
+  executePublishCase,
+  PublishCaseError,
+} from '../application/use-cases/publishCase.js'
+import {
+  executeUnpublishCase,
+  UnpublishCaseError,
+} from '../application/use-cases/unpublishCase.js'
 
 if (!admin.apps.length) {
   admin.initializeApp()
@@ -671,3 +679,246 @@ export const createTelegramLinkToken = onCall(
     }
   }
 )
+
+export const publishCase = onCall(
+  {
+    enforceAppCheck: false,
+    timeoutSeconds: 30,
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Требуется авторизация')
+    }
+
+    const { caseId, consentConfirmed } = (request.data as {
+      caseId?: string
+      consentConfirmed?: boolean
+    }) || {}
+
+    if (!caseId) {
+      throw new HttpsError('invalid-argument', 'Не указан ID кейса')
+    }
+
+    try {
+      const db = admin.firestore()
+      const publicBaseUrl = process.env.PUBLIC_BASE_URL || 'https://proofflow.ru'
+      const result = await executePublishCase({
+        caseId,
+        uid: request.auth.uid,
+        consentConfirmed,
+        db,
+        publicBaseUrl,
+      })
+      return result
+    } catch (err: unknown) {
+      if (err instanceof PublishCaseError) {
+        throw new HttpsError(err.code, err.message)
+      }
+      throw new HttpsError('internal', (err as Error)?.message || 'Ошибка публикации')
+    }
+  }
+)
+
+export const unpublishCase = onCall(
+  {
+    enforceAppCheck: false,
+    timeoutSeconds: 15,
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Требуется авторизация')
+    }
+
+    const { caseId } = (request.data as { caseId?: string }) || {}
+    if (!caseId) {
+      throw new HttpsError('invalid-argument', 'Не указан ID кейса')
+    }
+
+    try {
+      const db = admin.firestore()
+      const result = await executeUnpublishCase({
+        caseId,
+        uid: request.auth.uid,
+        db,
+      })
+      return result
+    } catch (err: unknown) {
+      if (err instanceof UnpublishCaseError) {
+        throw new HttpsError(err.code, err.message)
+      }
+      throw new HttpsError('internal', (err as Error)?.message || 'Ошибка снятия с публикации')
+    }
+  }
+)
+
+export const createConsentRequest = onCall(
+  {
+    enforceAppCheck: false,
+    timeoutSeconds: 15,
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Требуется авторизация')
+    }
+
+    const { caseId } = (request.data as { caseId?: string }) || {}
+    if (!caseId) {
+      throw new HttpsError('invalid-argument', 'Не указан ID кейса')
+    }
+
+    const db = admin.firestore()
+    const caseRef = db.collection('cases').doc(caseId)
+    const caseSnap = await caseRef.get()
+
+    if (!caseSnap.exists) {
+      throw new HttpsError('not-found', 'Кейс не найден')
+    }
+
+    const caseData = caseSnap.data()!
+    if (caseData.ownerId !== request.auth.uid) {
+      throw new HttpsError('permission-denied', 'Нет доступа к этому кейсу')
+    }
+
+    const token = crypto.randomBytes(16).toString('hex')
+    const now = Date.now()
+    const draft = caseData.draft || {}
+
+    const userSnap = await db.collection('users').doc(request.auth.uid).get()
+    const companyName = caseData.branding?.companyName || userSnap.data()?.profile?.companyName || ''
+
+    const consentRecord = {
+      token,
+      caseId,
+      ownerId: request.auth.uid,
+      clientLabel: caseData.clientLabel || '',
+      status: 'pending',
+      createdAt: now,
+      anonymizedCase: {
+        metric: draft.metric?.value || '',
+        metricLabel: draft.metric?.label || '',
+        problem: draft.problem || '',
+        solution: draft.solution || '',
+        result: draft.result || '',
+        quote: draft.quote?.text || '',
+        author: draft.quote?.authorLabel || 'Анна К.',
+        company: companyName,
+      },
+    }
+
+    await db.collection('consents').doc(token).set(consentRecord)
+
+    await caseRef.update({
+      clientConsentStatus: 'pending',
+      updatedAt: now,
+    })
+
+    const publicBaseUrl = process.env.PUBLIC_BASE_URL || 'https://proofflow.ru'
+    return {
+      token,
+      url: `${publicBaseUrl}/consent/${token}`,
+    }
+  }
+)
+
+export const getConsentByToken = onCall(
+  {
+    enforceAppCheck: false,
+    timeoutSeconds: 15,
+  },
+  async (request) => {
+    const { token } = (request.data as { token?: string }) || {}
+    if (!token || typeof token !== 'string') {
+      throw new HttpsError('invalid-argument', 'Не указан токен согласия')
+    }
+
+    const db = admin.firestore()
+    const snap = await db.collection('consents').doc(token).get()
+
+    if (!snap.exists) {
+      throw new HttpsError('not-found', 'Запрос на согласие не найден')
+    }
+
+    const data = snap.data()!
+    return {
+      token: data.token,
+      caseId: data.caseId,
+      status: data.status,
+      createdAt: data.createdAt,
+      decidedAt: data.decidedAt || null,
+      anonymizedCase: data.anonymizedCase,
+    }
+  }
+)
+
+export const submitClientConsent = onCall(
+  {
+    enforceAppCheck: false,
+    timeoutSeconds: 15,
+  },
+  async (request) => {
+    const { token, decision } = (request.data as {
+      token?: string
+      decision?: 'approved' | 'declined'
+    }) || {}
+
+    if (!token || typeof token !== 'string') {
+      throw new HttpsError('invalid-argument', 'Не указан токен согласия')
+    }
+
+    if (decision !== 'approved' && decision !== 'declined') {
+      throw new HttpsError('invalid-argument', 'Недопустимое решение')
+    }
+
+    const db = admin.firestore()
+    const consentRef = db.collection('consents').doc(token)
+    const consentSnap = await consentRef.get()
+
+    if (!consentSnap.exists) {
+      throw new HttpsError('not-found', 'Запрос на согласие не найден')
+    }
+
+    const consentData = consentSnap.data()!
+    if (consentData.status === 'approved' || consentData.status === 'declined') {
+      return {
+        success: true,
+        status: consentData.status,
+        alreadyDecided: true,
+      }
+    }
+
+    const now = Date.now()
+    const clientIp = request.rawRequest.ip || (request.rawRequest.headers['x-forwarded-for'] as string) || 'unknown'
+    const userAgent = (request.rawRequest.headers['user-agent'] as string) || ''
+
+    await consentRef.update({
+      status: decision,
+      decidedAt: now,
+      clientIp,
+      userAgent,
+    })
+
+    const caseRef = db.collection('cases').doc(consentData.caseId)
+    const caseSnap = await caseRef.get()
+
+    if (caseSnap.exists) {
+      if (decision === 'approved') {
+        await caseRef.update({
+          clientConsentStatus: 'approved',
+          consentConfirmed: true,
+          updatedAt: now,
+        })
+      } else {
+        await caseRef.update({
+          clientConsentStatus: 'declined',
+          updatedAt: now,
+        })
+      }
+    }
+
+    return {
+      success: true,
+      status: decision,
+    }
+  }
+)
+

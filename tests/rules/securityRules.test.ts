@@ -471,6 +471,69 @@ describe('Firebase Security Rules', () => {
         })
       )
     })
+
+    it('denies all clients from reading or writing publicCases directly', async () => {
+      await testEnv.withSecurityRulesDisabled(async (context) => {
+        const adminDb = context.firestore()
+        await setDoc(doc(adminDb, 'publicCases/case-1'), {
+          id: 'case-1',
+          metric: '+100%',
+          title: 'Публичный кейс',
+        })
+      })
+
+      const aliceDb = testEnv.authenticatedContext('alice', { access: 'active' }).firestore()
+      const publicRef = doc(aliceDb, 'publicCases/case-1')
+      const unauthDb = testEnv.unauthenticatedContext().firestore()
+
+      await assertFails(getDoc(publicRef))
+      await assertFails(
+        setDoc(publicRef, {
+          metric: '+200%',
+        })
+      )
+      await assertFails(deleteDoc(publicRef))
+
+      await assertFails(getDoc(doc(unauthDb, 'publicCases/case-1')))
+      await assertFails(
+        setDoc(doc(unauthDb, 'publicCases/case-2'), {
+          metric: '+50%',
+        })
+      )
+    })
+
+    it('handles consents collection security rules', async () => {
+      await testEnv.withSecurityRulesDisabled(async (context) => {
+        const adminDb = context.firestore()
+        await setDoc(doc(adminDb, 'consents/token-alice'), {
+          token: 'token-alice',
+          caseId: 'case-1',
+          ownerId: 'alice',
+          status: 'pending',
+        })
+      })
+
+      const aliceDb = testEnv.authenticatedContext('alice', { access: 'active' }).firestore()
+      const bobDb = testEnv.authenticatedContext('bob', { access: 'active' }).firestore()
+      const unauthDb = testEnv.unauthenticatedContext().firestore()
+
+      await assertSucceeds(getDoc(doc(aliceDb, 'consents/token-alice')))
+      await assertFails(getDoc(doc(bobDb, 'consents/token-alice')))
+      await assertFails(getDoc(doc(unauthDb, 'consents/token-alice')))
+
+      await assertFails(
+        setDoc(doc(aliceDb, 'consents/token-alice-new'), {
+          token: 'token-alice-new',
+          ownerId: 'alice',
+        })
+      )
+      await assertFails(
+        updateDoc(doc(aliceDb, 'consents/token-alice'), {
+          status: 'approved',
+        })
+      )
+      await assertFails(deleteDoc(doc(aliceDb, 'consents/token-alice')))
+    })
   })
 
   describe('Storage: Access control and file constraints', () => {

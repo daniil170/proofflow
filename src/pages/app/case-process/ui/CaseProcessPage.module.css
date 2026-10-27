@@ -388,3 +388,51 @@
     transform: rotate(360deg);
   }
 }
+.stepperTabs {
+  display: flex;
+  gap: var(--space-2);
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-xl);
+  padding: 0.35rem;
+  overflow-x: auto;
+}
+
+:global([data-theme='dark']) .stepperTabs {
+  background-color: var(--color-bg-dark-surface);
+  border-color: var(--color-border-dark);
+}
+
+.stepTab {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius-lg);
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.stepTab:hover {
+  color: var(--color-text-primary);
+}
+
+.stepTabActive {
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-bold);
+  box-shadow: var(--shadow-sm);
+}
+
+:global([data-theme='dark']) .stepTabActive {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}

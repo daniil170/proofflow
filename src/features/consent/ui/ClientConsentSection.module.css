@@ -1,0 +1,119 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-light);
+  background-color: var(--color-bg-base);
+}
+
+:global([data-theme='dark']) .container {
+  border-color: var(--color-border-dark);
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-medium);
+}
+
+.badgeApproved {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.badgePending {
+  background-color: rgba(234, 179, 8, 0.15);
+  color: #eab308;
+}
+
+.badgeDeclined {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.badgeNone {
+  background-color: rgba(161, 161, 170, 0.15);
+  color: var(--color-text-secondary);
+}
+
+.description {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-normal);
+  margin: 0;
+}
+
+.linkBox {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.urlInput {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  font-size: var(--font-size-xs);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-light);
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-primary);
+}
+
+:global([data-theme='dark']) .urlInput {
+  border-color: var(--color-border-dark);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.actionBtn {
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-light);
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+:global([data-theme='dark']) .actionBtn {
+  border-color: var(--color-border-dark);
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.actionBtnPrimary {
+  background-color: var(--color-accent, #d4ff3a);
+  color: #111111;
+  border: none;
+  font-weight: var(--font-weight-bold);
+}
+
+.buttonsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}

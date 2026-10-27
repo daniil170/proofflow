@@ -3,49 +3,30 @@ import { Link, useParams } from 'react-router-dom'
 import { CASE_STATUS, CASE_STATUS_LABELS, getCaseRepository } from '@/shared/api'
 import { ProcessingScreen, useCaseProgress } from '@/features/case-progress'
 import { CaseReviewEditor, useCaseReview } from '@/features/case-review'
+import { CaseStyleSelector, useCaseStyle } from '@/features/case-style'
+import { PublishSection } from '@/features/case-publish'
+import { useAuth } from '@/features/auth'
 import styles from './CaseProcessPage.module.css'
-
-const CaseReviewSection = ({ caseItem, onStatusChange, isUpdating }) => {
-  const reviewState = useCaseReview({
-    caseItem,
-    onVerified: () => {
-      onStatusChange(CASE_STATUS.READY)
-    },
-  })
-
-  return (
-    <>
-      {caseItem.status === CASE_STATUS.READY && (
-        <div className={styles.publishAllowedBanner}>
-          <p className={styles.publishAllowedText}>
-            ✓ Черновик успешно проверен. Теперь кейс можно опубликовать на сайте.
-          </p>
-          <button
-            type="button"
-            className={styles.publishButton}
-            onClick={() => onStatusChange(CASE_STATUS.PUBLISHED)}
-            disabled={isUpdating}
-          >
-            Опубликовать кейс
-          </button>
-        </div>
-      )}
-
-      <CaseReviewEditor reviewState={reviewState} />
-    </>
-  )
-}
 
 export const CaseProcessPage = () => {
   const { id } = useParams()
+  const { user } = useAuth()
   const progressState = useCaseProgress({ caseId: id })
   const { caseItem, isLoading, error, status } = progressState
-  const [isUpdating, setIsUpdating] = useState(false)
+  const [activeStepOverride, setActiveStepOverride] = useState(null)
   const [actionError, setActionError] = useState(null)
+
+  const computedDefaultStep = caseItem?.status === CASE_STATUS.PUBLISHED
+    ? 'publish'
+    : caseItem?.status === CASE_STATUS.READY
+      ? 'style'
+      : 'review'
+
+  const activeStep = activeStepOverride || computedDefaultStep
+  const setActiveStep = (step) => setActiveStepOverride(step)
 
   const handleStatusChange = async (newStatus) => {
     if (!caseItem) return
-    setIsUpdating(true)
     setActionError(null)
     try {
       const repository = getCaseRepository()
@@ -54,10 +35,24 @@ export const CaseProcessPage = () => {
       })
     } catch (err) {
       setActionError(err?.message || 'Не удалось обновить статус')
-    } finally {
-      setIsUpdating(false)
     }
   }
+
+  const reviewState = useCaseReview({
+    caseItem,
+    onVerified: () => {
+      handleStatusChange(CASE_STATUS.READY)
+      setActiveStep('style')
+    },
+  })
+
+  const styleState = useCaseStyle({
+    caseItem,
+    userProfile: user?.profile,
+    onSave: () => {
+      setActiveStep('publish')
+    },
+  })
 
   if (isLoading) {
     return (
@@ -85,9 +80,6 @@ export const CaseProcessPage = () => {
 
   const clientLabel = caseItem.clientLabel || caseItem.client || 'Клиент'
   const title = caseItem.title || `Кейс для ${clientLabel}`
-  const isPublishAllowed =
-    caseItem.status === CASE_STATUS.READY ||
-    caseItem.status === CASE_STATUS.PUBLISHED
 
   return (
     <div className={styles.container}>
@@ -132,56 +124,52 @@ export const CaseProcessPage = () => {
           </div>
         </div>
 
-        <div className={styles.statusControls}>
-          <span className={styles.statusLabel}>Изменить статус:</span>
-          {caseItem.status !== CASE_STATUS.PROCESSING && (
-            <button
-              type="button"
-              className={styles.statusButton}
-              onClick={() => handleStatusChange(CASE_STATUS.PROCESSING)}
-              disabled={isUpdating}
-            >
-              В обработку
-            </button>
-          )}
-          {caseItem.status !== CASE_STATUS.REVIEW && (
-            <button
-              type="button"
-              className={styles.statusButton}
-              onClick={() => handleStatusChange(CASE_STATUS.REVIEW)}
-              disabled={isUpdating}
-            >
-              На проверку
-            </button>
-          )}
-          {isPublishAllowed && caseItem.status !== CASE_STATUS.PUBLISHED && (
-            <button
-              type="button"
-              className={styles.statusButton}
-              onClick={() => handleStatusChange(CASE_STATUS.PUBLISHED)}
-              disabled={isUpdating}
-            >
-              Опубликовать
-            </button>
-          )}
-          {caseItem.status !== CASE_STATUS.DRAFT && (
-            <button
-              type="button"
-              className={styles.statusButton}
-              onClick={() => handleStatusChange(CASE_STATUS.DRAFT)}
-              disabled={isUpdating}
-            >
-              В черновик
-            </button>
-          )}
-        </div>
+        <nav className={styles.stepperTabs} aria-label="Шаги подготовки кейса">
+          <button
+            type="button"
+            className={`${styles.stepTab} ${activeStep === 'review' ? styles.stepTabActive : ''}`}
+            onClick={() => setActiveStep('review')}
+          >
+            1. Проверка черновика
+          </button>
+          <button
+            type="button"
+            className={`${styles.stepTab} ${activeStep === 'style' ? styles.stepTabActive : ''}`}
+            onClick={() => setActiveStep('style')}
+          >
+            2. Стиль и брендинг
+          </button>
+          <button
+            type="button"
+            className={`${styles.stepTab} ${activeStep === 'publish' ? styles.stepTabActive : ''}`}
+            onClick={() => setActiveStep('publish')}
+          >
+            3. Публикация и экспорт
+          </button>
+        </nav>
       </header>
 
-      <CaseReviewSection
-        caseItem={caseItem}
-        onStatusChange={handleStatusChange}
-        isUpdating={isUpdating}
-      />
+      {activeStep === 'review' && (
+        <CaseReviewEditor reviewState={reviewState} />
+      )}
+
+      {activeStep === 'style' && (
+        <CaseStyleSelector
+          styleState={styleState}
+          onNextStep={() => setActiveStep('publish')}
+        />
+      )}
+
+      {activeStep === 'publish' && (
+        <PublishSection
+          caseItem={caseItem}
+          onPublishChanged={(patch) => {
+            if (patch.status) {
+              handleStatusChange(patch.status)
+            }
+          }}
+        />
+      )}
     </div>
   )
 }

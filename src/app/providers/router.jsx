@@ -4,6 +4,7 @@ import {
   AdminApplicationsPage,
   CaseProcessPage,
   CasesListPage,
+  ConsentPage,
   InvitePage,
   LandingPage,
   LoginPage,
@@ -35,6 +36,10 @@ export const router = createBrowserRouter([
   {
     path: '/c/:id',
     element: <PublicCasePage />,
+  },
+  {
+    path: '/consent/:token',
+    element: <ConsentPage />,
   },
   {
     path: '/terms',

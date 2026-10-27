@@ -10,12 +10,14 @@ import {
   updateDoc,
   where,
 } from 'firebase/firestore'
+import { getFunctions, httpsCallable } from 'firebase/functions'
 import { getFirebaseApp } from '../firebase/app.js'
 import { INITIAL_EXAMPLE_CASES } from './types.js'
 
 const COLLECTION_NAME = 'cases'
 
 const getDbInstance = () => getFirestore(getFirebaseApp())
+const getFunctionsInstance = () => getFunctions(getFirebaseApp())
 
 const normalizeDoc = (docSnapshot) => {
   if (!docSnapshot.exists()) {
@@ -147,6 +149,42 @@ export const firestoreCaseRepository = Object.freeze({
     return {
       id: docRef.id,
       ...payload,
+    }
+  },
+
+  async publishCase(caseId, consentConfirmed = false) {
+    const functions = getFunctionsInstance()
+    const call = httpsCallable(functions, 'publishCase')
+    const res = await call({ caseId, consentConfirmed })
+    return res.data
+  },
+
+  async unpublishCase(caseId) {
+    const functions = getFunctionsInstance()
+    const call = httpsCallable(functions, 'unpublishCase')
+    const res = await call({ caseId })
+    return res.data
+  },
+
+  async getPublicCase(caseId) {
+    const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID
+    const region = import.meta.env.VITE_FIREBASE_REGION || 'us-central1'
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+
+    let url = `https://${region}-${projectId}.cloudfunctions.net/getPublicCase?id=${encodeURIComponent(caseId)}`
+    if (isLocal) {
+      url = `http://127.0.0.1:5001/${projectId}/${region}/getPublicCase?id=${encodeURIComponent(caseId)}`
+    }
+
+    try {
+      const response = await fetch(url)
+      if (!response.ok) {
+        if (response.status === 404) return null
+        throw new Error('Кейс недоступен или еще не опубликован')
+      }
+      return await response.json()
+    } catch {
+      return null
     }
   },
 })

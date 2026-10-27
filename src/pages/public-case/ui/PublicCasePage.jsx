@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getCaseRepository } from '@/shared/api'
+import { CaseCard } from '@/widgets/case-card'
 import logoSvg from '@/assets/logo/proofflow-logo-horizontal-on-light.svg'
 import styles from './PublicCasePage.module.css'
 
@@ -15,11 +16,11 @@ export const PublicCasePage = () => {
     const repository = getCaseRepository()
 
     repository
-      .getById(id)
+      .getPublicCase(id)
       .then((item) => {
         if (!isMounted) return
         if (!item) {
-          setError('Кейс не найден или еще не опубликован')
+          setError('Кейс недоступен или еще не опубликован')
         } else {
           setCaseItem(item)
         }
@@ -44,13 +45,7 @@ export const PublicCasePage = () => {
       <div className={styles.container}>
         <header className={styles.topBar}>
           <Link to="/" className={styles.logoLink} aria-label="ProofFlow">
-            <img
-              src={logoSvg}
-              alt="ProofFlow"
-              className={styles.logoImage}
-              width="130"
-              height="24"
-            />
+            <img src={logoSvg} alt="ProofFlow" className={styles.logoImage} />
           </Link>
         </header>
         <div className={styles.stateBox}>
@@ -66,30 +61,45 @@ export const PublicCasePage = () => {
       <div className={styles.container}>
         <header className={styles.topBar}>
           <Link to="/" className={styles.logoLink} aria-label="ProofFlow">
-            <img
-              src={logoSvg}
-              alt="ProofFlow"
-              className={styles.logoImage}
-              width="130"
-              height="24"
-            />
+            <img src={logoSvg} alt="ProofFlow" className={styles.logoImage} />
           </Link>
         </header>
         <div className={styles.stateBox}>
-          <h2>{error || 'Кейс не найден'}</h2>
+          <h2 className={styles.stateTitle}>Кейс недоступен</h2>
+          <p className={styles.stateDesc}>
+            Этот кейс не опубликован, был снят с публикации автором или указана неверная ссылка.
+          </p>
           <Link to="/" className={styles.ctaLink}>
-            ← На главную
+            ← На главную ProofFlow
           </Link>
         </div>
       </div>
     )
   }
 
+  const cardData = {
+    metric: caseItem.metric || '+40%',
+    metricLabel: caseItem.metricLabel || 'рост конверсии',
+    before: caseItem.problem || 'Клиент терял лиды на первом шаге',
+    done: caseItem.solution || 'Внедрили оптимизированный процесс',
+    after: caseItem.result || 'Увеличили показатель почти в полтора раза',
+    quote: caseItem.quote || 'Отличный результат!',
+    author: caseItem.author || 'Анна К.',
+    authorRole: caseItem.authorRole || '',
+    company: caseItem.companyName || caseItem.branding?.companyName || 'ProofFlow',
+    isVerifiedByChat: true,
+    category: 'КЕЙС',
+    accentColor: caseItem.branding?.accentColor || '#d6f94c',
+    logoUrl: caseItem.branding?.showLogo ? caseItem.branding?.logoUrl : null,
+  }
+
+  const accentColor = caseItem.branding?.accentColor || '#d6f94c'
+
   return (
     <div className={styles.container}>
       <header className={styles.topBar}>
         <Link to="/" className={styles.logoLink} aria-label="ProofFlow">
-          <img src={logoSvg} alt="ProofFlow" className={styles.logoImage} width="130" height="24" />
+          <img src={logoSvg} alt="ProofFlow" className={styles.logoImage} />
         </Link>
         <Link to="/" className={styles.ctaLink}>
           Создать свой кейс
@@ -97,33 +107,43 @@ export const PublicCasePage = () => {
       </header>
 
       <main className={styles.content}>
-        <article className={styles.card}>
-          <span className={styles.clientBadge}>{caseItem.client}</span>
+        <div className={styles.cardContainer} style={{ '--case-accent': accentColor }}>
+          <CaseCard variant={caseItem.selectedVariant || 'dark'} data={cardData} />
+        </div>
 
-          <h1 className={styles.title}>{caseItem.title}</h1>
+        <div className={styles.verifiedBadgeRow}>
+          <span className={styles.verifiedTag}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              <path d="m9 12 2 2 4-4" />
+            </svg>
+            Проверено по переписке
+          </span>
+          <span className={styles.verifiedNote}>
+            Цитата и факты верифицированы оригинальной перепиской с клиентом
+          </span>
+        </div>
 
-          {caseItem.metric && (
-            <div className={styles.metricBlock}>
-              <span className={styles.metricValue}>{caseItem.metric}</span>
-              <span className={styles.metricLabel}>{caseItem.metricLabel}</span>
-            </div>
-          )}
-
-          {caseItem.quote && (
-            <div className={styles.quoteCard}>
-              <p>«{caseItem.quote}»</p>
-              {caseItem.author && <div className={styles.author}>— {caseItem.author}</div>}
-            </div>
-          )}
-
-          {caseItem.summary && <p className={styles.summary}>{caseItem.summary}</p>}
-        </article>
+        <div className={styles.storyGrid}>
+          <div className={styles.storyCol}>
+            <span className={styles.storyLabel}>Было</span>
+            <p className={styles.storyText}>{caseItem.problem}</p>
+          </div>
+          <div className={styles.storyCol}>
+            <span className={styles.storyLabel}>Сделано</span>
+            <p className={styles.storyText}>{caseItem.solution}</p>
+          </div>
+          <div className={`${styles.storyCol} ${styles.storyColHighlight}`}>
+            <span className={`${styles.storyLabel} ${styles.storyLabelHighlight}`}>Стало</span>
+            <p className={styles.storyText}>{caseItem.result}</p>
+          </div>
+        </div>
 
         <section className={styles.footerBanner}>
           <div>
             <div className={styles.bannerTitle}>Упаковано с помощью ProofFlow</div>
             <div className={styles.bannerText}>
-              Превратите созвоны с клиентами в продающие артефакты и виджеты за 1 минуту
+              Превратите созвоны и переписки с клиентами в продающие кейсы за 2 минуты
             </div>
           </div>
           <Link to="/" className={styles.bannerButton}>

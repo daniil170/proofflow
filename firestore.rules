@@ -35,6 +35,8 @@ service cloud.firestore {
         'status',
         'modifiedFields',
         'consentConfirmed',
+        'clientConsentStatus',
+        'publishedAt',
         'updatedAt'
       ]) &&
       request.resource.data.ownerId == resource.data.ownerId &&
@@ -92,6 +94,15 @@ service cloud.firestore {
 
     match /telegram_link_tokens/{token} {
       allow read, write: if false;
+    }
+
+    match /publicCases/{caseId} {
+      allow read, write: if false;
+    }
+
+    match /consents/{token} {
+      allow read: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow write: if false;
     }
 
     match /feedback/{feedbackId} {

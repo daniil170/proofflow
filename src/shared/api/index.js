@@ -37,3 +37,6 @@ export {
   getAdminInviteRepository,
   getAnalyticsRepository,
 } from './admin/index.js'
+
+export { getConsentGateway } from './consent/index.js'
+
