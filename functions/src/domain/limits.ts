@@ -3,7 +3,7 @@ import { Source } from './types.js'
 export const MAX_CASES_PER_ACCOUNT =
   Number(process.env.MAX_CASES_PER_ACCOUNT) > 0
     ? Number(process.env.MAX_CASES_PER_ACCOUNT)
-    : 50
+    : 3
 
 export const MAX_FILES_PER_CASE =
   Number(process.env.MAX_FILES_PER_CASE) > 0
@@ -18,7 +18,7 @@ export const MAX_FILE_SIZE_BYTES =
 export const MAX_RECORDING_DURATION_SEC =
   Number(process.env.MAX_RECORDING_DURATION_SEC) > 0
     ? Number(process.env.MAX_RECORDING_DURATION_SEC)
-    : 3600
+    : 1200
 
 export const STORAGE_RETENTION_DAYS =
   Number(process.env.STORAGE_RETENTION_DAYS) > 0

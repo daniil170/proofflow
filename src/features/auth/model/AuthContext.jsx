@@ -1,20 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import PropTypes from 'prop-types'
-import { getFunctions, httpsCallable } from 'firebase/functions'
-import { getAuthGateway, getUserRepository, USER_STORAGE_KEYS } from '@/shared/api'
-import { getFirebaseApp } from '@/shared/api/firebase/app.js'
+import { getAuthGateway, getUserRepository } from '@/shared/api'
 import { AuthContext } from './context.js'
-
-const checkIsAdminEmail = (email) => {
-  if (!email) return false
-  const adminList = (
-    import.meta.env.VITE_ADMIN_EMAILS ||
-    'admin@proofflow.ru,owner@proofflow.ru,mock@example.com'
-  )
-    .split(',')
-    .map((e) => e.trim().toLowerCase())
-  return adminList.includes(email.trim().toLowerCase())
-}
+import { useAdminClaimSync } from './useAdminClaimSync.js'
+import { useUserSubscription } from './useUserSubscription.js'
+import { usePendingInvite } from './usePendingInvite.js'
 
 export const AuthProvider = ({
   children,
@@ -22,11 +12,16 @@ export const AuthProvider = ({
   userRepository = getUserRepository(),
 }) => {
   const [user, setUser] = useState(null)
-  const [userRecord, setUserRecord] = useState(null)
-  const [isAdmin, setIsAdmin] = useState(false)
   const [isLoadingAuth, setIsLoadingAuth] = useState(true)
-  const [isLoadingRecord, setIsLoadingRecord] = useState(false)
   const [error, setError] = useState(null)
+
+  const { isAdmin, setIsAdmin } = useAdminClaimSync(user, gateway)
+  const { userRecord, setUserRecord, isLoadingRecord } = useUserSubscription(
+    user?.id,
+    userRepository
+  )
+
+  usePendingInvite(user?.id, userRecord, userRepository)
 
   useEffect(() => {
     let isMounted = true
@@ -35,41 +30,7 @@ export const AuthProvider = ({
         setUser(nextUser)
         setIsLoadingAuth(false)
         if (!nextUser) {
-          setUserRecord(null)
           setIsAdmin(false)
-          setIsLoadingRecord(false)
-        } else {
-          setIsLoadingRecord(true)
-          const isMock =
-            import.meta.env.VITE_USE_MOCK_API === 'true' ||
-            !import.meta.env.VITE_FIREBASE_PROJECT_ID
-          if (isMock) {
-            setIsAdmin(
-              checkIsAdminEmail(nextUser.email) ||
-                nextUser.email === 'mock@example.com' ||
-                nextUser.email === 'admin@proofflow.ru'
-            )
-          } else {
-            try {
-              const functions = getFunctions(getFirebaseApp())
-              const syncFn = httpsCallable(functions, 'syncAdminClaims')
-              syncFn()
-                .then((res) => {
-                  if (isMounted) {
-                    setIsAdmin(Boolean(res.data?.isAdmin))
-                  }
-                })
-                .catch(() => {
-                  if (isMounted) {
-                    setIsAdmin(checkIsAdminEmail(nextUser.email))
-                  }
-                })
-            } catch {
-              if (isMounted) {
-                setIsAdmin(checkIsAdminEmail(nextUser.email))
-              }
-            }
-          }
         }
       }
     })
@@ -80,33 +41,7 @@ export const AuthProvider = ({
         unsubscribe()
       }
     }
-  }, [gateway])
-
-  useEffect(() => {
-    if (!user?.id) return
-
-    let isMounted = true
-
-    const unsubscribe = userRepository.subscribeToUser(
-      user.id,
-      (record) => {
-        if (!isMounted) return
-        setUserRecord(record)
-        setIsLoadingRecord(false)
-      },
-      () => {
-        if (!isMounted) return
-        setIsLoadingRecord(false)
-      }
-    )
-
-    return () => {
-      isMounted = false
-      if (typeof unsubscribe === 'function') {
-        unsubscribe()
-      }
-    }
-  }, [user?.id, userRepository])
+  }, [gateway, setIsAdmin])
 
   const redeemInvite = useCallback(
     async (code) => {
@@ -125,26 +60,8 @@ export const AuthProvider = ({
         throw err
       }
     },
-    [userRepository, userRecord]
+    [userRepository, userRecord, setUserRecord]
   )
-
-  useEffect(() => {
-    if (!user?.id || !userRecord || userRecord.accessStatus !== 'waitlist') return
-    if (typeof window === 'undefined' || !window.sessionStorage) return
-
-    const pendingCode =
-      window.sessionStorage.getItem(USER_STORAGE_KEYS.PENDING_INVITE) ||
-      window.localStorage?.getItem(USER_STORAGE_KEYS.PENDING_INVITE)
-
-    if (pendingCode) {
-      window.sessionStorage.removeItem(USER_STORAGE_KEYS.PENDING_INVITE)
-      window.localStorage?.removeItem(USER_STORAGE_KEYS.PENDING_INVITE)
-      const timer = setTimeout(() => {
-        userRepository.redeemInvite(pendingCode).catch(() => {})
-      }, 0)
-      return () => clearTimeout(timer)
-    }
-  }, [user?.id, userRecord, userRepository])
 
   const signInWithGoogle = useCallback(async () => {
     setError(null)
@@ -198,99 +115,39 @@ export const AuthProvider = ({
       setError(err?.message || 'Не удалось выйти из аккаунта')
       throw err
     }
-  }, [gateway])
-
-  const updateProfile = useCallback(
-    async (profile) => {
-      if (!user?.id) throw new Error('Пользователь не авторизован')
-      const result = await userRepository.updateProfile(user.id, profile)
-      if (userRecord) {
-        setUserRecord({
-          ...userRecord,
-          profile: {
-            ...userRecord.profile,
-            ...profile,
-          },
-        })
-      }
-      return result
-    },
-    [user, userRecord, userRepository]
-  )
-
-  const acceptConsent = useCallback(
-    async (consent) => {
-      if (!user?.id) throw new Error('Пользователь не авторизован')
-      const result = await userRepository.acceptConsent(user.id, consent)
-      if (userRecord) {
-        setUserRecord({
-          ...userRecord,
-          consent,
-        })
-      }
-      return result
-    },
-    [user, userRecord, userRepository]
-  )
-
-  const createTelegramLinkToken = useCallback(async () => {
-    return await userRepository.createTelegramLinkToken()
-  }, [userRepository])
-
-  const isEmailLink = useCallback((href) => gateway.isEmailLink(href), [gateway])
-
-  const getStoredEmailForSignIn = useCallback(() => gateway.getStoredEmailForSignIn(), [gateway])
-
-  const accessStatus = isAdmin ? 'active' : userRecord?.accessStatus || 'waitlist'
-  const isOnboarded =
-    isAdmin ||
-    Boolean(
-      userRecord?.profile?.companyName &&
-        userRecord?.profile?.displayName &&
-        userRecord?.consent
-    )
-  const isOverallLoading = isLoadingAuth || (Boolean(user) && isLoadingRecord && !userRecord)
+  }, [gateway, setIsAdmin, setUserRecord])
 
   const value = useMemo(
     () => ({
       user,
       userRecord,
-      accessStatus,
       isAdmin,
-      isOnboarded,
-      isLoading: isOverallLoading,
+      isLoading: isLoadingAuth || isLoadingRecord,
+      isLoadingAuth,
+      isLoadingRecord,
       error,
-      isAuthenticated: Boolean(user),
       signInWithGoogle,
       sendEmailLink,
       signInWithEmailLink,
-      logout,
-      isEmailLink,
-      getStoredEmailForSignIn,
       redeemInvite,
-      updateProfile,
-      acceptConsent,
-      createTelegramLinkToken,
-      clearError: () => setError(null),
+      logout,
+      isAuthenticated: Boolean(user),
+      isEmailLink: (href) => gateway.isEmailLink(href),
+      getStoredEmailForSignIn: () => gateway.getStoredEmailForSignIn(),
     }),
     [
       user,
       userRecord,
-      accessStatus,
       isAdmin,
-      isOnboarded,
-      isOverallLoading,
+      isLoadingAuth,
+      isLoadingRecord,
       error,
       signInWithGoogle,
       sendEmailLink,
       signInWithEmailLink,
-      logout,
-      isEmailLink,
-      getStoredEmailForSignIn,
       redeemInvite,
-      updateProfile,
-      acceptConsent,
-      createTelegramLinkToken,
+      logout,
+      gateway,
     ]
   )
 
@@ -301,20 +158,16 @@ AuthProvider.propTypes = {
   children: PropTypes.node.isRequired,
   gateway: PropTypes.shape({
     subscribeToAuthState: PropTypes.func.isRequired,
-    sendEmailLink: PropTypes.func.isRequired,
-    isEmailLink: PropTypes.func.isRequired,
-    signInWithEmailLink: PropTypes.func.isRequired,
     signInWithGoogle: PropTypes.func.isRequired,
+    sendEmailLink: PropTypes.func.isRequired,
+    signInWithEmailLink: PropTypes.func.isRequired,
     signOut: PropTypes.func.isRequired,
+    isEmailLink: PropTypes.func.isRequired,
     getStoredEmailForSignIn: PropTypes.func.isRequired,
+    syncAdminClaims: PropTypes.func,
   }),
   userRepository: PropTypes.shape({
-    getUser: PropTypes.func.isRequired,
     subscribeToUser: PropTypes.func.isRequired,
-    updateProfile: PropTypes.func.isRequired,
-    acceptConsent: PropTypes.func.isRequired,
     redeemInvite: PropTypes.func.isRequired,
-    checkInvite: PropTypes.func.isRequired,
-    createTelegramLinkToken: PropTypes.func.isRequired,
   }),
 }

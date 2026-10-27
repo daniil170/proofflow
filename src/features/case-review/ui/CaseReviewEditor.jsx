@@ -19,6 +19,8 @@ export const CaseReviewEditor = ({ reviewState }) => {
     feedbackState,
     activeTab,
     cardPreviewData,
+    sourcesDeletedAt,
+    storageRetentionDays = 14,
 
     setActiveTab,
     updateField,
@@ -76,6 +78,16 @@ export const CaseReviewEditor = ({ reviewState }) => {
           `}
           aria-label="Редактор черновика"
         >
+          <div className={styles.retentionNotice} data-testid="review-retention-notice">
+            <span className={styles.retentionIcon}>⏱️</span>
+            <span>
+              <strong>Срок хранения исходников:</strong> {storageRetentionDays} дней.{' '}
+              {sourcesDeletedAt
+                ? 'Исходные файлы удалены по сроку хранения, сохранённые цитаты зафиксированы.'
+                : 'Исходные файлы автоматически удаляются через 14 дней после готовности черновика, цитаты сохраняются навсегда.'}
+            </span>
+          </div>
+
           <MetricField
             value={draft.metric.value}
             label={draft.metric.label}

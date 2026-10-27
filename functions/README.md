@@ -19,8 +19,8 @@ firebase functions:secrets:set ANTHROPIC_API_KEY
 - `ANTHROPIC_MODEL`: название актуальной модели Claude (например, `claude-3-5-sonnet-latest`). Обязательный параметр в production.
 - `STORAGE_BUCKET`: имя бакета Firebase Storage.
 - `APP_BASE_URL`: базовый URL клиентского приложения.
-- `MAX_CASES_PER_ACCOUNT`: лимит кейсов на аккаунт (по умолчанию 50).
-- `MAX_RECORDING_DURATION_SEC`: максимальная длительность одной аудио/видео записи в секундах (по умолчанию 3600 = 60 минут).
+- `MAX_CASES_PER_ACCOUNT`: лимит кейсов на аккаунт (по умолчанию 3 для беты).
+- `MAX_RECORDING_DURATION_SEC`: максимальная длительность одной аудио/видео записи в секундах (по умолчанию 1200 = 20 минут).
 - `USE_MOCK_ADAPTERS`: `false` для реального API. В продакшене флаг `true` блокируется на уровне рантайма.
 - `FFMPEG_PATH`: опциональный кастомный путь к бинарнику ffmpeg.
 - `FFPROBE_PATH`: опциональный кастомный путь к бинарнику ffprobe.

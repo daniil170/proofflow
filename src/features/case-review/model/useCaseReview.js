@@ -300,9 +300,10 @@ export const useCaseReview = ({
         evidence: matched,
         source: associatedSource || null,
         fieldName: evidenceIdOrField,
+        sourcesDeletedAt: caseItem?.sourcesDeletedAt || null,
       })
     },
-    [evidences, sources, draft]
+    [evidences, sources, draft, caseItem]
   )
 
   const closeEvidence = useCallback(() => {
@@ -444,6 +445,8 @@ export const useCaseReview = ({
     feedbackState,
     activeTab,
     cardPreviewData,
+    sourcesDeletedAt: caseItem?.sourcesDeletedAt || null,
+    storageRetentionDays: 14,
 
     setActiveTab,
     updateField,
