@@ -89,10 +89,34 @@
   opacity: 0.75;
 }
 
-.logoImage {
+.logoLight {
   height: 22px;
   width: auto;
   display: block;
+}
+
+.logoDark {
+  height: 22px;
+  width: auto;
+  display: none;
+}
+
+:global([data-theme='dark']) .logoLight {
+  display: none;
+}
+
+:global([data-theme='dark']) .logoDark {
+  display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .logoLight {
+    display: none;
+  }
+
+  :root:not([data-theme='light']) .logoDark {
+    display: block;
+  }
 }
 
 .badge {

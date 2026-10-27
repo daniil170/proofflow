@@ -229,6 +229,85 @@ describe('Firebase Security Rules', () => {
       )
       await assertFails(getDoc(eventsRef))
     })
+
+    it('enforces beta signups creation and access rules for web and bot', async () => {
+      const anonDb = testEnv.unauthenticatedContext().firestore()
+
+      const webEmailOnlyRef = doc(anonDb, 'beta_signups/web-email')
+      await assertSucceeds(
+        setDoc(webEmailOnlyRef, {
+          source: 'web',
+          email: 'founder@agency.ru',
+          consent: true,
+          businessType: 'agency_or_studio',
+          casesVolume: '1_to_3',
+        })
+      )
+
+      const webTgOnlyRef = doc(anonDb, 'beta_signups/web-tg')
+      await assertSucceeds(
+        setDoc(webTgOnlyRef, {
+          source: 'web',
+          telegramUsername: 'agency_founder',
+          consent: true,
+          businessType: 'agency_or_studio',
+          casesVolume: '1_to_3',
+        })
+      )
+
+      const webBothRef = doc(anonDb, 'beta_signups/web-both')
+      await assertSucceeds(
+        setDoc(webBothRef, {
+          source: 'web',
+          email: 'founder@agency.ru',
+          telegramUsername: 'agency_founder',
+          consent: true,
+          businessType: 'agency_or_studio',
+          casesVolume: '1_to_3',
+        })
+      )
+
+      const webNoContactsRef = doc(anonDb, 'beta_signups/web-no-contact')
+      await assertFails(
+        setDoc(webNoContactsRef, {
+          source: 'web',
+          consent: true,
+          businessType: 'agency_or_studio',
+          casesVolume: '1_to_3',
+        })
+      )
+
+      const webNoConsentRef = doc(anonDb, 'beta_signups/web-no-consent')
+      await assertFails(
+        setDoc(webNoConsentRef, {
+          source: 'web',
+          email: 'founder@agency.ru',
+          consent: false,
+          businessType: 'agency_or_studio',
+          casesVolume: '1_to_3',
+        })
+      )
+
+      const botSignupRef = doc(anonDb, 'beta_signups/bot-tg')
+      await assertSucceeds(
+        setDoc(botSignupRef, {
+          source: 'telegram',
+          telegramUserId: 987654321,
+          telegramUsername: 'telegram_lead',
+          businessType: 'agency_or_studio',
+          casesVolume: '1_to_3',
+          consent: true,
+        })
+      )
+
+      await assertFails(getDoc(webEmailOnlyRef))
+      await assertFails(
+        updateDoc(webEmailOnlyRef, {
+          businessType: 'hacked',
+        })
+      )
+      await assertFails(deleteDoc(webEmailOnlyRef))
+    })
   })
 
   describe('Storage: Access control and file constraints', () => {

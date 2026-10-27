@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
 import { Link, useLocation } from 'react-router-dom'
-import logoSvg from '@/assets/logo/proofflow-logo-horizontal-on-light.svg'
+import logoLightSvg from '@/assets/logo/proofflow-logo-horizontal-on-light.svg'
+import logoDarkSvg from '@/assets/logo/proofflow-logo-horizontal-on-dark.svg'
 import { ArrowLeftIcon, PrinterIcon, ShieldCheckIcon } from '../icons.jsx'
 import styles from './LegalLayout.module.css'
 
@@ -50,9 +51,16 @@ export const LegalLayout = ({ doc, children }) => {
             <Link to="/" className={styles.homeLink} aria-label="ProofFlow Главная">
               <ArrowLeftIcon size={16} />
               <img
-                src={logoSvg}
+                src={logoLightSvg}
                 alt="ProofFlow"
-                className={styles.logoImage}
+                className={styles.logoLight}
+                width="110"
+                height="22"
+              />
+              <img
+                src={logoDarkSvg}
+                alt="ProofFlow"
+                className={styles.logoDark}
                 width="110"
                 height="22"
               />
