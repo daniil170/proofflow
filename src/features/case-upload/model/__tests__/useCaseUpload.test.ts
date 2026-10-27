@@ -327,4 +327,31 @@ describe('useCaseUpload hook', () => {
     )
     expect(onSuccess).toHaveBeenCalled()
   })
+
+  it('prevents upload when user reaches maximum cases per account', async () => {
+    const limitedRepository = {
+      ...mockRepository,
+      countByOwner: vi.fn().mockResolvedValue(50),
+    }
+
+    const { result } = renderHook(() =>
+      useCaseUpload({
+        user: { id: 'user-max' },
+        uploader: mockUploader,
+        repository: limitedRepository,
+      })
+    )
+
+    act(() => {
+      result.current.addFiles([new File(['test'], 'interview.mp3', { type: 'audio/mpeg' })])
+      result.current.setConsentConfirmed(true)
+    })
+
+    await act(async () => {
+      await result.current.submitAndUpload()
+    })
+
+    expect(result.current.errorMessage).toContain('Достигнут лимит кейсов на аккаунт')
+    expect(mockUploader.upload).not.toHaveBeenCalled()
+  })
 })

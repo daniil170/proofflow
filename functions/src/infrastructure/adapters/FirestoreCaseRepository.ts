@@ -71,4 +71,13 @@ export class FirestoreCaseRepository implements CaseRepositoryPort {
         updatedAt: Date.now(),
       })
   }
+
+  async countCasesByOwner(ownerId: string): Promise<number> {
+    const snapshot = await this.getDb()
+      .collection(this.collectionName)
+      .where('ownerId', '==', ownerId)
+      .count()
+      .get()
+    return snapshot.data().count
+  }
 }

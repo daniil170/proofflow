@@ -74,8 +74,8 @@ export const useCookieConsent = () => {
 
     try {
       window.localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(record))
-    } catch {
-      // storage unavailable / quota exceeded
+    } catch (err) {
+      void err
     }
 
     setConsentData(record)

@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(ownerId) {
+      return isSignedIn() && request.auth.uid == ownerId;
+    }
+
+    function isAllowedCaseStatus(status) {
+      return status in ['draft', 'processing', 'review', 'ready', 'published'];
+    }
+
+    function isValidCaseUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'clientLabel',
+        'sources',
+        'draft',
+        'selectedVariant',
+        'branding',
+        'status',
+        'modifiedFields',
+        'consentConfirmed',
+        'updatedAt'
+      ]) &&
+      request.resource.data.ownerId == resource.data.ownerId &&
+      isAllowedCaseStatus(request.resource.data.status);
+    }
+
+    function isValidCaseCreate() {
+      return request.resource.data.ownerId == request.auth.uid &&
+        isAllowedCaseStatus(request.resource.data.status) &&
+        !('evidences' in request.resource.data) &&
+        !('transcript' in request.resource.data) &&
+        !('chatExtractions' in request.resource.data) &&
+        !('failReason' in request.resource.data) &&
+        !('stageMessage' in request.resource.data) &&
+        !('stageProgress' in request.resource.data);
+    }
+
+    match /cases/{caseId} {
+      allow read: if isOwner(resource.data.ownerId);
+      allow create: if isSignedIn() && isValidCaseCreate();
+      allow update: if isOwner(resource.data.ownerId) && isValidCaseUpdate();
+      allow delete: if isOwner(resource.data.ownerId);
+
+      match /{subcollection}/{docId=**} {
+        allow read, write: if isSignedIn() &&
+          get(/databases/$(database)/documents/cases/$(caseId)).data.ownerId == request.auth.uid;
+      }
+    }
+
+    match /feedback/{feedbackId} {
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if false;
+    }
+
+    match /events/{eventId} {
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if false;
+    }
+
+    match /beta_signups/{signupId} {
+      allow create: if true;
+      allow read, update, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

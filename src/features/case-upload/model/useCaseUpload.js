@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   isAllowedMimeType,
+  MAX_CASES_PER_ACCOUNT,
   MAX_FILE_SIZE_BYTES,
   MAX_FILES_PER_CASE,
   MAX_RECORDING_DURATION_SEC,
@@ -445,6 +446,16 @@ export const useCaseUpload = ({
     if (files.length === 0) {
       setErrorMessage('Пожалуйста, добавьте хотя бы один файл или запишите голос.')
       return
+    }
+
+    if (typeof repository.countByOwner === 'function' && user?.id) {
+      const count = await repository.countByOwner(user.id)
+      if (count >= MAX_CASES_PER_ACCOUNT) {
+        setErrorMessage(
+          `Достигнут лимит кейсов на аккаунт (${MAX_CASES_PER_ACCOUNT}). Удалите старые кейсы.`
+        )
+        return
+      }
     }
 
     setIsSubmitting(true)

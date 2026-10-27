@@ -2,6 +2,7 @@ import {
   addDoc,
   collection,
   doc,
+  getCountFromServer,
   getDoc,
   getFirestore,
   onSnapshot,
@@ -122,6 +123,15 @@ export const firestoreCaseRepository = Object.freeze({
       created.push(item)
     }
     return created
+  },
+
+  async countByOwner(ownerId) {
+    if (!ownerId) return 0
+    const db = getDbInstance()
+    const casesCollection = collection(db, COLLECTION_NAME)
+    const casesQuery = query(casesCollection, where('ownerId', '==', ownerId))
+    const snapshot = await getCountFromServer(casesQuery)
+    return snapshot.data().count
   },
 
   async saveFeedback({ caseId, rating, comment, userId }) {

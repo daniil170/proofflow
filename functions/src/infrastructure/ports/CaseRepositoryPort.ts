@@ -15,4 +15,5 @@ export interface CaseRepositoryPort {
     evidences: Evidence[],
     finalStatus?: 'review' | 'ready'
   ): Promise<void>
+  countCasesByOwner?(ownerId: string): Promise<number>
 }
