@@ -188,3 +188,33 @@ npm run test:rules
 # Запуск полного стека эмуляторов
 firebase emulators:start
 ```
+
+---
+
+## 10. Лимиты управляемой беты
+
+В период закрытой беты действуют следующие базовые ограничения (настраиваются через `.env` и переменные окружения Cloud Functions):
+
+- `MAX_CASES_PER_ACCOUNT = 3`: максимальное количество кейсов на один аккаунт. При исчерпании лимита интерфейс выводит предупреждение и ссылку на поддержку.
+- `MAX_RECORDING_DURATION_SEC = 1200` (20 минут): максимальная длительность одной аудио/видео записи.
+- `MAX_FILES_PER_CASE = 10`: максимальное количество файлов в рамках одного кейса.
+- `MAX_FILE_SIZE_BYTES = 104857600` (100 МБ): ограничение размера одного файла.
+- `STORAGE_RETENTION_DAYS = 14`: исходные файлы (аудиозаписи, скриншоты) автоматически удаляются scheduled-функцией через 14 дней после готовности черновика. Сгенерированные кейсы и цитаты сохраняются навсегда.
+
+---
+
+## 11. Управление доступом (CLI)
+
+Для ручной выдачи доступа и назначения администраторов используется скрипт `scripts/grant-access`:
+
+```bash
+# Выдача активного доступа пользователю по email или UID:
+./scripts/grant-access user@example.com
+./scripts/grant-access USER_FIREBASE_UID
+
+# Выдача активного доступа с правами администратора (admin: true):
+./scripts/grant-access admin@example.com --admin
+./scripts/grant-access ADMIN_FIREBASE_UID --admin
+```
+
+Скрипт обновляет статус `accessStatus: "active"` в коллекции Firestore `users/{uid}`, а также выставляет Custom User Claims в Firebase Auth (`access: "active"`, и опционально `admin: true`).

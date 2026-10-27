@@ -17,10 +17,10 @@ import {
 
 describe('limits configuration', () => {
   it('has safe default limit numbers', () => {
-    expect(MAX_CASES_PER_ACCOUNT).toBeGreaterThanOrEqual(20)
+    expect(MAX_CASES_PER_ACCOUNT).toBe(3)
     expect(MAX_FILES_PER_CASE).toBeGreaterThanOrEqual(5)
     expect(MAX_FILE_SIZE_BYTES).toBeGreaterThanOrEqual(10 * 1024 * 1024)
-    expect(MAX_RECORDING_DURATION_SEC).toBeGreaterThanOrEqual(3600)
+    expect(MAX_RECORDING_DURATION_SEC).toBe(1200)
     expect(STORAGE_RETENTION_DAYS).toBeGreaterThanOrEqual(7)
   })
 

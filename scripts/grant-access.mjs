@@ -1,9 +1,18 @@
-import admin from 'firebase-admin'
+let admin
+try {
+  const mod = await import('firebase-admin')
+  admin = mod.default || mod
+} catch {
+  const mod = await import('../functions/node_modules/firebase-admin/lib/index.js')
+  admin = mod.default || mod
+}
 
-const target = process.argv[2]
+const args = process.argv.slice(2)
+const makeAdmin = args.includes('--admin')
+const target = args.find((arg) => !arg.startsWith('--'))
 
 if (!target) {
-  console.error('Использование: node scripts/grant-access.mjs <email|uid>')
+  console.error('Использование: node scripts/grant-access.mjs <email|uid> [--admin]')
   process.exit(1)
 }
 
@@ -34,24 +43,33 @@ async function main() {
   const uid = userRecord.uid
   const now = Date.now()
 
-  await db.collection('users').doc(uid).set(
-    {
-      id: uid,
-      email: userRecord.email || '',
-      accessStatus: 'active',
-      workspaceId: uid,
-      updatedAt: now,
-    },
-    { merge: true }
-  )
+  const userDocData = {
+    id: uid,
+    email: userRecord.email || '',
+    accessStatus: 'active',
+    workspaceId: uid,
+    updatedAt: now,
+  }
+
+  if (makeAdmin) {
+    userDocData.role = 'admin'
+  }
+
+  await db.collection('users').doc(uid).set(userDocData, { merge: true })
 
   const existingClaims = userRecord.customClaims || {}
-  await auth.setCustomUserClaims(uid, {
+  const nextClaims = {
     ...existingClaims,
     access: 'active',
-  })
+  }
+  if (makeAdmin) {
+    nextClaims.admin = true
+  }
 
-  console.log(`Доступ "active" успешно выдан пользователю: ${userRecord.email || uid} (UID: ${uid})`)
+  await auth.setCustomUserClaims(uid, nextClaims)
+
+  const adminMsg = makeAdmin ? ' и права администратора (admin: true)' : ''
+  console.log(`Доступ "active"${adminMsg} успешно выдан пользователю: ${userRecord.email || uid} (UID: ${uid})`)
 }
 
 main().catch((err) => {
