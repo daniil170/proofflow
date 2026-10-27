@@ -10,23 +10,25 @@ export const BetaOffer = () => {
 
       <p className={styles.description}>
         {BETA_OFFER_CONTENT.descriptionPrefix} <strong>{BETA_OFFER_CONTENT.priceNotice}</strong>{' '}
-        <span>{BETA_OFFER_CONTENT.termsNotice}</span>
+        <span className={styles.discountBadge}>{BETA_OFFER_CONTENT.termsNotice}</span>
       </p>
 
       <div className={styles.conditionsList}>
         <div className={styles.conditionItem}>
-          <svg
-            className={styles.conditionIcon}
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-              clipRule="evenodd"
-            />
-          </svg>
+          <div className={styles.iconWrap}>
+            <svg
+              className={styles.conditionIcon}
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                fillRule="evenodd"
+                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
           <div className={styles.conditionTextWrap}>
             <span className={styles.conditionTitle}>Бесплатный доступ</span>
             <span className={styles.conditionText}>
@@ -37,18 +39,20 @@ export const BetaOffer = () => {
         </div>
 
         <div className={styles.conditionItem}>
-          <svg
-            className={styles.conditionIcon}
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-              clipRule="evenodd"
-            />
-          </svg>
+          <div className={styles.iconWrap}>
+            <svg
+              className={styles.conditionIcon}
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                fillRule="evenodd"
+                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
           <div className={styles.conditionTextWrap}>
             <span className={styles.conditionTitle}>Лимиты беты</span>
             <span className={styles.conditionText}>
@@ -59,18 +63,20 @@ export const BetaOffer = () => {
         </div>
 
         <div className={styles.conditionItem}>
-          <svg
-            className={styles.conditionIcon}
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-              clipRule="evenodd"
-            />
-          </svg>
+          <div className={styles.iconWrap}>
+            <svg
+              className={styles.conditionIcon}
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                fillRule="evenodd"
+                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
           <div className={styles.conditionTextWrap}>
             <span className={styles.conditionTitle}>Что взамен</span>
             <span className={styles.conditionText}>

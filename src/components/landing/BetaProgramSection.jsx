@@ -32,7 +32,7 @@ export const BetaProgramSection = () => {
         </div>
 
         <div className={`${styles.grid} grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6`}>
-          <article className={`${styles.card} border border-zinc-200 dark:border-zinc-800 rounded-2xl bg-zinc-50/50 dark:bg-zinc-900/50 p-6`}>
+          <article className={styles.card}>
             <div>
               <div className={styles.cardTop}>
                 <span className={styles.stepNumber}>01</span>
@@ -62,7 +62,7 @@ export const BetaProgramSection = () => {
             </div>
           </article>
 
-          <article className={`${styles.card} border border-zinc-200 dark:border-zinc-800 rounded-2xl bg-zinc-50/50 dark:bg-zinc-900/50 p-6`}>
+          <article className={styles.card}>
             <div>
               <div className={styles.cardTop}>
                 <span className={styles.stepNumber}>02</span>
@@ -91,7 +91,7 @@ export const BetaProgramSection = () => {
             </div>
           </article>
 
-          <article className={`${styles.card} border border-zinc-200 dark:border-zinc-800 rounded-2xl bg-zinc-50/50 dark:bg-zinc-900/50 p-6`}>
+          <article className={styles.card}>
             <div>
               <div className={styles.cardTop}>
                 <span className={styles.stepNumber}>03</span>
@@ -121,7 +121,7 @@ export const BetaProgramSection = () => {
             </div>
           </article>
 
-          <article className={`${styles.card} border border-zinc-200 dark:border-zinc-800 rounded-2xl bg-zinc-50/50 dark:bg-zinc-900/50 p-6`}>
+          <article className={styles.card}>
             <div>
               <div className={styles.cardTop}>
                 <span className={styles.stepNumber}>04</span>
