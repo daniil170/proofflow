@@ -20,6 +20,7 @@ describe('ProtectedRoute', () => {
       isLoading: true,
       accessStatus: 'waitlist',
       isOnboarded: false,
+      isAdmin: false,
     })
 
     render(
@@ -47,6 +48,7 @@ describe('ProtectedRoute', () => {
       isLoading: false,
       accessStatus: 'waitlist',
       isOnboarded: false,
+      isAdmin: false,
     })
 
     render(
@@ -69,12 +71,96 @@ describe('ProtectedRoute', () => {
     expect(screen.queryByText('Secret Content')).toBeNull()
   })
 
+  it('shows NotFoundPage when unauthenticated user visits /admin', () => {
+    vi.spyOn(useAuthModule, 'useAuth').mockReturnValue({
+      isAuthenticated: false,
+      isLoading: false,
+      accessStatus: 'waitlist',
+      isOnboarded: false,
+      isAdmin: false,
+    })
+
+    render(
+      <MemoryRouter initialEntries={['/admin']}>
+        <Routes>
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <div>Admin Content</div>
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    expect(screen.getByText('Страница не найдена')).toBeDefined()
+    expect(screen.queryByText('Admin Content')).toBeNull()
+  })
+
+  it('shows NotFoundPage when authenticated non-admin visits /admin', () => {
+    vi.spyOn(useAuthModule, 'useAuth').mockReturnValue({
+      isAuthenticated: true,
+      isLoading: false,
+      accessStatus: 'active',
+      isOnboarded: true,
+      isAdmin: false,
+    })
+
+    render(
+      <MemoryRouter initialEntries={['/admin']}>
+        <Routes>
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <div>Admin Content</div>
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    expect(screen.getByText('Страница не найдена')).toBeDefined()
+    expect(screen.queryByText('Admin Content')).toBeNull()
+  })
+
+  it('renders admin content when user has isAdmin=true on /admin', () => {
+    vi.spyOn(useAuthModule, 'useAuth').mockReturnValue({
+      isAuthenticated: true,
+      isLoading: false,
+      accessStatus: 'active',
+      isOnboarded: false,
+      isAdmin: true,
+    })
+
+    render(
+      <MemoryRouter initialEntries={['/admin']}>
+        <Routes>
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <div>Admin Content</div>
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    expect(screen.getByText('Admin Content')).toBeDefined()
+  })
+
   it('shows WaitlistScreen when user has waitlist status', () => {
     vi.spyOn(useAuthModule, 'useAuth').mockReturnValue({
       isAuthenticated: true,
       isLoading: false,
       accessStatus: 'waitlist',
       isOnboarded: false,
+      isAdmin: false,
       logout: vi.fn(),
       redeemInvite: vi.fn(),
     })
@@ -105,6 +191,7 @@ describe('ProtectedRoute', () => {
       isLoading: false,
       accessStatus: 'blocked',
       isOnboarded: false,
+      isAdmin: false,
       logout: vi.fn(),
     })
 
@@ -133,6 +220,7 @@ describe('ProtectedRoute', () => {
       isLoading: false,
       accessStatus: 'active',
       isOnboarded: false,
+      isAdmin: false,
     })
 
     render(
@@ -161,6 +249,7 @@ describe('ProtectedRoute', () => {
       isLoading: false,
       accessStatus: 'active',
       isOnboarded: true,
+      isAdmin: false,
     })
 
     render(

@@ -9,6 +9,10 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == ownerId;
     }
 
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.admin == true;
+    }
+
     function hasActiveAccess() {
       return isSignedIn() && (
         request.auth.token.access == 'active' ||
@@ -59,35 +63,6 @@ service cloud.firestore {
         ]);
     }
 
-    function isValidBetaSignupCreate() {
-      let data = request.resource.data;
-      let hasValidContact = (
-        (('email' in data) && data.email is string && data.email.size() > 0) ||
-        (('telegramUsername' in data) && data.telegramUsername is string && data.telegramUsername.size() > 0)
-      );
-
-      let isWeb = data.source == 'web' &&
-        hasValidContact &&
-        (!('email' in data) || data.email == null || data.email is string) &&
-        (!('telegramUsername' in data) || data.telegramUsername == null || data.telegramUsername is string) &&
-        (!('businessType' in data) || data.businessType is string) &&
-        (!('casesVolume' in data) || data.casesVolume is string) &&
-        (!('currentProcess' in data) || data.currentProcess is string) &&
-        data.consent == true;
-
-      let isTelegram = data.source == 'telegram' &&
-        (data.telegramUserId is int || data.telegramUserId is number) &&
-        (!('telegramUsername' in data) || data.telegramUsername == null || data.telegramUsername is string) &&
-        (!('businessType' in data) || data.businessType is string) &&
-        (!('casesVolume' in data) || data.casesVolume is string) &&
-        (!('feedbackText' in data) || data.feedbackText is string) &&
-        (!('deepLink' in data) || data.deepLink is string) &&
-        (!('unsubscribed' in data) || data.unsubscribed is bool) &&
-        data.consent is bool;
-
-      return isWeb || isTelegram;
-    }
-
     match /users/{userId} {
       allow read: if isSignedIn() && request.auth.uid == userId;
       allow update: if isSignedIn() && request.auth.uid == userId && isValidUserUpdate();
@@ -108,7 +83,11 @@ service cloud.firestore {
     }
 
     match /invites/{code} {
-      allow read, write: if false;
+      allow read, write: if isAdmin();
+    }
+
+    match /beta_signups/{signupId} {
+      allow read, write: if isAdmin();
     }
 
     match /telegram_link_tokens/{token} {
@@ -122,11 +101,6 @@ service cloud.firestore {
 
     match /events/{eventId} {
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow read, update, delete: if false;
-    }
-
-    match /beta_signups/{signupId} {
-      allow create: if isValidBetaSignupCreate();
       allow read, update, delete: if false;
     }
 

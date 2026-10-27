@@ -1,7 +1,20 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import PropTypes from 'prop-types'
+import { getFunctions, httpsCallable } from 'firebase/functions'
 import { getAuthGateway, getUserRepository, USER_STORAGE_KEYS } from '@/shared/api'
+import { getFirebaseApp } from '@/shared/api/firebase/app.js'
 import { AuthContext } from './context.js'
+
+const checkIsAdminEmail = (email) => {
+  if (!email) return false
+  const adminList = (
+    import.meta.env.VITE_ADMIN_EMAILS ||
+    'admin@proofflow.ru,owner@proofflow.ru,mock@example.com'
+  )
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+  return adminList.includes(email.trim().toLowerCase())
+}
 
 export const AuthProvider = ({
   children,
@@ -10,6 +23,7 @@ export const AuthProvider = ({
 }) => {
   const [user, setUser] = useState(null)
   const [userRecord, setUserRecord] = useState(null)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [isLoadingAuth, setIsLoadingAuth] = useState(true)
   const [isLoadingRecord, setIsLoadingRecord] = useState(false)
   const [error, setError] = useState(null)
@@ -22,9 +36,40 @@ export const AuthProvider = ({
         setIsLoadingAuth(false)
         if (!nextUser) {
           setUserRecord(null)
+          setIsAdmin(false)
           setIsLoadingRecord(false)
         } else {
           setIsLoadingRecord(true)
+          const isMock =
+            import.meta.env.VITE_USE_MOCK_API === 'true' ||
+            !import.meta.env.VITE_FIREBASE_PROJECT_ID
+          if (isMock) {
+            setIsAdmin(
+              checkIsAdminEmail(nextUser.email) ||
+                nextUser.email === 'mock@example.com' ||
+                nextUser.email === 'admin@proofflow.ru'
+            )
+          } else {
+            try {
+              const functions = getFunctions(getFirebaseApp())
+              const syncFn = httpsCallable(functions, 'syncAdminClaims')
+              syncFn()
+                .then((res) => {
+                  if (isMounted) {
+                    setIsAdmin(Boolean(res.data?.isAdmin))
+                  }
+                })
+                .catch(() => {
+                  if (isMounted) {
+                    setIsAdmin(checkIsAdminEmail(nextUser.email))
+                  }
+                })
+            } catch {
+              if (isMounted) {
+                setIsAdmin(checkIsAdminEmail(nextUser.email))
+              }
+            }
+          }
         }
       }
     })
@@ -148,6 +193,7 @@ export const AuthProvider = ({
       await gateway.signOut()
       setUser(null)
       setUserRecord(null)
+      setIsAdmin(false)
     } catch (err) {
       setError(err?.message || 'Не удалось выйти из аккаунта')
       throw err
@@ -195,12 +241,14 @@ export const AuthProvider = ({
 
   const getStoredEmailForSignIn = useCallback(() => gateway.getStoredEmailForSignIn(), [gateway])
 
-  const accessStatus = userRecord?.accessStatus || 'waitlist'
-  const isOnboarded = Boolean(
-    userRecord?.profile?.companyName &&
-      userRecord?.profile?.displayName &&
-      userRecord?.consent
-  )
+  const accessStatus = isAdmin ? 'active' : userRecord?.accessStatus || 'waitlist'
+  const isOnboarded =
+    isAdmin ||
+    Boolean(
+      userRecord?.profile?.companyName &&
+        userRecord?.profile?.displayName &&
+        userRecord?.consent
+    )
   const isOverallLoading = isLoadingAuth || (Boolean(user) && isLoadingRecord && !userRecord)
 
   const value = useMemo(
@@ -208,6 +256,7 @@ export const AuthProvider = ({
       user,
       userRecord,
       accessStatus,
+      isAdmin,
       isOnboarded,
       isLoading: isOverallLoading,
       error,
@@ -228,6 +277,7 @@ export const AuthProvider = ({
       user,
       userRecord,
       accessStatus,
+      isAdmin,
       isOnboarded,
       isOverallLoading,
       error,

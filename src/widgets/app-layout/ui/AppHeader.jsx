@@ -5,7 +5,7 @@ import logoSvg from '@/assets/logo/proofflow-logo-horizontal-on-light.svg'
 import styles from './AppHeader.module.css'
 
 export const AppHeader = () => {
-  const { user, logout } = useAuth()
+  const { user, logout, isAdmin } = useAuth()
   const navigate = useNavigate()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuRef = useRef(null)
@@ -135,6 +135,17 @@ export const AppHeader = () => {
                 >
                   Настройки аккаунта
                 </Link>
+
+                {isAdmin && (
+                  <Link
+                    to="/admin"
+                    className={styles.menuItem}
+                    onClick={() => setIsMenuOpen(false)}
+                    role="menuitem"
+                  >
+                    Панель администратора
+                  </Link>
+                )}
 
                 <button
                   type="button"

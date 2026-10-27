@@ -1,12 +1,13 @@
 import PropTypes from 'prop-types'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { NotFoundPage } from '@/pages/not-found'
 import { useAuth } from '../model/useAuth.js'
 import { WaitlistScreen } from './WaitlistScreen.jsx'
 import { BlockedScreen } from './BlockedScreen.jsx'
 import styles from './ProtectedRoute.module.css'
 
 export const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, isLoading, accessStatus, isOnboarded } = useAuth()
+  const { isAuthenticated, isLoading, accessStatus, isOnboarded, isAdmin } = useAuth()
   const location = useLocation()
 
   if (isLoading) {
@@ -19,7 +20,18 @@ export const ProtectedRoute = ({ children }) => {
   }
 
   if (!isAuthenticated) {
+    if (location.pathname.startsWith('/admin')) {
+      return <NotFoundPage />
+    }
     return <Navigate to="/login" state={{ from: location }} replace />
+  }
+
+  const isAdminRoute = location.pathname.startsWith('/admin')
+  if (isAdminRoute) {
+    if (!isAdmin) {
+      return <NotFoundPage />
+    }
+    return children ? children : <Outlet />
   }
 
   if (accessStatus === 'waitlist') {

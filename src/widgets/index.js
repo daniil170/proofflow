@@ -1,3 +1,4 @@
 export * from './landing/index.js'
 export * from './case-card/index.js'
 export * from './app-layout/index.js'
+export * from './admin/AdminLayout/index.js'

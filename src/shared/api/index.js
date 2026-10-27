@@ -30,3 +30,10 @@ export {
   firestoreUserRepository,
   mockUserRepository,
 } from './user/index.js'
+
+export {
+  ADMIN_STORAGE_KEYS,
+  getApplicationRepository,
+  getAdminInviteRepository,
+  getAnalyticsRepository,
+} from './admin/index.js'

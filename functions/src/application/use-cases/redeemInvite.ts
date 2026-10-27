@@ -109,6 +109,19 @@ export const executeRedeemInvite = async (
       transaction.set(userRef, userPayload, { merge: true })
     }
 
+    if (invite.applicationId) {
+      const appRef = db.collection('beta_signups').doc(invite.applicationId)
+      transaction.set(
+        appRef,
+        {
+          status: 'activated',
+          activatedAt: now,
+          updatedAt: now,
+        },
+        { merge: true }
+      )
+    }
+
     return {
       success: true,
       accessStatus: 'active' as const,

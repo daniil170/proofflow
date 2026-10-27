@@ -379,68 +379,78 @@ describe('Firebase Security Rules', () => {
       )
     })
 
-    it('enforces beta signups creation and access rules for web and bot', async () => {
-      const unauthDb = testEnv.unauthenticatedContext().firestore()
-
-      const webEmailOnlyRef = doc(unauthDb, 'beta_signups/signup-web-email')
-      await assertSucceeds(
-        setDoc(webEmailOnlyRef, {
+    it('denies non-admin from reading or writing beta_signups', async () => {
+      await testEnv.withSecurityRulesDisabled(async (context) => {
+        const adminDb = context.firestore()
+        await setDoc(doc(adminDb, 'beta_signups/signup-1'), {
           source: 'web',
           email: 'founder@studio.com',
-          businessType: 'agency_or_studio',
-          casesVolume: '4_to_10',
-          currentProcess: 'manual',
-          consent: true,
+          status: 'new',
           createdAt: Date.now(),
         })
-      )
+      })
 
-      const webTelegramOnlyRef = doc(unauthDb, 'beta_signups/signup-web-tg')
-      await assertSucceeds(
-        setDoc(webTelegramOnlyRef, {
-          source: 'web',
-          telegramUsername: 'agency_boss',
-          businessType: 'agency_or_studio',
-          casesVolume: '4_to_10',
-          currentProcess: 'manual',
-          consent: true,
-          createdAt: Date.now(),
-        })
-      )
+      const clientDb = testEnv.authenticatedContext('alice', { access: 'active' }).firestore()
+      const clientRef = doc(clientDb, 'beta_signups/signup-1')
+      const newRef = doc(clientDb, 'beta_signups/signup-new')
 
-      const botSignupRef = doc(unauthDb, 'beta_signups/signup-bot-1')
-      await assertSucceeds(
-        setDoc(botSignupRef, {
-          source: 'telegram',
-          telegramUserId: 123456789,
-          telegramUsername: 'tg_user',
-          businessType: 'it_outsource',
-          casesVolume: '1_to_3',
-          consent: true,
-          createdAt: Date.now(),
-        })
-      )
-
-      const invalidNoContactWebRef = doc(unauthDb, 'beta_signups/signup-web-invalid')
+      await assertFails(getDoc(clientRef))
       await assertFails(
-        setDoc(invalidNoContactWebRef, {
+        setDoc(newRef, {
           source: 'web',
-          businessType: 'agency_or_studio',
-          consent: true,
-          createdAt: Date.now(),
+          email: 'alice@test.com',
+          status: 'new',
         })
       )
+      await assertFails(deleteDoc(clientRef))
 
-      await assertFails(getDoc(webEmailOnlyRef))
+      const unauthDb = testEnv.unauthenticatedContext().firestore()
+      await assertFails(getDoc(doc(unauthDb, 'beta_signups/signup-1')))
       await assertFails(
-        updateDoc(webEmailOnlyRef, {
-          businessType: 'hacked',
+        setDoc(doc(unauthDb, 'beta_signups/signup-unauth'), {
+          source: 'web',
+          email: 'unauth@test.com',
         })
       )
-      await assertFails(deleteDoc(webEmailOnlyRef))
     })
 
-    it('denies clients from reading or writing invites and telegram tokens', async () => {
+    it('allows admin to read, create, and update beta_signups and invites', async () => {
+      const adminDb = testEnv.authenticatedContext('admin-1', { admin: true }).firestore()
+      const signupRef = doc(adminDb, 'beta_signups/signup-admin-test')
+      const inviteRef = doc(adminDb, 'invites/PF-9999-ZZ')
+
+      await assertSucceeds(
+        setDoc(signupRef, {
+          source: 'web',
+          email: 'prospect@acme.ru',
+          status: 'new',
+          createdAt: Date.now(),
+        })
+      )
+
+      await assertSucceeds(getDoc(signupRef))
+
+      await assertSucceeds(
+        updateDoc(signupRef, {
+          status: 'approved',
+          inviteCode: 'PF-9999-ZZ',
+        })
+      )
+
+      await assertSucceeds(
+        setDoc(inviteRef, {
+          code: 'PF-9999-ZZ',
+          status: 'issued',
+          expiresAt: Date.now() + 1000000,
+          createdBy: 'admin-1',
+          createdAt: Date.now(),
+        })
+      )
+
+      await assertSucceeds(getDoc(inviteRef))
+    })
+
+    it('denies non-admin clients from reading or writing invites and telegram tokens', async () => {
       const aliceDb = testEnv.authenticatedContext('alice', { access: 'active' }).firestore()
       const inviteRef = doc(aliceDb, 'invites/INVITE123')
       const tokenRef = doc(aliceDb, 'telegram_link_tokens/token-abc')

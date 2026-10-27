@@ -1,11 +1,14 @@
 import { createBrowserRouter } from 'react-router-dom'
 import {
+  AdminAnalyticsPage,
+  AdminApplicationsPage,
   CaseProcessPage,
   CasesListPage,
   InvitePage,
   LandingPage,
   LoginPage,
   NewCasePage,
+  NotFoundPage,
   PublicCasePage,
   SettingsPage,
   WelcomePage,
@@ -14,7 +17,7 @@ import {
   CookiesPage,
 } from '@/pages'
 import { ProtectedRoute } from '@/features/auth'
-import { AppLayout } from '@/widgets'
+import { AdminLayout, AppLayout } from '@/widgets'
 
 export const router = createBrowserRouter([
   {
@@ -74,5 +77,31 @@ export const router = createBrowserRouter([
         element: <SettingsPage />,
       },
     ],
+  },
+  {
+    path: '/admin',
+    element: (
+      <ProtectedRoute>
+        <AdminLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      {
+        index: true,
+        element: <AdminApplicationsPage />,
+      },
+      {
+        path: 'applications',
+        element: <AdminApplicationsPage />,
+      },
+      {
+        path: 'analytics',
+        element: <AdminAnalyticsPage />,
+      },
+    ],
+  },
+  {
+    path: '*',
+    element: <NotFoundPage />,
   },
 ])
