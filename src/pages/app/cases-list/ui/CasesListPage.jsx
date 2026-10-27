@@ -7,6 +7,7 @@ import {
   MAX_CASES_PER_ACCOUNT,
   SUPPORT_TELEGRAM_URL,
 } from '@/shared/config/limits.ts'
+import { FolderIcon } from '@/shared/ui'
 import styles from './CasesListPage.module.css'
 
 export const CasesListPage = () => {
@@ -103,7 +104,9 @@ export const CasesListPage = () => {
     if (cases.length === 0) {
       return (
         <div className={styles.emptyState}>
-          <div className={styles.emptyIcon}>📂</div>
+          <div className={styles.emptyIcon}>
+            <FolderIcon size={36} color="#64748b" />
+          </div>
           <h2 className={styles.emptyTitle}>У вас пока нет кейсов</h2>
           <p className={styles.emptyDescription}>
             Загрузите запись созвона, аудио или заметки, чтобы упаковать первый кейс, или посмотрите

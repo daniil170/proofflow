@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types'
 import { formatRemainingCases } from '@/shared/config/limits.ts'
+import { LockIcon, ClockIcon, BriefcaseIcon } from '@/shared/ui'
 import { FileList } from './FileList.jsx'
 import { UploadDropzone } from './UploadDropzone.jsx'
 import { VoiceRecorder } from './VoiceRecorder.jsx'
@@ -74,7 +75,8 @@ export const CaseUploadForm = ({ uploadState }) => {
       ) : (
         <div className={styles.limitsBanner}>
           <span className={styles.limitsBadge}>
-            💼 Доступный объем беты:
+            <BriefcaseIcon size={14} />
+            <span>Доступный объем беты:</span>
             <span className={styles.limitsHighlight}>
               {formatRemainingCases(remainingCases ?? maxCases)}
             </span>
@@ -83,22 +85,27 @@ export const CaseUploadForm = ({ uploadState }) => {
         </div>
       )}
 
-      <aside className={styles.privacyNotice}>
-        <span className={styles.privacyIcon}>🔒</span>
-        <p className={styles.privacyText}>
-          <span className={styles.privacyHighlight}>Подсказка про приватность:</span> перед
-          загрузкой закройте на скриншотах конфиденциальные цифры или персональные контакты, которые
-          не должны попасть в кейс. Имена и аватары в итоговом кейсе обезличиваются автоматически.
-        </p>
-      </aside>
+      <div className={styles.noticesGrid}>
+        <aside className={styles.privacyNotice}>
+          <span className={styles.privacyIcon}>
+            <LockIcon size={15} />
+          </span>
+          <p className={styles.privacyText}>
+            <span className={styles.privacyHighlight}>Подсказка про приватность:</span> перед
+            загрузкой закройте на скриншотах конфиденциальные цифры или персональные контакты.
+            Имена и аватары в кейсе обезличиваются автоматически.
+          </p>
+        </aside>
 
-      <div className={styles.retentionNotice}>
-        <span className={styles.retentionIcon}>⏱️</span>
-        <span>
-          <strong>Срок хранения:</strong> исходные файлы (аудиозаписи, скриншоты) автоматически
-          удаляются через {storageRetentionDays} дней после перехода черновика в статус готовности.
-          Сгенерированный кейс и цитаты сохраняются навсегда.
-        </span>
+        <div className={styles.retentionNotice}>
+          <span className={styles.retentionIcon}>
+            <ClockIcon size={15} />
+          </span>
+          <span>
+            <strong>Срок хранения:</strong> исходные файлы автоматически удаляются через{' '}
+            {storageRetentionDays} дней после готовности черновика. Готовый кейс и цитаты сохраняются навсегда.
+          </span>
+        </div>
       </div>
 
       {errorMessage && <div className={styles.alertError}>{errorMessage}</div>}

@@ -337,7 +337,7 @@ export const LoginForm = ({ onSuccess }) => {
                     border: 'none',
                   }}
                 >
-                  👑 Войти как Администратор
+                  Войти как Администратор
                 </button>
                 <button
                   type="button"
@@ -366,7 +366,7 @@ export const LoginForm = ({ onSuccess }) => {
                     cursor: 'pointer',
                   }}
                 >
-                  🚀 Войти как Пользователь
+                  Войти как Пользователь
                 </button>
               </div>
             )}

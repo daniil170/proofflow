@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import PropTypes from 'prop-types'
 import { ALLOWED_MIME_TYPES } from '@/shared/config/limits.ts'
+import { UploadIcon, ClipboardIcon } from '@/shared/ui'
 import styles from './UploadDropzone.module.css'
 
 export const UploadDropzone = ({ onFilesAdded, onPaste }) => {
@@ -89,7 +90,9 @@ export const UploadDropzone = ({ onFilesAdded, onPaste }) => {
         aria-hidden="true"
       />
 
-      <div className={styles.iconCircle}>📁</div>
+      <div className={styles.iconCircle}>
+        <UploadIcon size={22} color="#334155" />
+      </div>
 
       <h3 className={styles.title}>Перетащите файлы сюда или выберите с устройства</h3>
 
@@ -98,8 +101,8 @@ export const UploadDropzone = ({ onFilesAdded, onPaste }) => {
       </p>
 
       <span className={styles.pasteBadge}>
-        <span>📋</span>
-        <span>Можно просто вставить скриншот по Ctrl+V / Cmd+V</span>
+        <ClipboardIcon size={14} />
+        <span>Можно вставить скриншот по Ctrl+V / Cmd+V</span>
       </span>
 
       <button

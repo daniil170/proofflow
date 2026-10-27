@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import PropTypes from 'prop-types'
 import { REGENERATE_STYLES } from '../model/useCaseReview.js'
+import { ThumbsUpIcon, ThumbsDownIcon } from '@/shared/ui'
 import styles from './ReviewActions.module.css'
 
 export const ReviewActions = ({
@@ -134,7 +135,8 @@ export const ReviewActions = ({
                 onClick={() => handleRate('positive')}
                 aria-label="Оценить положительно"
               >
-                👍 Да, отлично
+                <ThumbsUpIcon size={14} />
+                <span>Да, отлично</span>
               </button>
               <button
                 type="button"
@@ -145,7 +147,8 @@ export const ReviewActions = ({
                 onClick={() => handleRate('negative')}
                 aria-label="Оценить отрицательно"
               >
-                👎 Нужны доработки
+                <ThumbsDownIcon size={14} />
+                <span>Нужны доработки</span>
               </button>
             </div>
 

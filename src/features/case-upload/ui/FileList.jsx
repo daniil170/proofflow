@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types'
+import { FileAudioIcon, FileVideoIcon, FileGenericIcon } from '@/shared/ui'
 import styles from './FileList.module.css'
 
 export const FileList = ({
@@ -37,13 +38,12 @@ export const FileList = ({
   const getKindIcon = (kind) => {
     switch (kind) {
       case 'voice':
-        return '🎙️'
       case 'audio':
-        return '🎵'
+        return <FileAudioIcon size={16} />
       case 'video':
-        return '🎬'
+        return <FileVideoIcon size={16} />
       default:
-        return '📄'
+        return <FileGenericIcon size={16} />
     }
   }
 

@@ -15,7 +15,7 @@ export const UploadTrustNotice = ({ className = '', showDetailsModal = true }) =
         </div>
         <div className={styles.content}>
           <p className={styles.text}>
-            <span className={styles.strong}>🔒 Ваши исходные данные защищены:</span>{' '}
+            <span className={styles.strong}>Ваши исходные данные защищены:</span>{' '}
             скриншоты не используются для дообучения публичных нейросетей. Включите режим NDA для
             автоматического скрытия имен и контактов.
             {showDetailsModal && (

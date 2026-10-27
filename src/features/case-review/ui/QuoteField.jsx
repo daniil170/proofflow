@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types'
+import { SearchIcon } from '@/shared/ui'
 import styles from './QuoteField.module.css'
 
 export const QuoteField = ({
@@ -37,7 +38,7 @@ export const QuoteField = ({
             onClick={onOpenEvidence}
             aria-label="Откуда взята цитата"
           >
-            <span>🔍</span>
+            <SearchIcon size={13} />
             <span>Откуда это</span>
           </button>
         )}

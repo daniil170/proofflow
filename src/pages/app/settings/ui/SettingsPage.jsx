@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth'
 import { exportUserData, getCaseRepository, getUserRepository } from '@/shared/api'
+import { TelegramIcon, UserIcon, FolderIcon, DownloadIcon, ShieldIcon } from '@/shared/ui'
 import styles from './SettingsPage.module.css'
 
 export const SettingsPage = () => {
@@ -99,11 +100,15 @@ export const SettingsPage = () => {
       setDeleteAccountError('Для подтверждения введите слово «УДАЛИТЬ»')
       return
     }
+
     setIsDeletingAccount(true)
     setDeleteAccountError('')
     try {
+      if (typeof caseRepo.deleteByOwner === 'function') {
+        await caseRepo.deleteByOwner(user.id)
+      }
       if (typeof userRepo.deleteAccount === 'function') {
-        await userRepo.deleteAccount('УДАЛИТЬ')
+        await userRepo.deleteAccount(user.id)
       }
       await logout()
       navigate('/login')
@@ -113,19 +118,24 @@ export const SettingsPage = () => {
     }
   }
 
-  const profile = userRecord?.profile
+  const profile = userRecord?.profile || {}
   const telegramUserId = userRecord?.telegramUserId
 
   return (
     <div className={styles.container}>
       <header className={styles.header}>
         <h1 className={styles.title}>Настройки</h1>
-        <p className={styles.subtitle}>Управление учетной записью, кейсами и данными</p>
+        <p className={styles.subtitle}>Управление учетной записью, кейсами и интеграциями</p>
       </header>
 
-      <div className={styles.card}>
-        <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>Профиль</h2>
+      <div className={styles.cardsGrid}>
+        <div className={styles.card}>
+          <div className={styles.cardHeader}>
+            <span className={styles.cardIcon}>
+              <UserIcon size={18} />
+            </span>
+            <h2 className={styles.sectionTitle}>Профиль</h2>
+          </div>
 
           <div className={styles.infoList}>
             <div className={styles.infoRow}>
@@ -158,7 +168,7 @@ export const SettingsPage = () => {
                     href={profile.websiteUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ color: 'inherit' }}
+                    className={styles.link}
                   >
                     {profile.websiteUrl} ↗
                   </a>
@@ -168,32 +178,102 @@ export const SettingsPage = () => {
 
             <div className={styles.infoRow}>
               <span className={styles.infoLabel}>Статус доступа</span>
-              <span className={styles.infoValue}>
+              <span className={styles.statusBadge}>
                 {userRecord?.accessStatus === 'active' ? 'Активен (Бета)' : 'Ожидание'}
               </span>
             </div>
 
             <div className={styles.infoRow}>
               <span className={styles.infoLabel}>ID пользователя</span>
-              <span className={styles.infoValue}>{user?.id || '—'}</span>
+              <span className={styles.infoValueMuted}>{user?.id || '—'}</span>
             </div>
           </div>
         </div>
 
-        <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>Управление кейсами</h2>
-          <p className={styles.supportText}>
-            Удаление кейса безвозвратно удаляет его исходные файлы из хранилища, черновики,
-            публичную ссылку и клиентские согласия.
-          </p>
+        <div className={styles.card}>
+          <div className={styles.cardHeader}>
+            <span className={styles.cardIcon}>
+              <TelegramIcon size={18} />
+            </span>
+            <h2 className={styles.sectionTitle}>Подключение Telegram</h2>
+          </div>
+
+          <div className={styles.telegramBox}>
+            <div className={styles.telegramStatusRow}>
+              <span className={styles.telegramStatusLabel}>Статус подключения:</span>
+              {telegramUserId ? (
+                <span className={styles.connectedBadge}>
+                  Подключен (ID: {telegramUserId})
+                </span>
+              ) : (
+                <span className={styles.notConnectedBadge}>Не подключен</span>
+              )}
+            </div>
+
+            <p className={styles.supportText}>
+              Привязка Telegram позволяет отправлять голосовые записи и скриншоты напрямую в чат-бот ProofFlow для мгновенной сборки кейсов.
+            </p>
+
+            <button
+              type="button"
+              disabled={isLinking}
+              onClick={handleConnectTelegram}
+              className={styles.primaryBtn}
+            >
+              <TelegramIcon size={16} />
+              <span>
+                {isLinking
+                  ? 'Генерация ссылки...'
+                  : telegramUserId
+                  ? 'Привязать другой аккаунт'
+                  : 'Подключить Telegram'}
+              </span>
+            </button>
+
+            {linkError && <p className={styles.errorText}>{linkError}</p>}
+          </div>
+
+          <div className={styles.supportDivider} />
+
+          <div className={styles.supportMini}>
+            <h3 className={styles.miniTitle}>Поддержка</h3>
+            <p className={styles.supportText}>
+              Вопросы или предложения по продукту? Напишите напрямую фаундеру.
+            </p>
+            <a
+              href={telegramSupportUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.secondaryBtn}
+            >
+              Написать в Telegram ↗
+            </a>
+          </div>
+        </div>
+
+        <div className={`${styles.card} ${styles.fullWidth}`}>
+          <div className={styles.cardHeader}>
+            <span className={styles.cardIcon}>
+              <FolderIcon size={18} />
+            </span>
+            <div>
+              <h2 className={styles.sectionTitle}>Управление кейсами</h2>
+              <p className={styles.supportText}>
+                Удаление кейса безвозвратно удаляет его исходные файлы из хранилища, черновики,
+                публичную ссылку и клиентские согласия.
+              </p>
+            </div>
+          </div>
 
           {caseActionError && <p className={styles.errorText}>{caseActionError}</p>}
 
-          <div className={styles.casesBox}>
+          <div className={styles.casesList}>
             {isLoadingCases ? (
               <p className={styles.supportText}>Загрузка кейсов...</p>
             ) : userCases.length === 0 ? (
-              <p className={styles.supportText}>У вас пока нет созданных кейсов.</p>
+              <div className={styles.emptyCases}>
+                <p className={styles.supportText}>У вас пока нет созданных кейсов.</p>
+              </div>
             ) : (
               userCases.map((item) => (
                 <div key={item.id} className={styles.caseRow}>
@@ -202,7 +282,7 @@ export const SettingsPage = () => {
                       {item.title || item.client || item.clientLabel || item.id}
                     </span>
                     <span className={styles.caseMeta}>
-                      Статус: {item.status} · {item.sources?.length || 0} файлов
+                      Статус: {item.status} · Файлов: {item.sources?.length || 0}
                     </span>
                   </div>
                   <button
@@ -218,11 +298,15 @@ export const SettingsPage = () => {
           </div>
         </div>
 
-        <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>Экспорт данных (GDPR / JSON)</h2>
+        <div className={styles.card}>
+          <div className={styles.cardHeader}>
+            <span className={styles.cardIcon}>
+              <DownloadIcon size={18} />
+            </span>
+            <h2 className={styles.sectionTitle}>Экспорт данных</h2>
+          </div>
           <p className={styles.supportText}>
-            Выгрузите все свои данные: информацию профиля, историю согласований и сгенерированные
-            кейсы в структурированном формате JSON.
+            Выгрузите все свои данные в формате JSON (информация профиля, история согласований и кейсы).
           </p>
           <button
             type="button"
@@ -234,87 +318,32 @@ export const SettingsPage = () => {
           </button>
         </div>
 
-        <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>Подключить Telegram</h2>
-
-          <div className={styles.telegramConnectBox}>
-            <div className={styles.telegramConnectHeader}>
-              <div className={styles.telegramConnectStatus}>
-                {telegramUserId ? (
-                  <>
-                    <span className={styles.connectedBadge} />
-                    <span>Подключен (ID: {telegramUserId})</span>
-                  </>
-                ) : (
-                  <span>Telegram пока не подключен</span>
-                )}
-              </div>
-            </div>
-
-            <p className={styles.supportText}>
-              Привязка Telegram позволяет генерировать кейсы через чат-бота, отправлять голосовые
-              записи и получать готовые карточки прямо в мессенджер.
-            </p>
-
+        <div className={`${styles.card} ${styles.dangerCard}`}>
+          <div className={styles.cardHeader}>
+            <span className={styles.dangerIcon}>
+              <ShieldIcon size={18} color="#ef4444" />
+            </span>
+            <h2 className={styles.dangerTitle}>Аккаунт и безопасность</h2>
+          </div>
+          <p className={styles.supportText}>
+            Завершить сессию на этом устройстве или удалить аккаунт и все связанные материалы.
+          </p>
+          <div className={styles.dangerActions}>
+            <button type="button" className={styles.secondaryBtn} onClick={handleLogout}>
+              Выйти из аккаунта
+            </button>
             <button
               type="button"
-              disabled={isLinking}
-              onClick={handleConnectTelegram}
-              className={styles.connectButton}
+              className={styles.dangerBtn}
+              onClick={() => {
+                setDeleteAccountError('')
+                setDeleteAccountConfirmText('')
+                setShowDeleteAccountModal(true)
+              }}
             >
-              {isLinking
-                ? 'Генерация ссылки...'
-                : telegramUserId
-                ? 'Привязать другой аккаунт Telegram ↗'
-                : 'Подключить Telegram ↗'}
+              Удалить аккаунт и все данные
             </button>
-
-            {linkError && <p className={styles.errorText}>{linkError}</p>}
           </div>
-        </div>
-
-        <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>Обратная связь и поддержка</h2>
-
-          <div className={styles.supportBox}>
-            <span className={styles.supportText}>
-              Есть вопросы или идеи по улучшению продукта? Напишите нам в Telegram.
-            </span>
-            <a
-              href={telegramSupportUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.supportButton}
-            >
-              Написать в Telegram ↗
-            </a>
-          </div>
-        </div>
-
-        <div className={styles.dangerSection}>
-          <h2 className={styles.dangerTitle}>Опасная зона</h2>
-          <p className={styles.supportText}>
-            Удаление аккаунта приведет к безвозвратному удалению профиля, всех созданных кейсов,
-            исходных скриншотов, аудиозаписей и отзыву всех выданных ссылок.
-          </p>
-          <button
-            type="button"
-            className={styles.dangerBtn}
-            onClick={() => {
-              setDeleteAccountError('')
-              setDeleteAccountConfirmText('')
-              setShowDeleteAccountModal(true)
-            }}
-          >
-            Удалить аккаунт и все данные
-          </button>
-        </div>
-
-        <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>Сессия</h2>
-          <button type="button" className={styles.logoutButton} onClick={handleLogout}>
-            Выйти из аккаунта
-          </button>
         </div>
       </div>
 

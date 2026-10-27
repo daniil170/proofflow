@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types'
+import { SearchIcon } from '@/shared/ui'
 import styles from './MetricField.module.css'
 
 export const MetricField = ({
@@ -39,7 +40,7 @@ export const MetricField = ({
             onClick={onOpenEvidence}
             aria-label="Откуда взята метрика"
           >
-            <span>🔍</span>
+            <SearchIcon size={13} />
             <span>Откуда это</span>
           </button>
         )}

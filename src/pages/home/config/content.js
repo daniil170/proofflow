@@ -1,5 +1,5 @@
 export const HOME_STUB_CONTENT = Object.freeze({
-  badge: '🟢 ProofFlow Foundation',
+  badge: 'ProofFlow Foundation',
   title: 'ProofFlow — AI Social Proof & Case Studies',
   description:
     'Архитектурная основа проекта готова. Настроены дизайн-токены, базовые компоненты и клиентский роутинг.',

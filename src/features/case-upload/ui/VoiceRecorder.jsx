@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types'
+import { MicIcon, RecordDotIcon } from '@/shared/ui'
 import styles from './VoiceRecorder.module.css'
 
 export const VoiceRecorder = ({
@@ -24,7 +25,9 @@ export const VoiceRecorder = ({
     <div className={styles.container}>
       <div className={styles.header}>
         <div className={styles.titleGroup}>
-          <div className={`${styles.micIcon} ${isRecording ? styles.micIconActive : ''}`}>🎙️</div>
+          <div className={`${styles.micIcon} ${isRecording ? styles.micIconActive : ''}`}>
+            <MicIcon size={18} />
+          </div>
           <div>
             <h4 className={styles.title}>Голосовой пересказ</h4>
             <p className={styles.description}>
@@ -39,7 +42,7 @@ export const VoiceRecorder = ({
       {!isRecording && !recordedAudioUrl && (
         <div className={styles.idleView}>
           <button type="button" className={styles.recordButton} onClick={onStartRecording}>
-            <span>🔴</span>
+            <RecordDotIcon size={12} />
             <span>Запишите пересказ: что сделали и что получилось</span>
           </button>
         </div>

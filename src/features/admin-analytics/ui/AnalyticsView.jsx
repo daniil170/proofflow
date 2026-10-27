@@ -4,6 +4,7 @@ import { useAdminAnalytics } from '../model/useAdminAnalytics'
 import { exportApplicationsToCsv } from '../model/exportCsv'
 import { getApplicationRepository } from '@/shared/api'
 import { DailyTrendChart, FunnelChart, HorizontalBarChart } from './Charts'
+import { ThumbsUpIcon, ThumbsDownIcon } from '@/shared/ui'
 import styles from './AnalyticsView.module.css'
 
 export const AnalyticsView = ({ initialApplications = null }) => {
@@ -148,7 +149,7 @@ export const AnalyticsView = ({ initialApplications = null }) => {
               <span className={styles.kpiValue}>{productAnalytics.casesPublished}</span>
             </div>
             <div className={styles.kpiCard}>
-              <span className={styles.kpiLabel}>Оценки 👍 / 👎</span>
+              <span className={styles.kpiLabel}>Оценки пользователей</span>
               <span className={styles.kpiValue}>
                 {productAnalytics.positiveFeedback} / {productAnalytics.negativeFeedback}
               </span>
@@ -171,15 +172,19 @@ export const AnalyticsView = ({ initialApplications = null }) => {
                   <span className={styles.feedbackScoreVal}>
                     {productAnalytics.satisfactionRate}%
                   </span>
-                  <span className={styles.feedbackScoreLabel}>👍 рейтинг</span>
+                  <span className={styles.feedbackScoreLabel}>рейтинг</span>
                 </div>
                 <div className={styles.feedbackBreakdown}>
                   <div className={styles.feedbackRow}>
-                    <span>👍 Довольны черновиком:</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <ThumbsUpIcon size={14} color="#16a34a" /> Довольны черновиком:
+                    </span>
                     <strong>{productAnalytics.positiveFeedback}</strong>
                   </div>
                   <div className={styles.feedbackRow}>
-                    <span>👎 Требует доработки:</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <ThumbsDownIcon size={14} color="#dc2626" /> Требует доработки:
+                    </span>
                     <strong>{productAnalytics.negativeFeedback}</strong>
                   </div>
                   <div className={styles.feedbackRow}>

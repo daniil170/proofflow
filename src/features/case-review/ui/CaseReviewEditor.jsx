@@ -5,6 +5,7 @@ import { EvidenceDrawer } from './EvidenceDrawer.jsx'
 import { MetricField } from './MetricField.jsx'
 import { QuoteField } from './QuoteField.jsx'
 import { ReviewActions } from './ReviewActions.jsx'
+import { ClockIcon, SearchIcon } from '@/shared/ui'
 import styles from './CaseReviewEditor.module.css'
 
 export const CaseReviewEditor = ({ reviewState }) => {
@@ -79,7 +80,9 @@ export const CaseReviewEditor = ({ reviewState }) => {
           aria-label="Редактор черновика"
         >
           <div className={styles.retentionNotice} data-testid="review-retention-notice">
-            <span className={styles.retentionIcon}>⏱️</span>
+            <span className={styles.retentionIcon}>
+              <ClockIcon size={15} />
+            </span>
             <span>
               <strong>Срок хранения исходников:</strong> {storageRetentionDays} дней.{' '}
               {sourcesDeletedAt
@@ -126,7 +129,7 @@ export const CaseReviewEditor = ({ reviewState }) => {
                   onClick={() => openEvidence('problem')}
                   aria-label="Откуда взята проблема"
                 >
-                  <span>🔍</span>
+                  <SearchIcon size={13} />
                   <span>Откуда это</span>
                 </button>
               )}
@@ -176,7 +179,7 @@ export const CaseReviewEditor = ({ reviewState }) => {
                   onClick={() => openEvidence('solution')}
                   aria-label="Откуда взято решение"
                 >
-                  <span>🔍</span>
+                  <SearchIcon size={13} />
                   <span>Откуда это</span>
                 </button>
               )}
@@ -226,7 +229,7 @@ export const CaseReviewEditor = ({ reviewState }) => {
                   onClick={() => openEvidence('result')}
                   aria-label="Откуда взят результат"
                 >
-                  <span>🔍</span>
+                  <SearchIcon size={13} />
                   <span>Откуда это</span>
                 </button>
               )}
