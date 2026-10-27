@@ -5,6 +5,14 @@ service firebase.storage {
       return request.auth != null;
     }
 
+    function hasActiveAccess() {
+      return isSignedIn() && (
+        request.auth.token.access == 'active' ||
+        (firestore.exists(/databases/(default)/documents/users/$(request.auth.uid)) &&
+         firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.accessStatus == 'active')
+      );
+    }
+
     function isCaseOwner(caseId) {
       return isSignedIn() &&
         firestore.exists(/databases/(default)/documents/cases/$(caseId)) &&
@@ -20,9 +28,15 @@ service firebase.storage {
     }
 
     match /cases/{caseId}/{allPaths=**} {
-      allow read: if isCaseOwner(caseId);
-      allow create, update: if isCaseOwner(caseId) && isAllowedSize() && isAllowedMimeType();
-      allow delete: if isCaseOwner(caseId);
+      allow read: if isCaseOwner(caseId) && hasActiveAccess();
+      allow create, update: if isCaseOwner(caseId) && hasActiveAccess() && isAllowedSize() && isAllowedMimeType();
+      allow delete: if isCaseOwner(caseId) && hasActiveAccess();
+    }
+
+    match /users/{userId}/{allPaths=**} {
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      allow create, update: if isSignedIn() && request.auth.uid == userId && hasActiveAccess() && request.resource.size <= 5242880 && request.resource.contentType.matches('^image/(png|jpeg|webp|svg\\+xml)$');
+      allow delete: if isSignedIn() && request.auth.uid == userId;
     }
 
     match /{allPaths=**} {
