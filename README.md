@@ -53,7 +53,7 @@ AI-платформа, которая за 1 минуту превращает �
 | **Frontend**                | React 19, Vite, Tailwind CSS                                    |
 | **Backend**                 | Node.js (REST API, очереди задач)                               |
 | **База данных & Хранилище** | Firebase (Cloud Firestore, Firebase Storage)                    |
-| **AI & ML**                 | OpenAI Whisper API, Anthropic Claude 3.5 Sonnet / OpenAI GPT-4o |
+| **AI & ML**                 | OpenAI Whisper API, Anthropic Claude 3.5 Sonnet, Google Gemini (Vertex AI), Google Cloud Speech-to-Text |
 
 ---
 
@@ -250,3 +250,14 @@ cp .env.example .env
 npm install
 npm run dev
 ```
+
+---
+
+## 13. Мультипровайдерный AI-пайплайн и сравнение моделей
+
+ProofFlow поддерживает гибкое переключение провайдеров на каждом шаге пайплайна:
+- Транскрибация: Whisper (`openai`), Gemini (`google`), Speech-to-Text (`google-speech`).
+- OCR/Скриншоты: Claude (`anthropic`), Gemini (`google`).
+- Анализ и сборка черновика: Claude (`anthropic`), Gemini (`google`).
+
+Для интеграции с Google Gemini используется корпоративный Vertex AI без передачи API-ключей. Подробная инструкция по настройке ролей IAM, переменным окружения и запуску утилиты сравнения моделей на материалах (`scripts/compare-providers`) приведена в [functions/README.md](functions/README.md).
