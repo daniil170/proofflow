@@ -2,19 +2,14 @@ import admin from 'firebase-admin'
 import { onDocumentWritten } from 'firebase-functions/v2/firestore'
 import { runPipeline } from '../application/use-cases/runPipeline.js'
 import {
-  ClaudeCaseAnalyzer,
-  ClaudeChatReader,
+  createPipelineAdapters,
   FirebaseStorageAdapter,
   FirebaseTriggerEmailNotifier,
   FirestoreCaseRepository,
   MediaNormalizerImpl,
-  MockCaseAnalyzer,
-  MockChatReader,
   MockEmailNotifier,
-  MockTranscriber,
-  WhisperTranscriber,
 } from '../infrastructure/adapters/index.js'
-import { anthropicApiKey, openAiApiKey } from './secrets.js'
+import { anthropicApiKey, geminiApiKey, openAiApiKey } from './secrets.js'
 
 if (!admin.apps.length) {
   admin.initializeApp()
@@ -34,7 +29,7 @@ export const onCaseProcessTrigger = onDocumentWritten(
     document: 'cases/{caseId}',
     timeoutSeconds: 540,
     memory: '2GiB',
-    secrets: [openAiApiKey, anthropicApiKey],
+    secrets: [openAiApiKey, anthropicApiKey, geminiApiKey],
   },
   async (event) => {
     const afterData = event.data?.after.data()
@@ -64,40 +59,34 @@ export const onCaseProcessTrigger = onDocumentWritten(
       anthropicKey = process.env.ANTHROPIC_API_KEY || ''
     }
 
+    let geminiKey = ''
+    try {
+      geminiKey = geminiApiKey.value() || process.env.GEMINI_API_KEY || ''
+    } catch {
+      geminiKey = process.env.GEMINI_API_KEY || ''
+    }
+
     if (isProd && process.env.USE_MOCK_ADAPTERS === 'true') {
       throw new Error(
         'Критическая ошибка конфигурации: в продакшен-окружении запрещено использовать USE_MOCK_ADAPTERS=true. Отключите моки для реальной обработки.'
       )
     }
 
-    if (isProd && (!openaiKey || !anthropicKey)) {
-      throw new Error(
-        'Критическая ошибка конфигурации: в продакшен-окружении не заданы секреты OPENAI_API_KEY или ANTHROPIC_API_KEY.'
-      )
-    }
-
     const useMocks =
       !isProd &&
-      (process.env.USE_MOCK_ADAPTERS === 'true' || (!openaiKey && !anthropicKey))
+      (process.env.USE_MOCK_ADAPTERS === 'true' || (!openaiKey && !anthropicKey && !geminiKey))
 
     const storage = new FirebaseStorageAdapter()
     const caseRepository = new FirestoreCaseRepository()
     const normalizer = new MediaNormalizerImpl()
 
-    const transcriber =
-      useMocks || !openaiKey
-        ? new MockTranscriber()
-        : new WhisperTranscriber(openaiKey)
-
-    const chatReader =
-      useMocks || !anthropicKey
-        ? new MockChatReader()
-        : new ClaudeChatReader(anthropicKey)
-
-    const analyzer =
-      useMocks || !anthropicKey
-        ? new MockCaseAnalyzer()
-        : new ClaudeCaseAnalyzer(anthropicKey)
+    const { transcriber, chatReader, analyzer } = createPipelineAdapters({
+      isProd,
+      useMocks,
+      openaiKey,
+      anthropicKey,
+      geminiApiKey: geminiKey,
+    })
 
     const emailNotifier =
       useMocks || process.env.NODE_ENV !== 'production'
