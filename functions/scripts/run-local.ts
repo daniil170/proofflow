@@ -1,7 +1,7 @@
 import path from 'path'
 import { promises as fs } from 'fs'
 import dotenv from 'dotenv'
-import { Case, PipelineStage, Source, SourceKind } from '../src/domain/types.js'
+import { Case, Source, SourceKind } from '../src/domain/types.js'
 import {
   ClaudeCaseAnalyzer,
   ClaudeChatReader,
@@ -26,6 +26,24 @@ const detectKind = (ext: string): SourceKind | null => {
   if (VIDEO_EXTS.has(ext)) return 'video'
   if (AUDIO_EXTS.has(ext)) return 'audio'
   return null
+}
+
+const detectMimeType = (ext: string, kind: SourceKind): string => {
+  if (kind === 'screenshot') {
+    if (ext === '.jpg' || ext === '.jpeg') return 'image/jpeg'
+    if (ext === '.webp') return 'image/webp'
+    return 'image/png'
+  }
+  if (kind === 'video') {
+    if (ext === '.webm') return 'video/webm'
+    if (ext === '.mov') return 'video/quicktime'
+    return 'video/mp4'
+  }
+  if (ext === '.ogg') return 'audio/ogg'
+  if (ext === '.wav') return 'audio/wav'
+  if (ext === '.webm') return 'audio/webm'
+  if (ext === '.m4a' || ext === '.aac') return 'audio/m4a'
+  return 'audio/mpeg'
 }
 
 const main = async () => {
@@ -55,18 +73,12 @@ const main = async () => {
     if (!kind) continue
 
     const filePath = path.join(resolvedDir, fileName)
-    const stats = await fs.stat(filePath)
 
     sources.push({
       id: `src-${orderIndex + 1}`,
       kind,
       storagePath: filePath,
-      mimeType:
-        kind === 'screenshot'
-          ? 'image/png'
-          : kind === 'video'
-          ? 'video/mp4'
-          : 'audio/mpeg',
+      mimeType: detectMimeType(ext, kind),
       durationSec: kind === 'screenshot' ? undefined : 60,
       order: orderIndex++,
     })
@@ -95,7 +107,7 @@ const main = async () => {
 
   const repo = new MemoryCaseRepository(
     new Map([[caseId, initialCase]]),
-    (id, stage, percent, msg) => {
+    (_id, stage, percent, msg) => {
       console.log(`[${percent}%] [${stage}] ${msg || ''}`)
     }
   )

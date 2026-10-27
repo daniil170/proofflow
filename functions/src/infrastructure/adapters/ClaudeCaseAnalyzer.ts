@@ -6,6 +6,15 @@ import { CaseDraft } from '../../domain/types.js'
 import { AnalysisInput, CaseAnalyzer } from '../ports/CaseAnalyzer.js'
 import { withRetry } from './retry.js'
 
+interface AnthropicContentBlock {
+  type: string
+  text?: string
+}
+
+interface AnthropicResponse {
+  content?: AnthropicContentBlock[]
+}
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const SYSTEM_PROMPT_PATH = path.resolve(__dirname, '../prompts/analyzer-system.txt')
 
@@ -15,11 +24,16 @@ export class ClaudeCaseAnalyzer implements CaseAnalyzer {
 
   constructor(apiKey?: string, model?: string) {
     this.apiKey = apiKey || process.env.ANTHROPIC_API_KEY || ''
-    this.model =
+    const selectedModel =
       model ||
       process.env.ANTHROPIC_MODEL ||
-      process.env.ANALYZER_MODEL ||
-      'claude-3-5-sonnet-20241022'
+      process.env.ANALYZER_MODEL
+    if (!selectedModel) {
+      throw new Error(
+        'Не задана модель Claude в переменной окружения ANTHROPIC_MODEL. Укажите актуальное имя модели.'
+      )
+    }
+    this.model = selectedModel
   }
 
   async analyze(input: AnalysisInput): Promise<CaseDraft> {
@@ -46,12 +60,12 @@ export class ClaudeCaseAnalyzer implements CaseAnalyzer {
         },
         body: JSON.stringify({
           model: this.model,
-          max_tokens: 3000,
+          max_tokens: 4096,
           system: systemPrompt,
           messages: [
             {
               role: 'user',
-              content: JSON.stringify(userPromptPayload),
+              content: `Проанализируй предоставленные материалы кейса и сформируй строго валидный JSON по контракту системы:\n\n${JSON.stringify(userPromptPayload, null, 2)}`,
             },
           ],
         }),
@@ -59,40 +73,30 @@ export class ClaudeCaseAnalyzer implements CaseAnalyzer {
 
       if (!response.ok) {
         const errorText = await response.text()
-        throw new Error(`Claude API error (${response.status}): ${errorText}`)
+        throw new Error(
+          `Anthropic API request failed with status ${response.status}: ${errorText}`
+        )
       }
 
-      const data = (await response.json()) as {
-        content?: Array<{ type: string; text?: string }>
+      const data = (await response.json()) as AnthropicResponse
+      const contentBlock = data.content?.[0]
+      if (!contentBlock || contentBlock.type !== 'text' || !contentBlock.text) {
+        throw new Error('Unexpected response format from Anthropic API: missing text block')
       }
 
-      const rawText = data.content?.[0]?.text || ''
-      const jsonStart = rawText.indexOf('{')
-      const jsonEnd = rawText.lastIndexOf('}')
-      if (jsonStart === -1 || jsonEnd === -1) {
-        throw new Error('No valid JSON found in Claude CaseAnalyzer response')
-      }
+      const rawJson = contentBlock.text
+      const cleanJson = rawJson.replace(/```json/g, '').replace(/```/g, '').trim()
+      const parsed = JSON.parse(cleanJson)
 
-      const parsed = JSON.parse(rawText.slice(jsonStart, jsonEnd + 1))
       return caseDraftSchema.parse({
-        metric: {
-          value: parsed.metric?.value || '',
-          label: parsed.metric?.label || '',
-          evidenceId: null,
-        },
-        problem: parsed.problem || '',
-        solution: parsed.solution || '',
-        result: parsed.result || '',
+        ...parsed,
         quote: {
-          text: parsed.quote?.text || '',
-          authorLabel: parsed.quote?.authorLabel || 'Анна К.',
-          authorRole: parsed.quote?.authorRole || undefined,
+          ...parsed.quote,
           authorCompany: parsed.quote?.authorCompany || input.clientLabel || undefined,
-          evidenceId: null,
         },
-        tags: parsed.tags || [],
         missingFields: parsed.missingFields || [],
         needsReview: parsed.needsReview || [],
+        tags: parsed.tags || [],
       })
     })
   }

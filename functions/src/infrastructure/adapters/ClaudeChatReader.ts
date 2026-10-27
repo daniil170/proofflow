@@ -6,6 +6,15 @@ import { ChatExtraction } from '../../domain/types.js'
 import { ChatReader } from '../ports/ChatReader.js'
 import { withRetry } from './retry.js'
 
+interface AnthropicContentBlock {
+  type: string
+  text?: string
+}
+
+interface AnthropicResponse {
+  content?: AnthropicContentBlock[]
+}
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const SYSTEM_PROMPT_PATH = path.resolve(__dirname, '../prompts/chat-reader-system.txt')
 
@@ -15,11 +24,16 @@ export class ClaudeChatReader implements ChatReader {
 
   constructor(apiKey?: string, model?: string) {
     this.apiKey = apiKey || process.env.ANTHROPIC_API_KEY || ''
-    this.model =
+    const selectedModel =
       model ||
       process.env.ANTHROPIC_VISION_MODEL ||
-      process.env.ANTHROPIC_MODEL ||
-      'claude-3-5-sonnet-20241022'
+      process.env.ANTHROPIC_MODEL
+    if (!selectedModel) {
+      throw new Error(
+        'Не задана модель Claude в переменной окружения ANTHROPIC_MODEL. Укажите актуальное имя модели.'
+      )
+    }
+    this.model = selectedModel
   }
 
   async readScreenshot(
@@ -50,7 +64,7 @@ export class ClaudeChatReader implements ChatReader {
         },
         body: JSON.stringify({
           model: this.model,
-          max_tokens: 2048,
+          max_tokens: 4096,
           system: systemPrompt,
           messages: [
             {
@@ -66,7 +80,7 @@ export class ClaudeChatReader implements ChatReader {
                 },
                 {
                   type: 'text',
-                  text: 'Extract the conversation from this screenshot into the required JSON structure.',
+                  text: 'Распознай диалог из этого скриншота переписки и верни строго валидный JSON.',
                 },
               ],
             },
@@ -76,26 +90,26 @@ export class ClaudeChatReader implements ChatReader {
 
       if (!response.ok) {
         const errorText = await response.text()
-        throw new Error(`Claude API error (${response.status}): ${errorText}`)
+        throw new Error(
+          `Anthropic Vision request failed with status ${response.status}: ${errorText}`
+        )
       }
 
-      const data = (await response.json()) as {
-        content?: Array<{ type: string; text?: string }>
+      const data = (await response.json()) as AnthropicResponse
+      const contentBlock = data.content?.[0]
+      if (!contentBlock || contentBlock.type !== 'text' || !contentBlock.text) {
+        throw new Error('Unexpected response format from Anthropic API: missing text block')
       }
 
-      const rawText = data.content?.[0]?.text || ''
-      const jsonStart = rawText.indexOf('{')
-      const jsonEnd = rawText.lastIndexOf('}')
-      if (jsonStart === -1 || jsonEnd === -1) {
-        throw new Error('No valid JSON found in Claude ChatReader response')
-      }
+      const rawJson = contentBlock.text
+      const cleanJson = rawJson.replace(/```json/g, '').replace(/```/g, '').trim()
+      const parsed = JSON.parse(cleanJson)
 
-      const parsedJson = JSON.parse(rawText.slice(jsonStart, jsonEnd + 1))
       return chatExtractionSchema.parse({
         screenshotSourceId,
         order,
-        confidence: parsedJson.confidence ?? 0.9,
-        messages: parsedJson.messages || [],
+        messages: parsed.messages || [],
+        confidence: parsed.confidence !== undefined ? parsed.confidence : 1.0,
       })
     })
   }

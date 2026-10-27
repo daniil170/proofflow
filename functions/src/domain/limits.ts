@@ -15,6 +15,11 @@ export const MAX_FILE_SIZE_BYTES =
     ? Number(process.env.MAX_FILE_SIZE_BYTES)
     : 100 * 1024 * 1024
 
+export const MAX_RECORDING_DURATION_SEC =
+  Number(process.env.MAX_RECORDING_DURATION_SEC) > 0
+    ? Number(process.env.MAX_RECORDING_DURATION_SEC)
+    : 3600
+
 export const STORAGE_RETENTION_DAYS =
   Number(process.env.STORAGE_RETENTION_DAYS) > 0
     ? Number(process.env.STORAGE_RETENTION_DAYS)
@@ -44,7 +49,8 @@ export interface ValidationResult {
 
 export const validateCaseFileParameters = (
   sources: readonly Source[],
-  maxFiles = MAX_FILES_PER_CASE
+  maxFiles = MAX_FILES_PER_CASE,
+  maxDuration = MAX_RECORDING_DURATION_SEC
 ): ValidationResult => {
   if (!sources || sources.length === 0) {
     return {
@@ -72,6 +78,12 @@ export const validateCaseFileParameters = (
       return {
         isValid: false,
         reason: `Недопустимый формат файла: ${src.mimeType}`,
+      }
+    }
+    if (src.durationSec && src.durationSec > maxDuration) {
+      return {
+        isValid: false,
+        reason: `Длительность записи превышает допустимый лимит (${Math.round(maxDuration / 60)} мин)`,
       }
     }
   }
