@@ -52,15 +52,17 @@ export const AdminApplicationsPage = () => {
         onDateFilterChange={setDateFilter}
         onSearchChange={setSearchQuery}
         onSortOrderChange={setSortOrder}
-        onSelectApplication={(app) => setSelectedAppId(app.id)}
+        onSelectApplication={(appId) => setSelectedAppId(typeof appId === 'string' ? appId : appId?.id)}
       />
 
       {selectedApplication && (
         <ApplicationDetailsDrawer
           application={selectedApplication}
           onClose={() => setSelectedAppId(null)}
-          onSaveNote={(note) => updateOwnerNote(selectedApplication.id, note)}
-          onUpdateStatus={(status, extra) => updateApplication(selectedApplication.id, { status, ...extra })}
+          onSaveNote={(_id, note) => updateOwnerNote(selectedApplication.id, note)}
+          onUpdateStatus={(_id, status, rejectReason) =>
+            updateApplication(selectedApplication.id, { status, rejectReason })
+          }
         />
       )}
     </div>

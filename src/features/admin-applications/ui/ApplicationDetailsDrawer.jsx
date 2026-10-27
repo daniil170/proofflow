@@ -13,6 +13,7 @@ export const ApplicationDetailsDrawer = ({
   const [isSavingNote, setIsSavingNote] = useState(false)
   const [rejectPromptOpen, setRejectPromptOpen] = useState(false)
   const [rejectReason, setRejectReason] = useState('')
+  const [actionError, setActionError] = useState('')
 
   const {
     template,
@@ -33,38 +34,71 @@ export const ApplicationDetailsDrawer = ({
   if (!application) return null
 
   const handleApprove = async () => {
-    await createInvite(application.id)
+    setActionError('')
+    try {
+      await createInvite(application.id)
+    } catch (err) {
+      setActionError(err?.message || 'Не удалось создать приглашение')
+    }
   }
 
   const handleRecreate = async () => {
-    await recreateInvite(application.id)
+    setActionError('')
+    try {
+      await recreateInvite(application.id)
+    } catch (err) {
+      setActionError(err?.message || 'Не удалось перевыпустить код')
+    }
   }
 
   const handleRevoke = async () => {
     if (!application.inviteCode) return
-    await revokeInvite(application.inviteCode, 'Отозвано администратором')
+    setActionError('')
+    try {
+      await revokeInvite(application.inviteCode, 'Отозвано администратором')
+    } catch (err) {
+      setActionError(err?.message || 'Не удалось отозвать код')
+    }
   }
 
   const handleMarkInvited = async () => {
-    await markInvited(application.id)
+    setActionError('')
+    try {
+      await markInvited(application.id)
+    } catch (err) {
+      setActionError(err?.message || 'Не удалось обновить статус')
+    }
   }
 
   const handleSaveNote = async () => {
     setIsSavingNote(true)
+    setActionError('')
     try {
       await onSaveNote(application.id, note)
+    } catch (err) {
+      setActionError(err?.message || 'Не удалось сохранить заметку')
     } finally {
       setIsSavingNote(false)
     }
   }
 
   const handleConfirmReject = async () => {
-    await onUpdateStatus(application.id, 'rejected', rejectReason)
-    setRejectPromptOpen(false)
+    setActionError('')
+    try {
+      await onUpdateStatus(application.id, 'rejected', rejectReason)
+      setRejectPromptOpen(false)
+    } catch (err) {
+      setActionError(err?.message || 'Не удалось отклонить заявку')
+    }
   }
 
   const handleReturnToNew = async () => {
-    await onUpdateStatus(application.id, 'new')
+    setActionError('')
+    try {
+      await onUpdateStatus(application.id, 'new')
+    } catch (err) {
+      setActionError(err?.message || 'Не удалось вернуть статус')
+    }
   }
 
   const code = application.inviteCode
@@ -96,6 +130,19 @@ export const ApplicationDetailsDrawer = ({
           <section className={styles.section}>
             <h3 className={styles.sectionTitle}>Действия и статус</h3>
             <div className={styles.actionsCard}>
+              {actionError && (
+                <div
+                  style={{
+                    color: '#ef4444',
+                    background: 'rgba(239, 68, 68, 0.1)',
+                    padding: '0.5rem 0.75rem',
+                    borderRadius: '6px',
+                    fontSize: '0.875rem',
+                  }}
+                >
+                  {actionError}
+                </div>
+              )}
               <div className={styles.actionsButtons}>
                 {!code && application.status !== 'approved' && (
                   <button
