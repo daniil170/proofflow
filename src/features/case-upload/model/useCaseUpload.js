@@ -5,8 +5,10 @@ import {
   MAX_FILE_SIZE_BYTES,
   MAX_FILES_PER_CASE,
   MAX_RECORDING_DURATION_SEC,
+  STORAGE_RETENTION_DAYS,
+  SUPPORT_TELEGRAM_URL,
 } from '@/shared/config/limits.ts'
-import { getCaseRepository, getSourceUploader } from '@/shared/api'
+import { getCaseRepository, getSourceUploader, trackAnalyticsEvent } from '@/shared/api'
 
 export const detectFileKind = (file) => {
   const type = file.type || ''
@@ -28,6 +30,7 @@ export const useCaseUpload = ({
   const [consentConfirmed, setConsentConfirmed] = useState(false)
   const [errorMessage, setErrorMessage] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [userCasesCount, setUserCasesCount] = useState(0)
 
   const [isRecording, setIsRecording] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
@@ -41,6 +44,25 @@ export const useCaseUpload = ({
   const timerIntervalRef = useRef(null)
   const mediaStreamRef = useRef(null)
   const activeUploadTasksRef = useRef(new Map())
+
+  useEffect(() => {
+    trackAnalyticsEvent('case_started', {
+      userId: user?.id,
+    })
+  }, [user?.id])
+
+  useEffect(() => {
+    if (typeof repository.countByOwner === 'function' && user?.id) {
+      repository
+        .countByOwner(user.id)
+        .then((count) => {
+          if (typeof count === 'number') {
+            setUserCasesCount(count)
+          }
+        })
+        .catch(() => {})
+    }
+  }, [repository, user?.id])
 
   useEffect(() => {
     const tasks = activeUploadTasksRef.current
@@ -116,9 +138,16 @@ export const useCaseUpload = ({
         })
       }
 
+      if (newItems.length > 0) {
+        trackAnalyticsEvent('files_uploaded', {
+          userId: user?.id,
+          metadata: { count: newItems.length },
+        })
+      }
+
       return [...current, ...newItems]
     })
-  }, [])
+  }, [user?.id])
 
   const removeFile = useCallback((id) => {
     setFiles((current) => {
@@ -523,7 +552,10 @@ export const useCaseUpload = ({
     onSuccess,
   ])
 
-  const canSubmit = consentConfirmed && files.length > 0 && !isSubmitting
+  const remainingCases = Math.max(0, MAX_CASES_PER_ACCOUNT - userCasesCount)
+  const isLimitExhausted = userCasesCount >= MAX_CASES_PER_ACCOUNT
+  const canSubmit =
+    consentConfirmed && files.length > 0 && !isSubmitting && !isLimitExhausted
 
   return {
     files,
@@ -537,6 +569,13 @@ export const useCaseUpload = ({
     setErrorMessage,
     isSubmitting,
     canSubmit,
+
+    remainingCases,
+    isLimitExhausted,
+    userCasesCount,
+    maxCases: MAX_CASES_PER_ACCOUNT,
+    storageRetentionDays: STORAGE_RETENTION_DAYS,
+    supportUrl: SUPPORT_TELEGRAM_URL,
 
     addFiles,
     removeFile,

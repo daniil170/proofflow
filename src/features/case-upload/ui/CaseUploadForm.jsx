@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types'
+import { formatRemainingCases } from '@/shared/config/limits.ts'
 import { FileList } from './FileList.jsx'
 import { UploadDropzone } from './UploadDropzone.jsx'
 import { VoiceRecorder } from './VoiceRecorder.jsx'
@@ -16,6 +17,12 @@ export const CaseUploadForm = ({ uploadState }) => {
     errorMessage,
     isSubmitting,
     canSubmit,
+
+    remainingCases,
+    isLimitExhausted,
+    maxCases = 50,
+    storageRetentionDays = 14,
+    supportUrl = 'https://t.me/proofflowbot',
 
     addFiles,
     removeFile,
@@ -48,6 +55,34 @@ export const CaseUploadForm = ({ uploadState }) => {
 
   return (
     <form onSubmit={handleSubmit} className={styles.formContainer}>
+      {isLimitExhausted ? (
+        <div className={styles.limitsExhaustedAlert} role="alert">
+          <strong>Лимит создания кейсов исчерпан</strong>
+          <span>
+            В рамках текущего тарифа беты доступно {maxCases} кейсов.{' '}
+            <a
+              href={supportUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.limitsLink}
+            >
+              Написать нам
+            </a>
+            , чтобы запросить расширение лимита для вашего аккаунта.
+          </span>
+        </div>
+      ) : (
+        <div className={styles.limitsBanner}>
+          <span className={styles.limitsBadge}>
+            💼 Доступный объем беты:
+            <span className={styles.limitsHighlight}>
+              {formatRemainingCases(remainingCases ?? maxCases)}
+            </span>
+          </span>
+          <span className={styles.privacyText}>Лимит: {maxCases} кейсов</span>
+        </div>
+      )}
+
       <aside className={styles.privacyNotice}>
         <span className={styles.privacyIcon}>🔒</span>
         <p className={styles.privacyText}>
@@ -56,6 +91,15 @@ export const CaseUploadForm = ({ uploadState }) => {
           не должны попасть в кейс. Имена и аватары в итоговом кейсе обезличиваются автоматически.
         </p>
       </aside>
+
+      <div className={styles.retentionNotice}>
+        <span className={styles.retentionIcon}>⏱️</span>
+        <span>
+          <strong>Срок хранения:</strong> исходные файлы (аудиозаписи, скриншоты) автоматически
+          удаляются через {storageRetentionDays} дней после перехода черновика в статус готовности.
+          Сгенерированный кейс и цитаты сохраняются навсегда.
+        </span>
+      </div>
 
       {errorMessage && <div className={styles.alertError}>{errorMessage}</div>}
 

@@ -101,4 +101,11 @@ export const firestoreUserRepository = Object.freeze({
     const response = await fn({})
     return response.data
   },
+
+  async deleteAccount(confirmation = 'УДАЛИТЬ') {
+    const functions = getFunctionsInstance()
+    const fn = httpsCallable(functions, 'deleteAccount')
+    const response = await fn({ confirmation })
+    return response.data
+  },
 })

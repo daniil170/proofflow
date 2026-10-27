@@ -1,4 +1,5 @@
 import { ADMIN_STORAGE_KEYS } from './types.ts'
+import { mockAnalyticsGateway } from '../analytics/mockAnalyticsGateway.js'
 
 const generateMockCode = () => {
   const chars = '23456789ABCDEFGHJKMNPQRSTUVWXYZ'
@@ -505,6 +506,91 @@ export const mockAnalyticsRepository = Object.freeze({
       { stage: 'activated', label: 'Активированы', count: activatedApplications },
     ]
 
+    let mockEvents
+    try {
+      mockEvents = await mockAnalyticsGateway.getEvents()
+    } catch {
+      mockEvents = []
+    }
+
+    const FIELD_LABELS = {
+      metric: 'Метрика и число',
+      problem: 'Проблема («Было»)',
+      solution: 'Решение («Сделано»)',
+      result: 'Результат («Стало»)',
+      quote: 'Цитата клиента',
+      author: 'Подпись автора',
+    }
+
+    let productAnalytics
+    if (mockEvents.length > 0) {
+      const casesStarted = mockEvents.filter((e) => e.eventName === 'case_started').length
+      const reachedReview = mockEvents.filter((e) => e.eventName === 'review_opened').length
+      const casesPublished = mockEvents.filter(
+        (e) =>
+          e.eventName === 'case_confirmed' ||
+          e.eventName === 'link_copied' ||
+          e.eventName === 'embed_copied'
+      ).length
+      const feedbackEvents = mockEvents.filter((e) => e.eventName === 'feedback_given')
+      const positiveFeedback = feedbackEvents.filter(
+        (e) =>
+          e.metadata?.rating === 'positive' ||
+          e.metadata?.rating === 'up' ||
+          e.metadata?.score === 1
+      ).length
+      const negativeFeedback = feedbackEvents.filter(
+        (e) =>
+          e.metadata?.rating === 'negative' ||
+          e.metadata?.rating === 'down' ||
+          e.metadata?.score === -1
+      ).length
+      const totalFeedback = positiveFeedback + negativeFeedback
+      const satisfactionRate =
+        totalFeedback > 0 ? Math.round((positiveFeedback / totalFeedback) * 100) : 100
+
+      const fieldCounts = {}
+      mockEvents
+        .filter((e) => e.eventName === 'field_edited')
+        .forEach((e) => {
+          const key = e.metadata?.field || 'other'
+          fieldCounts[key] = (fieldCounts[key] || 0) + 1
+        })
+
+      const fieldEdits = Object.entries(FIELD_LABELS).map(([field, label]) => ({
+        field,
+        label,
+        count: fieldCounts[field] || 0,
+      }))
+
+      productAnalytics = {
+        casesStarted,
+        reachedReview,
+        casesPublished,
+        positiveFeedback,
+        negativeFeedback,
+        satisfactionRate,
+        fieldEdits,
+      }
+    } else {
+      productAnalytics = {
+        casesStarted: 18,
+        reachedReview: 14,
+        casesPublished: 11,
+        positiveFeedback: 9,
+        negativeFeedback: 1,
+        satisfactionRate: 90,
+        fieldEdits: [
+          { field: 'quote', label: 'Цитата клиента', count: 12 },
+          { field: 'metric', label: 'Метрика и число', count: 9 },
+          { field: 'problem', label: 'Проблема («Было»)', count: 6 },
+          { field: 'solution', label: 'Решение («Сделано»)', count: 4 },
+          { field: 'result', label: 'Результат («Стало»)', count: 4 },
+          { field: 'author', label: 'Подпись автора', count: 3 },
+        ],
+      }
+    }
+
     return {
       totalApplications,
       weekApplications,
@@ -515,7 +601,8 @@ export const mockAnalyticsRepository = Object.freeze({
       businessTypeBreakdown,
       dailyTrend,
       funnel,
-      hasEvents: false,
+      productAnalytics,
+      hasEvents: true,
     }
   },
 })

@@ -1,6 +1,7 @@
 import os from 'os'
 import path from 'path'
 import { promises as fs } from 'fs'
+import { MAX_CASES_PER_ACCOUNT, validateCaseFileParameters } from '../../domain/limits.js'
 import { PipelineStage, VerificationReport } from '../../domain/types.js'
 import { CaseAnalyzer } from '../../infrastructure/ports/CaseAnalyzer.js'
 import { CaseRepositoryPort } from '../../infrastructure/ports/CaseRepositoryPort.js'
@@ -57,7 +58,7 @@ export const runPipeline = async ({
 
     if (caseRepository.countCasesByOwner && currentCase.ownerId) {
       const caseCount = await caseRepository.countCasesByOwner(currentCase.ownerId)
-      const maxAllowed = Number(process.env.MAX_CASES_PER_ACCOUNT) || 50
+      const maxAllowed = MAX_CASES_PER_ACCOUNT
       if (caseCount > maxAllowed) {
         await caseRepository.failCase(
           caseId,
@@ -75,6 +76,26 @@ export const runPipeline = async ({
             evidences: [],
           },
         }
+      }
+    }
+
+    const fileValidation = validateCaseFileParameters(currentCase.sources || [])
+    if (!fileValidation.isValid) {
+      await caseRepository.failCase(
+        caseId,
+        'preparing',
+        fileValidation.reason || 'Файлы кейса не прошли проверку параметров'
+      )
+      return {
+        report: {
+          isQuoteVerified: false,
+          isMetricVerified: false,
+          missingFields: ['metric', 'problem', 'solution', 'result', 'quote'],
+          needsReview: ['metric', 'problem', 'solution', 'result', 'quote'],
+          unverifiedQuotes: [],
+          unverifiedMetrics: [],
+          evidences: [],
+        },
       }
     }
 

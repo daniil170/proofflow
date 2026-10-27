@@ -372,11 +372,16 @@ describe('Firebase Security Rules', () => {
       )
 
       await assertFails(getDoc(feedbackRef))
+      await assertFails(getDoc(eventRef))
       await assertFails(
         updateDoc(feedbackRef, {
           message: 'Updated feedback',
         })
       )
+
+      const adminDb = testEnv.authenticatedContext('admin_user', { admin: true }).firestore()
+      const adminEventRef = doc(adminDb, 'events/ev-1')
+      await assertSucceeds(getDoc(adminEventRef))
     })
 
     it('denies non-admin from reading or writing beta_signups', async () => {

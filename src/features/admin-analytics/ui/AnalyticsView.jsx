@@ -36,7 +36,7 @@ export const AnalyticsView = ({ initialApplications = null }) => {
     return null
   }
 
-  const { kpis, dailyTrend, funnel, byChannel, byBusinessType, hasEvents } = data
+  const { kpis, dailyTrend, funnel, byChannel, byBusinessType, productAnalytics } = data
 
   return (
     <div className={styles.container}>
@@ -123,13 +123,76 @@ export const AnalyticsView = ({ initialApplications = null }) => {
         </div>
       </div>
 
-      {!hasEvents && (
-        <div className={styles.emptyEventsBox}>
-          <h4 className={styles.emptyEventsTitle}>События продукта еще не поступали</h4>
-          <p className={styles.emptyEventsText}>
-            Внутренняя продуктовая аналитика (действия пользователей, переходы по экранам) начнет накапливаться автоматически после открытия доступа первым пользователям.
-          </p>
-        </div>
+      {productAnalytics && (
+        <section className={styles.productSection}>
+          <div className={styles.productHeader}>
+            <div className={styles.productTitleGroup}>
+              <h3 className={styles.productTitle}>Продуктовая аналитика (Beta Ops)</h3>
+              <p className={styles.productSubtitle}>
+                Воронка прохождения кейсов, оценки пользователей и частота правок полей
+              </p>
+            </div>
+          </div>
+
+          <div className={styles.kpiGrid}>
+            <div className={styles.kpiCard}>
+              <span className={styles.kpiLabel}>Создали кейс</span>
+              <span className={styles.kpiValue}>{productAnalytics.casesStarted}</span>
+            </div>
+            <div className={styles.kpiCard}>
+              <span className={styles.kpiLabel}>Дошли до проверки</span>
+              <span className={styles.kpiValue}>{productAnalytics.reachedReview}</span>
+            </div>
+            <div className={styles.kpiCard}>
+              <span className={styles.kpiLabel}>Опубликовали</span>
+              <span className={styles.kpiValue}>{productAnalytics.casesPublished}</span>
+            </div>
+            <div className={styles.kpiCard}>
+              <span className={styles.kpiLabel}>Оценки 👍 / 👎</span>
+              <span className={styles.kpiValue}>
+                {productAnalytics.positiveFeedback} / {productAnalytics.negativeFeedback}
+              </span>
+              <span className={styles.kpiSub}>
+                {productAnalytics.satisfactionRate}% довольны черновиком
+              </span>
+            </div>
+          </div>
+
+          <div className={styles.chartsGrid}>
+            <div className={styles.chartCard}>
+              <h3 className={styles.chartTitle}>Частота правок по полям</h3>
+              <HorizontalBarChart items={productAnalytics.fieldEdits} />
+            </div>
+
+            <div className={styles.chartCard}>
+              <h3 className={styles.chartTitle}>Оценки результата</h3>
+              <div className={styles.feedbackSummary}>
+                <div className={styles.feedbackScoreCircle}>
+                  <span className={styles.feedbackScoreVal}>
+                    {productAnalytics.satisfactionRate}%
+                  </span>
+                  <span className={styles.feedbackScoreLabel}>👍 рейтинг</span>
+                </div>
+                <div className={styles.feedbackBreakdown}>
+                  <div className={styles.feedbackRow}>
+                    <span>👍 Довольны черновиком:</span>
+                    <strong>{productAnalytics.positiveFeedback}</strong>
+                  </div>
+                  <div className={styles.feedbackRow}>
+                    <span>👎 Требует доработки:</span>
+                    <strong>{productAnalytics.negativeFeedback}</strong>
+                  </div>
+                  <div className={styles.feedbackRow}>
+                    <span>Всего оценок:</span>
+                    <strong>
+                      {productAnalytics.positiveFeedback + productAnalytics.negativeFeedback}
+                    </strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       )}
     </div>
   )
