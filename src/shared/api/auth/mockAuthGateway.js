@@ -97,6 +97,22 @@ export const mockAuthGateway = Object.freeze({
     persistUser(null)
   },
 
+  async syncAdminClaims(email) {
+    const targetEmail = email || getPersistedUser()?.email || ''
+    if (!targetEmail) return false
+    const adminEmails = (
+      import.meta.env.VITE_ADMIN_EMAILS ||
+      'admin@proofflow.ru,owner@proofflow.ru,mock@example.com'
+    )
+      .split(',')
+      .map((e) => e.trim().toLowerCase())
+    return (
+      adminEmails.includes(targetEmail.trim().toLowerCase()) ||
+      targetEmail === 'admin@proofflow.ru' ||
+      targetEmail === 'mock@example.com'
+    )
+  },
+
   getStoredEmailForSignIn() {
     if (typeof window !== 'undefined' && window.localStorage) {
       return window.localStorage.getItem(AUTH_STORAGE_KEYS.EMAIL_FOR_SIGN_IN) || ''

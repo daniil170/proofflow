@@ -8,10 +8,12 @@ import {
   signInWithPopup,
   signOut,
 } from 'firebase/auth'
+import { getFunctions, httpsCallable } from 'firebase/functions'
 import { getFirebaseApp } from '../firebase/app.js'
 import { AUTH_STORAGE_KEYS } from './types.js'
 
 const getAuthInstance = () => getAuth(getFirebaseApp())
+const getFunctionsInstance = () => getFunctions(getFirebaseApp())
 
 const mapFirebaseUser = (user) => {
   if (!user) {
@@ -79,6 +81,13 @@ export const firebaseAuthGateway = Object.freeze({
     provider.setCustomParameters({ prompt: 'select_account' })
     const result = await signInWithPopup(auth, provider)
     return mapFirebaseUser(result.user)
+  },
+
+  async syncAdminClaims() {
+    const functions = getFunctionsInstance()
+    const syncFn = httpsCallable(functions, 'syncAdminClaims')
+    const res = await syncFn()
+    return Boolean(res.data?.isAdmin)
   },
 
   async signOut() {
