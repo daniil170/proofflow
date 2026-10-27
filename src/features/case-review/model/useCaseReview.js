@@ -390,6 +390,7 @@ export const useCaseReview = ({
       quote: draft.quote?.text || 'Цитата клиента',
       author: draft.quote?.authorLabel || 'Анна К.',
       company:
+        caseItem?.branding?.companyName ||
         draft.quote?.authorCompany ||
         caseItem?.clientLabel ||
         caseItem?.client ||

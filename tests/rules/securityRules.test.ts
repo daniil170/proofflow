@@ -8,7 +8,7 @@ import {
 } from '@firebase/rules-unit-testing'
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest'
 import { deleteDoc, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore'
-import { deleteObject, getDownloadURL, getMetadata, ref, uploadBytes } from 'firebase/storage'
+import { deleteObject, getMetadata, ref, uploadBytes } from 'firebase/storage'
 
 describe('Firebase Security Rules', () => {
   let testEnv: RulesTestEnvironment
@@ -42,9 +42,122 @@ describe('Firebase Security Rules', () => {
     }
   })
 
-  describe('Firestore: Cases access control', () => {
-    it('allows owner to create, read, and update own case', async () => {
+  describe('Firestore: Users access control', () => {
+    it('allows user to read and update own profile and consent', async () => {
+      await testEnv.withSecurityRulesDisabled(async (context) => {
+        const adminDb = context.firestore()
+        await setDoc(doc(adminDb, 'users/alice'), {
+          id: 'alice',
+          email: 'alice@example.com',
+          accessStatus: 'active',
+          workspaceId: 'alice',
+          profile: {
+            displayName: 'Alice',
+            companyName: 'Acme',
+            businessType: 'agency_or_studio',
+          },
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        })
+      })
+
+      const aliceDb = testEnv.authenticatedContext('alice', { access: 'active' }).firestore()
+      const userRef = doc(aliceDb, 'users/alice')
+
+      await assertSucceeds(getDoc(userRef))
+
+      await assertSucceeds(
+        updateDoc(userRef, {
+          profile: {
+            displayName: 'Alice Cooper',
+            companyName: 'Acme Studio',
+            businessType: 'agency_or_studio',
+          },
+          updatedAt: Date.now(),
+        })
+      )
+
+      await assertSucceeds(
+        updateDoc(userRef, {
+          consent: {
+            documentVersion: '2026-10-v1',
+            acceptedAt: Date.now(),
+          },
+          updatedAt: Date.now(),
+        })
+      )
+    })
+
+    it('denies user from modifying accessStatus or workspaceId', async () => {
+      await testEnv.withSecurityRulesDisabled(async (context) => {
+        const adminDb = context.firestore()
+        await setDoc(doc(adminDb, 'users/alice'), {
+          id: 'alice',
+          email: 'alice@example.com',
+          accessStatus: 'waitlist',
+          workspaceId: 'alice',
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        })
+      })
+
       const aliceDb = testEnv.authenticatedContext('alice').firestore()
+      const userRef = doc(aliceDb, 'users/alice')
+
+      await assertFails(
+        updateDoc(userRef, {
+          accessStatus: 'active',
+          updatedAt: Date.now(),
+        })
+      )
+
+      await assertFails(
+        updateDoc(userRef, {
+          workspaceId: 'other-workspace',
+          updatedAt: Date.now(),
+        })
+      )
+    })
+
+    it('denies non-owner from reading, updating, or deleting user document', async () => {
+      await testEnv.withSecurityRulesDisabled(async (context) => {
+        const adminDb = context.firestore()
+        await setDoc(doc(adminDb, 'users/alice'), {
+          id: 'alice',
+          accessStatus: 'active',
+          workspaceId: 'alice',
+        })
+      })
+
+      const bobDb = testEnv.authenticatedContext('bob', { access: 'active' }).firestore()
+      const aliceRef = doc(bobDb, 'users/alice')
+
+      await assertFails(getDoc(aliceRef))
+      await assertFails(
+        updateDoc(aliceRef, {
+          updatedAt: Date.now(),
+        })
+      )
+      await assertFails(deleteDoc(aliceRef))
+    })
+
+    it('denies clients from creating or deleting user document directly', async () => {
+      const aliceDb = testEnv.authenticatedContext('alice').firestore()
+      const userRef = doc(aliceDb, 'users/alice')
+
+      await assertFails(
+        setDoc(userRef, {
+          id: 'alice',
+          accessStatus: 'active',
+          workspaceId: 'alice',
+        })
+      )
+    })
+  })
+
+  describe('Firestore: Cases access control with access status', () => {
+    it('allows active user to create, read, and update own case', async () => {
+      const aliceDb = testEnv.authenticatedContext('alice', { access: 'active' }).firestore()
       const caseRef = doc(aliceDb, 'cases/case-1')
 
       await assertSucceeds(
@@ -68,6 +181,40 @@ describe('Firebase Security Rules', () => {
       )
     })
 
+    it('denies user in waitlist from reading or creating cases', async () => {
+      await testEnv.withSecurityRulesDisabled(async (context) => {
+        const adminDb = context.firestore()
+        await setDoc(doc(adminDb, 'users/waitlist-user'), {
+          id: 'waitlist-user',
+          accessStatus: 'waitlist',
+          workspaceId: 'waitlist-user',
+        })
+        await setDoc(doc(adminDb, 'cases/case-waitlist'), {
+          ownerId: 'waitlist-user',
+          clientLabel: 'Pre-existing Case',
+          status: 'draft',
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        })
+      })
+
+      const waitlistDb = testEnv.authenticatedContext('waitlist-user', { access: 'waitlist' }).firestore()
+      const newCaseRef = doc(waitlistDb, 'cases/case-new')
+      const existingCaseRef = doc(waitlistDb, 'cases/case-waitlist')
+
+      await assertFails(
+        setDoc(newCaseRef, {
+          ownerId: 'waitlist-user',
+          clientLabel: 'Attempted Case',
+          status: 'draft',
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        })
+      )
+
+      await assertFails(getDoc(existingCaseRef))
+    })
+
     it('denies non-owner from reading, updating, or deleting a case', async () => {
       await testEnv.withSecurityRulesDisabled(async (context) => {
         const adminDb = context.firestore()
@@ -80,7 +227,7 @@ describe('Firebase Security Rules', () => {
         })
       })
 
-      const bobDb = testEnv.authenticatedContext('bob').firestore()
+      const bobDb = testEnv.authenticatedContext('bob', { access: 'active' }).firestore()
       const caseRef = doc(bobDb, 'cases/case-1')
 
       await assertFails(getDoc(caseRef))
@@ -98,30 +245,37 @@ describe('Firebase Security Rules', () => {
         const adminDb = context.firestore()
         await setDoc(doc(adminDb, 'cases/case-1'), {
           ownerId: 'alice',
+          clientLabel: 'Alice Case',
           status: 'draft',
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
         })
       })
 
-      const anonDb = testEnv.unauthenticatedContext().firestore()
-      const caseRef = doc(anonDb, 'cases/case-1')
+      const unauthDb = testEnv.unauthenticatedContext().firestore()
+      const caseRef = doc(unauthDb, 'cases/case-1')
 
       await assertFails(getDoc(caseRef))
       await assertFails(
-        setDoc(doc(anonDb, 'cases/case-anon'), {
-          ownerId: 'anon',
+        setDoc(caseRef, {
+          ownerId: 'alice',
+          clientLabel: 'Hacked',
           status: 'draft',
         })
       )
     })
 
     it('denies creating a case with another users ownerId', async () => {
-      const aliceDb = testEnv.authenticatedContext('alice').firestore()
-      const caseRef = doc(aliceDb, 'cases/case-forged')
+      const aliceDb = testEnv.authenticatedContext('alice', { access: 'active' }).firestore()
+      const caseRef = doc(aliceDb, 'cases/case-2')
 
       await assertFails(
         setDoc(caseRef, {
           ownerId: 'bob',
+          clientLabel: 'Spoofed Owner',
           status: 'draft',
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
         })
       )
     })
@@ -131,13 +285,14 @@ describe('Firebase Security Rules', () => {
         const adminDb = context.firestore()
         await setDoc(doc(adminDb, 'cases/case-1'), {
           ownerId: 'alice',
+          clientLabel: 'Alice Case',
           status: 'draft',
           createdAt: Date.now(),
           updatedAt: Date.now(),
         })
       })
 
-      const aliceDb = testEnv.authenticatedContext('alice').firestore()
+      const aliceDb = testEnv.authenticatedContext('alice', { access: 'active' }).firestore()
       const caseRef = doc(aliceDb, 'cases/case-1')
 
       await assertFails(
@@ -149,47 +304,46 @@ describe('Firebase Security Rules', () => {
     })
 
     it('prevents client from creating or updating pipeline-controlled fields', async () => {
-      const aliceDb = testEnv.authenticatedContext('alice').firestore()
-      const newCaseRef = doc(aliceDb, 'cases/case-forged-pipeline')
+      const aliceDb = testEnv.authenticatedContext('alice', { access: 'active' }).firestore()
+      const caseRef = doc(aliceDb, 'cases/case-pipeline-test')
 
       await assertFails(
-        setDoc(newCaseRef, {
+        setDoc(caseRef, {
           ownerId: 'alice',
-          status: 'ready',
-          evidences: [{ id: 'fake-evidence' }],
+          clientLabel: 'Illegal Field Test',
+          status: 'draft',
+          transcript: { segments: [] },
           createdAt: Date.now(),
           updatedAt: Date.now(),
         })
       )
 
-      await testEnv.withSecurityRulesDisabled(async (context) => {
-        const adminDb = context.firestore()
-        await setDoc(doc(adminDb, 'cases/case-existing'), {
+      await assertSucceeds(
+        setDoc(caseRef, {
           ownerId: 'alice',
-          status: 'processing',
+          clientLabel: 'Legal Case',
+          status: 'draft',
           createdAt: Date.now(),
           updatedAt: Date.now(),
         })
-      })
-
-      const existingRef = doc(aliceDb, 'cases/case-existing')
+      )
 
       await assertFails(
-        updateDoc(existingRef, {
-          evidences: [{ id: 'fake-evidence' }],
+        updateDoc(caseRef, {
+          transcript: { segments: [{ start: 0, end: 1, text: 'hi' }] },
           updatedAt: Date.now(),
         })
       )
 
       await assertFails(
-        updateDoc(existingRef, {
-          failReason: 'Injected reason',
+        updateDoc(caseRef, {
+          failReason: 'Injected Error',
           updatedAt: Date.now(),
         })
       )
 
       await assertFails(
-        updateDoc(existingRef, {
+        updateDoc(caseRef, {
           stageProgress: 100,
           updatedAt: Date.now(),
         })
@@ -197,106 +351,83 @@ describe('Firebase Security Rules', () => {
     })
 
     it('handles feedback and events creation rules', async () => {
-      const aliceDb = testEnv.authenticatedContext('alice').firestore()
+      const aliceDb = testEnv.authenticatedContext('alice', { access: 'active' }).firestore()
       const feedbackRef = doc(aliceDb, 'feedback/fb-1')
+      const eventRef = doc(aliceDb, 'events/ev-1')
 
       await assertSucceeds(
         setDoc(feedbackRef, {
-          caseId: 'case-1',
-          rating: 5,
           userId: 'alice',
-          comment: 'Great tool',
+          message: 'Great service!',
+          createdAt: Date.now(),
+        })
+      )
+
+      await assertSucceeds(
+        setDoc(eventRef, {
+          userId: 'alice',
+          name: 'case_created',
+          createdAt: Date.now(),
         })
       )
 
       await assertFails(getDoc(feedbackRef))
-
-      const forgedFeedbackRef = doc(aliceDb, 'feedback/fb-forged')
       await assertFails(
-        setDoc(forgedFeedbackRef, {
-          caseId: 'case-1',
-          rating: 1,
-          userId: 'bob',
+        updateDoc(feedbackRef, {
+          message: 'Updated feedback',
         })
       )
-
-      const eventsRef = doc(aliceDb, 'events/ev-1')
-      await assertSucceeds(
-        setDoc(eventsRef, {
-          type: 'case_created',
-          userId: 'alice',
-        })
-      )
-      await assertFails(getDoc(eventsRef))
     })
 
     it('enforces beta signups creation and access rules for web and bot', async () => {
-      const anonDb = testEnv.unauthenticatedContext().firestore()
+      const unauthDb = testEnv.unauthenticatedContext().firestore()
 
-      const webEmailOnlyRef = doc(anonDb, 'beta_signups/web-email')
+      const webEmailOnlyRef = doc(unauthDb, 'beta_signups/signup-web-email')
       await assertSucceeds(
         setDoc(webEmailOnlyRef, {
           source: 'web',
-          email: 'founder@agency.ru',
-          consent: true,
+          email: 'founder@studio.com',
           businessType: 'agency_or_studio',
-          casesVolume: '1_to_3',
+          casesVolume: '4_to_10',
+          currentProcess: 'manual',
+          consent: true,
+          createdAt: Date.now(),
         })
       )
 
-      const webTgOnlyRef = doc(anonDb, 'beta_signups/web-tg')
+      const webTelegramOnlyRef = doc(unauthDb, 'beta_signups/signup-web-tg')
       await assertSucceeds(
-        setDoc(webTgOnlyRef, {
+        setDoc(webTelegramOnlyRef, {
           source: 'web',
-          telegramUsername: 'agency_founder',
+          telegramUsername: 'agency_boss',
+          businessType: 'agency_or_studio',
+          casesVolume: '4_to_10',
+          currentProcess: 'manual',
           consent: true,
-          businessType: 'agency_or_studio',
-          casesVolume: '1_to_3',
+          createdAt: Date.now(),
         })
       )
 
-      const webBothRef = doc(anonDb, 'beta_signups/web-both')
-      await assertSucceeds(
-        setDoc(webBothRef, {
-          source: 'web',
-          email: 'founder@agency.ru',
-          telegramUsername: 'agency_founder',
-          consent: true,
-          businessType: 'agency_or_studio',
-          casesVolume: '1_to_3',
-        })
-      )
-
-      const webNoContactsRef = doc(anonDb, 'beta_signups/web-no-contact')
-      await assertFails(
-        setDoc(webNoContactsRef, {
-          source: 'web',
-          consent: true,
-          businessType: 'agency_or_studio',
-          casesVolume: '1_to_3',
-        })
-      )
-
-      const webNoConsentRef = doc(anonDb, 'beta_signups/web-no-consent')
-      await assertFails(
-        setDoc(webNoConsentRef, {
-          source: 'web',
-          email: 'founder@agency.ru',
-          consent: false,
-          businessType: 'agency_or_studio',
-          casesVolume: '1_to_3',
-        })
-      )
-
-      const botSignupRef = doc(anonDb, 'beta_signups/bot-tg')
+      const botSignupRef = doc(unauthDb, 'beta_signups/signup-bot-1')
       await assertSucceeds(
         setDoc(botSignupRef, {
           source: 'telegram',
-          telegramUserId: 987654321,
-          telegramUsername: 'telegram_lead',
-          businessType: 'agency_or_studio',
+          telegramUserId: 123456789,
+          telegramUsername: 'tg_user',
+          businessType: 'it_outsource',
           casesVolume: '1_to_3',
           consent: true,
+          createdAt: Date.now(),
+        })
+      )
+
+      const invalidNoContactWebRef = doc(unauthDb, 'beta_signups/signup-web-invalid')
+      await assertFails(
+        setDoc(invalidNoContactWebRef, {
+          source: 'web',
+          businessType: 'agency_or_studio',
+          consent: true,
+          createdAt: Date.now(),
         })
       )
 
@@ -308,10 +439,32 @@ describe('Firebase Security Rules', () => {
       )
       await assertFails(deleteDoc(webEmailOnlyRef))
     })
+
+    it('denies clients from reading or writing invites and telegram tokens', async () => {
+      const aliceDb = testEnv.authenticatedContext('alice', { access: 'active' }).firestore()
+      const inviteRef = doc(aliceDb, 'invites/INVITE123')
+      const tokenRef = doc(aliceDb, 'telegram_link_tokens/token-abc')
+
+      await assertFails(getDoc(inviteRef))
+      await assertFails(
+        setDoc(inviteRef, {
+          code: 'INVITE123',
+          status: 'issued',
+        })
+      )
+
+      await assertFails(getDoc(tokenRef))
+      await assertFails(
+        setDoc(tokenRef, {
+          token: 'token-abc',
+          uid: 'alice',
+        })
+      )
+    })
   })
 
   describe('Storage: Access control and file constraints', () => {
-    it('allows owner to upload and read case files', async () => {
+    it('allows active owner to upload and read case files', async () => {
       await testEnv.withSecurityRulesDisabled(async (context) => {
         const adminDb = context.firestore()
         await setDoc(doc(adminDb, 'cases/case-1'), {
@@ -320,7 +473,7 @@ describe('Firebase Security Rules', () => {
         })
       })
 
-      const aliceStorage = testEnv.authenticatedContext('alice').storage()
+      const aliceStorage = testEnv.authenticatedContext('alice', { access: 'active' }).storage()
       const aliceFileRef = ref(aliceStorage, 'cases/case-1/screenshot.png')
       const smallPngData = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10])
 
@@ -333,6 +486,31 @@ describe('Firebase Security Rules', () => {
       await assertSucceeds(getMetadata(aliceFileRef))
     })
 
+    it('denies waitlist owner from uploading case files', async () => {
+      await testEnv.withSecurityRulesDisabled(async (context) => {
+        const adminDb = context.firestore()
+        await setDoc(doc(adminDb, 'users/waitlist-user'), {
+          id: 'waitlist-user',
+          accessStatus: 'waitlist',
+          workspaceId: 'waitlist-user',
+        })
+        await setDoc(doc(adminDb, 'cases/case-waitlist'), {
+          ownerId: 'waitlist-user',
+          status: 'processing',
+        })
+      })
+
+      const waitlistStorage = testEnv.authenticatedContext('waitlist-user', { access: 'waitlist' }).storage()
+      const fileRef = ref(waitlistStorage, 'cases/case-waitlist/screenshot.png')
+      const smallPngData = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10])
+
+      await assertFails(
+        uploadBytes(fileRef, smallPngData, {
+          contentType: 'image/png',
+        })
+      )
+    })
+
     it('denies non-owner from uploading, reading, or deleting case files', async () => {
       await testEnv.withSecurityRulesDisabled(async (context) => {
         const adminDb = context.firestore()
@@ -342,8 +520,8 @@ describe('Firebase Security Rules', () => {
         })
       })
 
-      const aliceStorage = testEnv.authenticatedContext('alice').storage()
-      const bobStorage = testEnv.authenticatedContext('bob').storage()
+      const aliceStorage = testEnv.authenticatedContext('alice', { access: 'active' }).storage()
+      const bobStorage = testEnv.authenticatedContext('bob', { access: 'active' }).storage()
 
       const aliceFileRef = ref(aliceStorage, 'cases/case-1/screenshot.png')
       const bobFileRef = ref(bobStorage, 'cases/case-1/screenshot.png')
@@ -373,7 +551,7 @@ describe('Firebase Security Rules', () => {
         })
       })
 
-      const aliceStorage = testEnv.authenticatedContext('alice').storage()
+      const aliceStorage = testEnv.authenticatedContext('alice', { access: 'active' }).storage()
       const fileRef = ref(aliceStorage, 'cases/case-1/exploit.exe')
 
       await assertFails(

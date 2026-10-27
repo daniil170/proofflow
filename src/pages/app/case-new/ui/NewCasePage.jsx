@@ -5,11 +5,16 @@ import { UploadTrustNotice } from '@/components/legal'
 import styles from './NewCasePage.module.css'
 
 export const NewCasePage = () => {
-  const { user } = useAuth()
+  const { user, userRecord } = useAuth()
   const navigate = useNavigate()
 
   const uploadState = useCaseUpload({
-    user,
+    user: {
+      ...user,
+      profile: userRecord?.profile,
+      companyName: userRecord?.profile?.companyName,
+      logoPath: userRecord?.profile?.logoPath,
+    },
     onSuccess: (createdCase) => {
       navigate(`/app/cases/${createdCase.id}`)
     },
