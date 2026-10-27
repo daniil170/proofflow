@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { getCaseRepository } from '@/shared/api'
+import { getCaseRepository, trackAnalyticsEvent } from '@/shared/api'
 import { renderCardPng, renderStoryPng, downloadCanvasBlob } from './pngExporter'
 import { getEmbedCode } from './embedSnippets'
 
@@ -54,21 +54,29 @@ export const useCasePublish = ({
     try {
       await navigator.clipboard.writeText(publicUrl)
       setCopiedLink(true)
+      trackAnalyticsEvent('link_copied', {
+        userId: caseItem?.ownerId,
+        caseId: caseItem?.id,
+      })
       setTimeout(() => setCopiedLink(false), 2000)
     } catch {
       setCopiedLink(false)
     }
-  }, [publicUrl])
+  }, [publicUrl, caseItem])
 
   const copyEmbed = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(embedCode)
       setCopiedEmbed(true)
+      trackAnalyticsEvent('embed_copied', {
+        userId: caseItem?.ownerId,
+        caseId: caseItem?.id,
+      })
       setTimeout(() => setCopiedEmbed(false), 2000)
     } catch {
       setCopiedEmbed(false)
     }
-  }, [embedCode])
+  }, [embedCode, caseItem])
 
   const downloadCard = useCallback(() => {
     const draft = caseItem?.draft || {}
@@ -85,6 +93,11 @@ export const useCasePublish = ({
     }
     const canvas = renderCardPng(data)
     downloadCanvasBlob(canvas, `case-${caseItem?.id || 'card'}.png`)
+    trackAnalyticsEvent('png_downloaded', {
+      userId: caseItem?.ownerId,
+      caseId: caseItem?.id,
+      metadata: { format: 'card' },
+    })
   }, [caseItem])
 
   const downloadStory = useCallback(() => {
@@ -102,6 +115,11 @@ export const useCasePublish = ({
     }
     const canvas = renderStoryPng(data)
     downloadCanvasBlob(canvas, `case-${caseItem?.id || 'story'}-story.png`)
+    trackAnalyticsEvent('png_downloaded', {
+      userId: caseItem?.ownerId,
+      caseId: caseItem?.id,
+      metadata: { format: 'story' },
+    })
   }, [caseItem])
 
   return {

@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react'
-import { getCaseRepository, getSourceUploader } from '@/shared/api'
+import { getCaseRepository, getSourceUploader, trackAnalyticsEvent } from '@/shared/api'
 import { calculateContrastRatio, VARIANT_BACKGROUND_COLORS } from './contrast'
 
 const MAX_LOGO_SIZE_BYTES = 2 * 1024 * 1024
@@ -67,9 +67,17 @@ export const useCaseStyle = ({
     }
   }, [caseItem, companyName, showLogo, logoUrl, accentColor])
 
-  const handleSelectVariant = useCallback((variant) => {
-    setSelectedVariant(variant)
-  }, [])
+  const handleSelectVariant = useCallback(
+    (variant) => {
+      setSelectedVariant(variant)
+      trackAnalyticsEvent('style_selected', {
+        userId: caseItem?.ownerId,
+        caseId: caseItem?.id,
+        metadata: { variant },
+      })
+    },
+    [caseItem?.id, caseItem?.ownerId]
+  )
 
   const handleAccentChange = useCallback((hex) => {
     setAccentColor(hex)

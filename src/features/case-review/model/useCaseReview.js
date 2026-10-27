@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { caseDraftSchema } from '@/entities/case/model/schemas'
-import { getCaseRepository } from '@/shared/api'
+import { getCaseRepository, trackAnalyticsEvent } from '@/shared/api'
 
 export const REGENERATE_STYLES = Object.freeze({
   shorter: {
@@ -107,6 +107,15 @@ export const useCaseReview = ({
   }, [caseItem?.sources])
 
   useEffect(() => {
+    if (caseItem?.id) {
+      trackAnalyticsEvent('review_opened', {
+        userId: caseItem.ownerId,
+        caseId: caseItem.id,
+      })
+    }
+  }, [caseItem?.id, caseItem?.ownerId])
+
+  useEffect(() => {
     if (isInitialMountRef.current) {
       isInitialMountRef.current = false
       return
@@ -209,12 +218,18 @@ export const useCaseReview = ({
         modifiedFieldsRef.current = nextModified
         setModifiedFields(nextModified)
 
+        trackAnalyticsEvent('field_edited', {
+          userId: caseItem?.ownerId,
+          caseId: caseItem?.id,
+          metadata: { field: fieldPath.split('.')[0] },
+        })
+
         runValidation(next)
         triggerAutosave(next, nextModified)
         return next
       })
     },
-    [runValidation, triggerAutosave]
+    [caseItem?.id, caseItem?.ownerId, runValidation, triggerAutosave]
   )
 
   const isFieldModified = useCallback(
@@ -318,6 +333,10 @@ export const useCaseReview = ({
         draft,
         modifiedFields: Array.from(modifiedFields),
       })
+      trackAnalyticsEvent('case_confirmed', {
+        userId: caseItem.ownerId,
+        caseId: caseItem.id,
+      })
       onVerified?.()
     } catch (err) {
       setSaveStatus('error')
@@ -367,6 +386,16 @@ export const useCaseReview = ({
             userId: caseItem.ownerId,
           })
         }
+        trackAnalyticsEvent('feedback_given', {
+          userId: caseItem.ownerId,
+          caseId: caseItem.id,
+          metadata: {
+            rating:
+              rating === 'positive' || rating === 1 || rating === 'up'
+                ? 'positive'
+                : 'negative',
+          },
+        })
         setFeedbackState({
           rating,
           comment,

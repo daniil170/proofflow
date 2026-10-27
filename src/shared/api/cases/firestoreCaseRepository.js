@@ -166,6 +166,13 @@ export const firestoreCaseRepository = Object.freeze({
     return res.data
   },
 
+  async delete(caseId) {
+    const functions = getFunctionsInstance()
+    const call = httpsCallable(functions, 'deleteCase')
+    const res = await call({ caseId })
+    return res.data
+  },
+
   async getPublicCase(caseId) {
     const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID
     const region = import.meta.env.VITE_FIREBASE_REGION || 'us-central1'

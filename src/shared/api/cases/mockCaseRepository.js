@@ -209,6 +209,13 @@ export const mockCaseRepository = Object.freeze({
     return { success: true, caseId }
   },
 
+  async delete(caseId) {
+    casesStore = casesStore.filter((c) => c.id !== caseId)
+    saveCases(casesStore)
+    notifyListeners()
+    return { success: true, caseId }
+  },
+
   async getPublicCase(caseId) {
     try {
       const publicCasesStr = localStorage.getItem('proofflow_mock_public_cases')

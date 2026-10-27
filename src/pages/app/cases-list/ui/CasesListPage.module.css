@@ -47,6 +47,27 @@
   color: var(--color-text-secondary);
 }
 
+.remainingBadge {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  padding: 3px 10px;
+  background-color: var(--color-bg-base);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-full);
+  color: var(--color-text-secondary);
+}
+
+:global([data-theme='dark']) .remainingBadge {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: var(--color-border-dark);
+}
+
+.limitLink {
+  color: #3b82f6;
+  text-decoration: underline;
+  font-weight: var(--font-weight-semibold);
+}
+
 .subtitle {
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);

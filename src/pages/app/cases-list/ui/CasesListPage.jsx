@@ -2,6 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/features/auth'
 import { CASE_STATUS, CASE_STATUS_LABELS, getCaseRepository } from '@/shared/api'
+import {
+  formatRemainingCases,
+  MAX_CASES_PER_ACCOUNT,
+  SUPPORT_TELEGRAM_URL,
+} from '@/shared/config/limits.ts'
 import styles from './CasesListPage.module.css'
 
 export const CasesListPage = () => {
@@ -213,6 +218,9 @@ export const CasesListPage = () => {
     )
   }
 
+  const remainingCases = Math.max(0, MAX_CASES_PER_ACCOUNT - cases.length)
+  const isLimitExhausted = cases.length >= MAX_CASES_PER_ACCOUNT
+
   return (
     <div className={styles.container}>
       <header className={styles.pageHeader}>
@@ -221,6 +229,25 @@ export const CasesListPage = () => {
             <h1 className={styles.title}>Мои кейсы</h1>
             {!isLoading && cases.length > 0 && (
               <span className={styles.countBadge}>{cases.length}</span>
+            )}
+            {!isLoading && (
+              <span className={styles.remainingBadge}>
+                {isLimitExhausted ? (
+                  <span>
+                    Лимит исчерпан ·{' '}
+                    <a
+                      href={SUPPORT_TELEGRAM_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.limitLink}
+                    >
+                      Написать нам
+                    </a>
+                  </span>
+                ) : (
+                  formatRemainingCases(remainingCases)
+                )}
+              </span>
             )}
           </div>
           <p className={styles.subtitle}>

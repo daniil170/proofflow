@@ -198,6 +198,11 @@ export const mockUserRepository = Object.freeze({
     }
   },
 
+  async deleteAccount() {
+    persistUserDoc(null)
+    return { success: true }
+  },
+
   _reset(initialDoc = null) {
     persistUserDoc(initialDoc)
   },

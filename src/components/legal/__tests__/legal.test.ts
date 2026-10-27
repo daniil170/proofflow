@@ -49,6 +49,14 @@ describe('Legal Documents Content & Integrity', () => {
 
     const deletionSection = privacyData.sections.find((s) => s.id === 'storage-deletion')
     expect(deletionSection).toBeDefined()
+    const allDeletionText = deletionSection?.content.join(' ') || ''
+    expect(allDeletionText).toContain('14')
+    expect(allDeletionText).toContain('/app/settings')
+    expect(allDeletionText).toContain('JSON')
+
+    expect(allAiText).toContain('firebase')
+    expect(allAiText).toContain('openai')
+    expect(allAiText).toContain('anthropic')
   })
 
   it('cookiesData covers Essential, Analytics, and Functional cookies', () => {

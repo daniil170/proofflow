@@ -29,6 +29,7 @@ export {
   getUserRepository,
   firestoreUserRepository,
   mockUserRepository,
+  exportUserData,
 } from './user/index.js'
 
 export {
@@ -39,4 +40,12 @@ export {
 } from './admin/index.js'
 
 export { getConsentGateway } from './consent/index.js'
+
+export {
+  ANALYTICS_EVENTS,
+  getAnalyticsGateway,
+  trackAnalyticsEvent,
+  firestoreAnalyticsGateway,
+  mockAnalyticsGateway,
+} from './analytics/index.js'
 

@@ -182,9 +182,82 @@ export const createFirestoreAnalyticsRepository = () => ({
       { stage: 'activated', label: 'Активированы', count: activatedApplications },
     ]
 
-    const hasEvents = await getDocs(collection(db, 'events'))
-      .then((eventsSnap) => !eventsSnap.empty)
-      .catch(() => false)
+    let allEvents
+    try {
+      const eventsSnap = await getDocs(collection(db, 'events'))
+      allEvents = eventsSnap.docs.map((d) => ({ id: d.id, ...d.data() }))
+    } catch {
+      allEvents = []
+    }
+
+    const filteredEvents =
+      cutoffTime === 0
+        ? allEvents
+        : allEvents.filter((ev) => (ev.timestamp || 0) >= cutoffTime)
+
+    const casesStarted = filteredEvents.filter((e) => e.eventName === 'case_started').length
+    const reachedReview = filteredEvents.filter((e) => e.eventName === 'review_opened').length
+    const casesPublished = filteredEvents.filter(
+      (e) =>
+        e.eventName === 'case_confirmed' ||
+        e.eventName === 'link_copied' ||
+        e.eventName === 'embed_copied'
+    ).length
+
+    const feedbackEvents = filteredEvents.filter((e) => e.eventName === 'feedback_given')
+    const positiveFeedback = feedbackEvents.filter(
+      (e) =>
+        e.metadata?.rating === 'positive' ||
+        e.metadata?.rating === 'up' ||
+        e.metadata?.score === 1
+    ).length
+    const negativeFeedback = feedbackEvents.filter(
+      (e) =>
+        e.metadata?.rating === 'negative' ||
+        e.metadata?.rating === 'down' ||
+        e.metadata?.score === -1
+    ).length
+    const totalFeedback = positiveFeedback + negativeFeedback
+    const satisfactionRate =
+      totalFeedback > 0
+        ? Math.round((positiveFeedback / totalFeedback) * 100)
+        : positiveFeedback > 0
+        ? 100
+        : 0
+
+    const FIELD_LABELS = {
+      metric: 'Метрика и число',
+      problem: 'Проблема («Было»)',
+      solution: 'Решение («Сделано»)',
+      result: 'Результат («Стало»)',
+      quote: 'Цитата клиента',
+      author: 'Подпись автора',
+      clientLabel: 'Название проекта',
+    }
+
+    const fieldCounts = {}
+    filteredEvents
+      .filter((e) => e.eventName === 'field_edited')
+      .forEach((e) => {
+        const fieldKey = e.metadata?.field || 'other'
+        fieldCounts[fieldKey] = (fieldCounts[fieldKey] || 0) + 1
+      })
+
+    const fieldEdits = Object.entries(FIELD_LABELS).map(([field, label]) => ({
+      field,
+      label,
+      count: fieldCounts[field] || 0,
+    }))
+
+    const productAnalytics = {
+      casesStarted,
+      reachedReview,
+      casesPublished,
+      positiveFeedback,
+      negativeFeedback,
+      satisfactionRate,
+      fieldEdits,
+    }
 
     return {
       totalApplications,
@@ -196,7 +269,8 @@ export const createFirestoreAnalyticsRepository = () => ({
       businessTypeBreakdown,
       dailyTrend,
       funnel,
-      hasEvents,
+      productAnalytics,
+      hasEvents: allEvents.length > 0,
     }
   },
 })

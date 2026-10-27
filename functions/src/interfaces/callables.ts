@@ -922,3 +922,137 @@ export const submitClientConsent = onCall(
   }
 )
 
+export const deleteCase = onCall(
+  {
+    enforceAppCheck: false,
+    timeoutSeconds: 60,
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Требуется авторизация')
+    }
+
+    const data = (request.data as Record<string, unknown>) || {}
+    const caseId = typeof data.caseId === 'string' ? data.caseId.trim() : ''
+
+    if (!caseId) {
+      throw new HttpsError('invalid-argument', 'Не указан идентификатор кейса')
+    }
+
+    const db = admin.firestore()
+    const caseRef = db.collection('cases').doc(caseId)
+    const caseSnap = await caseRef.get()
+
+    if (!caseSnap.exists) {
+      throw new HttpsError('not-found', 'Кейс не найден')
+    }
+
+    const caseData = caseSnap.data() || {}
+    const isAdminUser = request.auth.token?.admin === true
+    const isOwner = caseData.ownerId === request.auth.uid
+
+    if (!isOwner && !isAdminUser) {
+      throw new HttpsError('permission-denied', 'Нет прав для удаления кейса')
+    }
+
+    const bucket = admin.storage().bucket()
+    try {
+      await bucket.deleteFiles({ prefix: `cases/${caseId}/`, force: true })
+    } catch {
+      void 0
+    }
+
+    await db.collection('publicCases').doc(caseId).delete().catch(() => {})
+
+    const consentsSnap = await db
+      .collection('consents')
+      .where('caseId', '==', caseId)
+      .get()
+    const batch = db.batch()
+    consentsSnap.docs.forEach((doc) => {
+      batch.delete(doc.ref)
+    })
+    batch.delete(caseRef)
+    await batch.commit()
+
+    return {
+      success: true,
+      caseId,
+    }
+  }
+)
+
+export const deleteAccount = onCall(
+  {
+    enforceAppCheck: false,
+    timeoutSeconds: 120,
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Требуется авторизация')
+    }
+
+    const uid = request.auth.uid
+    const data = (request.data as Record<string, unknown>) || {}
+    const confirmation = typeof data.confirmation === 'string' ? data.confirmation.trim().toUpperCase() : ''
+
+    if (confirmation !== 'УДАЛИТЬ' && confirmation !== 'DELETE') {
+      throw new HttpsError(
+        'invalid-argument',
+        'Для подтверждения удаления введите слово «УДАЛИТЬ»'
+      )
+    }
+
+    const db = admin.firestore()
+    const bucket = admin.storage().bucket()
+
+    const casesSnap = await db.collection('cases').where('ownerId', '==', uid).get()
+    for (const caseDoc of casesSnap.docs) {
+      const caseId = caseDoc.id
+      try {
+        await bucket.deleteFiles({ prefix: `cases/${caseId}/`, force: true })
+      } catch {
+        continue
+      }
+      await db.collection('publicCases').doc(caseId).delete().catch(() => {})
+      const consentsSnap = await db
+        .collection('consents')
+        .where('caseId', '==', caseId)
+        .get()
+      const cBatch = db.batch()
+      consentsSnap.docs.forEach((c) => cBatch.delete(c.ref))
+      await cBatch.commit().catch(() => {})
+      await caseDoc.ref.delete().catch(() => {})
+    }
+
+    const userConsentsSnap = await db
+      .collection('consents')
+      .where('ownerId', '==', uid)
+      .get()
+    if (!userConsentsSnap.empty) {
+      const uBatch = db.batch()
+      userConsentsSnap.docs.forEach((c) => uBatch.delete(c.ref))
+      await uBatch.commit().catch(() => {})
+    }
+
+    try {
+      await bucket.deleteFiles({ prefix: `users/${uid}/`, force: true })
+    } catch {
+      void 0
+    }
+
+    await db.collection('users').doc(uid).delete().catch(() => {})
+
+    try {
+      await admin.auth().deleteUser(uid)
+    } catch {
+      void 0
+    }
+
+    return {
+      success: true,
+      uid,
+    }
+  }
+)
+

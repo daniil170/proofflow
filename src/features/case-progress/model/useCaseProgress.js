@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { getCaseRepository } from '@/shared/api'
+import { getCaseRepository, trackAnalyticsEvent } from '@/shared/api'
 import { calculateStageStatuses, formatRussianFailReason } from './stages.js'
 
 export const useCaseProgress = ({
@@ -46,11 +46,23 @@ export const useCaseProgress = ({
         setCaseItem(item)
 
         if (
-          (item.status === 'review' || item.status === 'published') &&
+          (item.status === 'review' || item.status === 'ready' || item.status === 'published') &&
           !hasTriggeredReviewRef.current
         ) {
           hasTriggeredReviewRef.current = true
+          trackAnalyticsEvent('processing_done', {
+            userId: item.ownerId,
+            caseId: item.id,
+          })
           onReviewReadyRef.current?.(item)
+        }
+
+        if (item.status === 'failed' || Boolean(item.failReason)) {
+          trackAnalyticsEvent('processing_failed', {
+            userId: item.ownerId,
+            caseId: item.id,
+            metadata: { reason: item.failReason || 'failed' },
+          })
         }
       },
       (err) => {
