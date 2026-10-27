@@ -13,6 +13,10 @@ import {
   executeUnpublishCase,
   UnpublishCaseError,
 } from '../application/use-cases/unpublishCase.js'
+import {
+  executeConfirmTelegramLink,
+  ConfirmTelegramLinkError,
+} from '../application/use-cases/confirmTelegramLink.js'
 
 import { RATE_LIMIT_CONFIGS } from '../domain/rateLimits.js'
 import { FirestoreRateLimiter } from '../infrastructure/adapters/FirestoreRateLimiter.js'
@@ -1052,6 +1056,46 @@ export const deleteAccount = onCall(
     return {
       success: true,
       uid,
+    }
+  }
+)
+
+export const confirmTelegramLink = onCall(
+  {
+    enforceAppCheck: false,
+    timeoutSeconds: 15,
+  },
+  async (request) => {
+    try {
+      const data = (request.data || {}) as {
+        token?: string
+        telegramUserId?: string | number
+        telegramUsername?: string | null
+        secret?: string
+        botSecret?: string
+      }
+      return await executeConfirmTelegramLink(
+        {
+          token: data.token || '',
+          telegramUserId: data.telegramUserId as string | number,
+          telegramUsername: data.telegramUsername,
+          secret: data.secret || data.botSecret || '',
+        },
+        admin.firestore()
+      )
+    } catch (err: unknown) {
+      if (err instanceof ConfirmTelegramLinkError) {
+        const errorMapping: Record<string, 'unauthenticated' | 'not-found' | 'deadline-exceeded' | 'failed-precondition' | 'invalid-argument'> = {
+          invalid_secret: 'unauthenticated',
+          not_found: 'not-found',
+          expired_token: 'deadline-exceeded',
+          already_used: 'failed-precondition',
+          invalid_argument: 'invalid-argument',
+        }
+        const functionsCode = errorMapping[err.code] || 'internal'
+        throw new HttpsError(functionsCode, err.message)
+      }
+      throw err
     }
   }
 )

@@ -2,6 +2,10 @@ import admin from 'firebase-admin'
 import { onRequest } from 'firebase-functions/v2/https'
 import { RATE_LIMIT_CONFIGS } from '../domain/rateLimits.js'
 import { FirestoreRateLimiter } from '../infrastructure/adapters/FirestoreRateLimiter.js'
+import {
+  executeConfirmTelegramLink,
+  ConfirmTelegramLinkError,
+} from '../application/use-cases/confirmTelegramLink.js'
 
 if (!admin.apps.length) {
   admin.initializeApp()
@@ -145,6 +149,66 @@ export const ogPage = onRequest(
 
     res.set('Cache-Control', 'public, max-age=300, s-maxage=600')
     res.status(200).send(html)
+  }
+)
+
+export const confirmTelegramLinkHttp = onRequest(
+  {
+    cors: true,
+    timeoutSeconds: 15,
+  },
+  async (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*')
+    res.set('Access-Control-Allow-Methods', 'POST, OPTIONS')
+    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-bot-secret')
+
+    if (req.method === 'OPTIONS') {
+      res.status(204).send('')
+      return
+    }
+
+    if (req.method !== 'POST') {
+      res.status(405).json({ error: 'Method Not Allowed' })
+      return
+    }
+
+    try {
+      const body = (req.body || {}) as Record<string, unknown>
+      const headerSecret =
+        (req.headers['x-bot-secret'] as string) ||
+        (typeof req.headers.authorization === 'string'
+          ? req.headers.authorization.replace(/^Bearer\s+/i, '')
+          : '')
+      const secret = String(body.secret || body.botSecret || headerSecret || '')
+
+      const result = await executeConfirmTelegramLink(
+        {
+          token: String(body.token || ''),
+          telegramUserId: body.telegramUserId as string | number,
+          telegramUsername: typeof body.telegramUsername === 'string' ? body.telegramUsername : undefined,
+          secret,
+        },
+        admin.firestore()
+      )
+      res.status(200).json(result)
+    } catch (err: unknown) {
+      if (err instanceof ConfirmTelegramLinkError) {
+        const statusMap: Record<string, number> = {
+          invalid_secret: 401,
+          not_found: 404,
+          expired_token: 410,
+          already_used: 409,
+          invalid_argument: 400,
+        }
+        res.status(statusMap[err.code] || 400).json({
+          code: err.code,
+          error: err.message,
+        })
+        return
+      }
+      const message = err instanceof Error ? err.message : 'Ошибка привязки'
+      res.status(500).json({ error: message })
+    }
   }
 )
 
