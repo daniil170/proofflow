@@ -27,7 +27,7 @@ export const EvidenceDrawer = ({ activeEvidence, onClose }) => {
     return null
   }
 
-  const { evidence, source, fieldName } = activeEvidence
+  const { evidence, source, fieldName, sourcesDeletedAt } = activeEvidence
 
   const fieldLabels = {
     metric: 'Метрика и результат',
@@ -64,7 +64,11 @@ export const EvidenceDrawer = ({ activeEvidence, onClose }) => {
         </header>
 
         <div className={styles.body}>
-          <SourcePreview evidence={evidence} source={source} />
+          <SourcePreview
+            evidence={evidence}
+            source={source}
+            sourcesDeletedAt={sourcesDeletedAt}
+          />
 
           <p className={styles.infoNote}>
             Вы можете сверить распознанный текст с исходным материалом. Если здесь
@@ -81,6 +85,7 @@ EvidenceDrawer.propTypes = {
     evidence: PropTypes.object,
     source: PropTypes.object,
     fieldName: PropTypes.string,
+    sourcesDeletedAt: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   }),
   onClose: PropTypes.func.isRequired,
 }

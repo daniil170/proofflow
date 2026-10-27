@@ -2,7 +2,7 @@ import { useState } from 'react'
 import PropTypes from 'prop-types'
 import styles from './SourcePreview.module.css'
 
-export const SourcePreview = ({ evidence, source }) => {
+export const SourcePreview = ({ evidence, source, sourcesDeletedAt = null }) => {
   const [isPlaying, setIsPlaying] = useState(false)
 
   if (!evidence) {
@@ -17,6 +17,32 @@ export const SourcePreview = ({ evidence, source }) => {
 
   const togglePlayback = () => {
     setIsPlaying((prev) => !prev)
+  }
+
+  const isDeleted = Boolean(
+    sourcesDeletedAt ||
+    evidence?.sourcesDeletedAt ||
+    source?.sourcesDeletedAt
+  )
+
+  if (isDeleted) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.sourceHeader}>
+          <span className={styles.sourceBadge}>
+            {isAudio ? 'Аудиозапись / Созвон' : 'Скриншот переписки'}
+          </span>
+          <span className={styles.sourceBadge}>Срок хранения истёк</span>
+        </div>
+        <p className={styles.deletedSubtitle}>
+          Исходный файл удалён по сроку хранения
+        </p>
+        <div className={styles.highlightedTextCard}>
+          <p className={styles.quoteLabel}>Сохранённая цитата:</p>
+          <p className={styles.quoteText}>«{evidence.exactQuote}»</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -92,8 +118,11 @@ SourcePreview.propTypes = {
     kind: PropTypes.string,
     reference: PropTypes.string,
     exactQuote: PropTypes.string,
+    sourcesDeletedAt: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   }),
   source: PropTypes.shape({
     kind: PropTypes.string,
+    sourcesDeletedAt: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   }),
+  sourcesDeletedAt: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
 }
