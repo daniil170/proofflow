@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types'
 import { BETA_OFFER_CONTENT, BUSINESS_TYPE_OPTIONS, CASES_VOLUME_OPTIONS } from '@/pages/landing'
 import { Button, Checkbox, Input, Select, Textarea } from '@/shared/ui'
-import { useBetaSignup } from '../model/index.js'
+import { normalizeTelegramUsername, useBetaSignup } from '../model/index.js'
 import { BetaSignupSuccess } from './BetaSignupSuccess.jsx'
 import styles from './BetaSignupForm.module.css'
 
@@ -10,7 +10,12 @@ export const BetaSignupForm = ({ gateway = null }) => {
     useBetaSignup(gateway)
 
   if (isSuccess) {
-    return <BetaSignupSuccess email={formData.email} onReset={reset} />
+    const contactDisplay =
+      formData.email.trim() ||
+      (formData.telegramUsername
+        ? `@${normalizeTelegramUsername(formData.telegramUsername)}`
+        : '')
+    return <BetaSignupSuccess email={contactDisplay} onReset={reset} />
   }
 
   return (
@@ -36,19 +41,32 @@ export const BetaSignupForm = ({ gateway = null }) => {
         id="beta-email"
         name="email"
         type="email"
-        label="Рабочая почта *"
-        placeholder="you@studio.ru"
+        label={BETA_OFFER_CONTENT.form.emailLabel}
+        placeholder={BETA_OFFER_CONTENT.form.emailPlaceholder}
         value={formData.email}
         error={errors.email}
         disabled={isLoading}
-        required
         onChange={(event) => updateField('email', event.target.value)}
       />
+
+      <Input
+        id="beta-telegram"
+        name="telegramUsername"
+        type="text"
+        label={BETA_OFFER_CONTENT.form.telegramLabel}
+        placeholder={BETA_OFFER_CONTENT.form.telegramPlaceholder}
+        value={formData.telegramUsername}
+        error={errors.telegramUsername}
+        disabled={isLoading}
+        onChange={(event) => updateField('telegramUsername', event.target.value)}
+      />
+
+      <p className={styles.contactHint}>{BETA_OFFER_CONTENT.form.contactHint}</p>
 
       <Select
         id="beta-business-type"
         name="businessType"
-        label="Чем вы занимаетесь"
+        label={BETA_OFFER_CONTENT.form.businessTypeLabel}
         options={BUSINESS_TYPE_OPTIONS}
         value={formData.businessType}
         disabled={isLoading}
@@ -83,7 +101,7 @@ export const BetaSignupForm = ({ gateway = null }) => {
         error={errors.consent}
         disabled={isLoading}
         required
-        label="Даю согласие на обработку email для связи по закрытой бете *"
+        label="Даю согласие на обработку контактных данных для связи по закрытой бете *"
         onChange={(event) => updateField('consent', event.target.checked)}
       />
 
@@ -96,7 +114,7 @@ export const BetaSignupForm = ({ gateway = null }) => {
           disabled={isLoading}
           aria-label="Отправить заявку на участие в закрытой бете"
         >
-          {isLoading ? 'Отправляем...' : 'Оставить заявку'}
+          {isLoading ? 'Отправляем...' : BETA_OFFER_CONTENT.form.submitButtonText}
         </Button>
       </div>
 

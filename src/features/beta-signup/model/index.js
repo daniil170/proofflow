@@ -1,2 +1,10 @@
 export { useBetaSignup } from './useBetaSignup.js'
-export { validateSignupForm, validateEmail, validateConsent } from './validation.js'
+export {
+  normalizeTelegramUsername,
+  validateConsent,
+  validateContacts,
+  validateEmail,
+  validateHoneypot,
+  validateSignupForm,
+  validateTelegram,
+} from './validation.js'

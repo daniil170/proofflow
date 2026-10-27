@@ -1,9 +1,10 @@
 import { useCallback, useState } from 'react'
 import { getBetaSignupGateway, SIGNUP_STATUS } from '@/shared/api'
-import { validateSignupForm } from './validation.js'
+import { normalizeTelegramUsername, validateSignupForm } from './validation.js'
 
 const INITIAL_FORM_DATA = Object.freeze({
   email: '',
+  telegramUsername: '',
   businessType: 'agency_or_studio',
   casesVolume: '1_to_3',
   currentProcess: '',
@@ -20,9 +21,13 @@ export const useBetaSignup = (customGateway = null) => {
   const updateField = useCallback((name, value) => {
     setFormData((prev) => ({ ...prev, [name]: value }))
     setErrors((prev) => {
-      if (!prev[name]) return prev
       const next = { ...prev }
       delete next[name]
+      if (name === 'email' || name === 'telegramUsername') {
+        delete next.contact
+        delete next.email
+        delete next.telegramUsername
+      }
       return next
     })
     setServerError(null)
@@ -55,8 +60,10 @@ export const useBetaSignup = (customGateway = null) => {
       const gateway = customGateway || getBetaSignupGateway()
 
       try {
+        const normalizedTelegram = normalizeTelegramUsername(formData.telegramUsername)
         const payload = {
-          email: formData.email.trim(),
+          email: formData.email.trim() || null,
+          telegramUsername: normalizedTelegram || null,
           businessType: formData.businessType,
           casesVolume: formData.casesVolume,
           currentProcess: formData.currentProcess.trim(),

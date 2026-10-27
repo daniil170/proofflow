@@ -3,6 +3,9 @@ import { PLACEHOLDERS } from './placeholders'
 export interface BetaOfferFormContent {
   readonly emailLabel: string
   readonly emailPlaceholder: string
+  readonly telegramLabel: string
+  readonly telegramPlaceholder: string
+  readonly contactHint: string
   readonly businessTypeLabel: string
   readonly submitButtonText: string
   readonly directContactPrefix: string
@@ -25,6 +28,9 @@ export const BETA_OFFER_CONTENT: BetaOfferContent = Object.freeze({
   form: Object.freeze({
     emailLabel: 'Рабочая почта',
     emailPlaceholder: 'you@studio.ru',
+    telegramLabel: 'Telegram',
+    telegramPlaceholder: '@username',
+    contactHint: 'Напишем вам, когда откроем доступ. Достаточно одного способа связи',
     businessTypeLabel: 'Чем вы занимаетесь',
     submitButtonText: 'Оставить заявку',
     directContactPrefix: 'Или напишите напрямую:',
