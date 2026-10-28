@@ -108,6 +108,12 @@
   flex-wrap: wrap;
 }
 
+.stageIcon {
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+}
+
 .label {
   font-size: 16px;
   font-weight: 500;

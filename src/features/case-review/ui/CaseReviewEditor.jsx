@@ -113,152 +113,197 @@ export const CaseReviewEditor = ({ reviewState }) => {
             onOpenEvidence={() => openEvidence('metric')}
           />
 
-          <div
-            className={`
-              ${styles.fieldCard}
-              ${isFieldNeedsReview('problem') ? styles.fieldCardNeedsReview : ''}
-            `}
-          >
-            <div className={styles.fieldHeader}>
-              <div className={styles.fieldTitleArea}>
-                <label htmlFor="problem-input" className={styles.fieldTitle}>
-                  Было (проблема клиента):
-                </label>
-                {isFieldNeedsReview('problem') && (
-                  <span className={styles.badgeNeedsReview}>Проверьте</span>
-                )}
-                {isFieldModified('problem') && (
-                  <span className={styles.badgeModified}>Изменено вами</span>
+          <div className={styles.storySectionCard}>
+            <div className={styles.sectionHeader}>
+              <div className={styles.sectionTitleArea}>
+                <div className={styles.sectionIconBadge}>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className={styles.sectionHeading}>Сюжет кейса</h3>
+                  <p className={styles.sectionSubheading}>
+                    Проблема клиента → Ваше решение → Полученный результат
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.storyStepsList}>
+              <div
+                className={`
+                  ${styles.storyStep}
+                  ${isFieldNeedsReview('problem') ? styles.storyStepNeedsReview : ''}
+                `}
+              >
+                <div className={styles.stepHeader}>
+                  <div className={styles.stepTitleGroup}>
+                    <span className={`${styles.stepPill} ${styles.stepPillAmber}`}>
+                      <span className={styles.stepNumber}>1</span>
+                      Было · Проблема клиента
+                    </span>
+                    {isFieldNeedsReview('problem') && (
+                      <span className={styles.badgeNeedsReview}>Проверьте</span>
+                    )}
+                    {isFieldModified('problem') && (
+                      <span className={styles.badgeModified}>Изменено вами</span>
+                    )}
+                  </div>
+
+                  {!isFieldModified('problem') && (
+                    <button
+                      type="button"
+                      className={styles.evidenceButton}
+                      onClick={() => openEvidence('problem')}
+                      aria-label="Откуда взята проблема"
+                    >
+                      <SearchIcon size={13} />
+                      <span>Откуда это</span>
+                    </button>
+                  )}
+                </div>
+
+                <textarea
+                  id="problem-input"
+                  className={styles.textarea}
+                  value={draft.problem}
+                  onChange={(e) => updateField('problem', e.target.value)}
+                  placeholder="С какими трудностями и ограничениями столкнулся клиент"
+                  aria-describedby={
+                    validationErrors.problem ? 'problem-error' : undefined
+                  }
+                  aria-invalid={Boolean(validationErrors.problem)}
+                />
+                {validationErrors.problem && (
+                  <p id="problem-error" className={styles.errorMessage}>
+                    {validationErrors.problem}
+                  </p>
                 )}
               </div>
 
-              {!isFieldModified('problem') && (
-                <button
-                  type="button"
-                  className={styles.evidenceButton}
-                  onClick={() => openEvidence('problem')}
-                  aria-label="Откуда взята проблема"
-                >
-                  <SearchIcon size={13} />
-                  <span>Откуда это</span>
-                </button>
-              )}
-            </div>
+              <div className={styles.stepConnector} aria-hidden="true">
+                <div className={styles.connectorLine} />
+                <div className={styles.connectorArrow}>↓</div>
+              </div>
 
-            <textarea
-              id="problem-input"
-              className={styles.textarea}
-              value={draft.problem}
-              onChange={(e) => updateField('problem', e.target.value)}
-              placeholder="С какими трудностями и ограничениями столкнулся клиент"
-              aria-describedby={
-                validationErrors.problem ? 'problem-error' : undefined
-              }
-              aria-invalid={Boolean(validationErrors.problem)}
-            />
-            {validationErrors.problem && (
-              <p id="problem-error" className={styles.errorMessage}>
-                {validationErrors.problem}
-              </p>
-            )}
-          </div>
+              <div
+                className={`
+                  ${styles.storyStep}
+                  ${isFieldNeedsReview('solution') ? styles.storyStepNeedsReview : ''}
+                `}
+              >
+                <div className={styles.stepHeader}>
+                  <div className={styles.stepTitleGroup}>
+                    <span className={`${styles.stepPill} ${styles.stepPillBlue}`}>
+                      <span className={styles.stepNumber}>2</span>
+                      Сделано · Ваше решение
+                    </span>
+                    {isFieldNeedsReview('solution') && (
+                      <span className={styles.badgeNeedsReview}>Проверьте</span>
+                    )}
+                    {isFieldModified('solution') && (
+                      <span className={styles.badgeModified}>Изменено вами</span>
+                    )}
+                  </div>
 
-          <div
-            className={`
-              ${styles.fieldCard}
-              ${isFieldNeedsReview('solution') ? styles.fieldCardNeedsReview : ''}
-            `}
-          >
-            <div className={styles.fieldHeader}>
-              <div className={styles.fieldTitleArea}>
-                <label htmlFor="solution-input" className={styles.fieldTitle}>
-                  Сделано (ваше решение):
-                </label>
-                {isFieldNeedsReview('solution') && (
-                  <span className={styles.badgeNeedsReview}>Проверьте</span>
-                )}
-                {isFieldModified('solution') && (
-                  <span className={styles.badgeModified}>Изменено вами</span>
+                  {!isFieldModified('solution') && (
+                    <button
+                      type="button"
+                      className={styles.evidenceButton}
+                      onClick={() => openEvidence('solution')}
+                      aria-label="Откуда взято решение"
+                    >
+                      <SearchIcon size={13} />
+                      <span>Откуда это</span>
+                    </button>
+                  )}
+                </div>
+
+                <textarea
+                  id="solution-input"
+                  className={styles.textarea}
+                  value={draft.solution}
+                  onChange={(e) => updateField('solution', e.target.value)}
+                  placeholder="Какое конкретное решение или процесс внедрили"
+                  aria-describedby={
+                    validationErrors.solution ? 'solution-error' : undefined
+                  }
+                  aria-invalid={Boolean(validationErrors.solution)}
+                />
+                {validationErrors.solution && (
+                  <p id="solution-error" className={styles.errorMessage}>
+                    {validationErrors.solution}
+                  </p>
                 )}
               </div>
 
-              {!isFieldModified('solution') && (
-                <button
-                  type="button"
-                  className={styles.evidenceButton}
-                  onClick={() => openEvidence('solution')}
-                  aria-label="Откуда взято решение"
-                >
-                  <SearchIcon size={13} />
-                  <span>Откуда это</span>
-                </button>
-              )}
-            </div>
-
-            <textarea
-              id="solution-input"
-              className={styles.textarea}
-              value={draft.solution}
-              onChange={(e) => updateField('solution', e.target.value)}
-              placeholder="Какое конкретное решение или процесс внедрили"
-              aria-describedby={
-                validationErrors.solution ? 'solution-error' : undefined
-              }
-              aria-invalid={Boolean(validationErrors.solution)}
-            />
-            {validationErrors.solution && (
-              <p id="solution-error" className={styles.errorMessage}>
-                {validationErrors.solution}
-              </p>
-            )}
-          </div>
-
-          <div
-            className={`
-              ${styles.fieldCard}
-              ${isFieldNeedsReview('result') ? styles.fieldCardNeedsReview : ''}
-            `}
-          >
-            <div className={styles.fieldHeader}>
-              <div className={styles.fieldTitleArea}>
-                <label htmlFor="result-input" className={styles.fieldTitle}>
-                  Стало (достигнутый результат):
-                </label>
-                {isFieldNeedsReview('result') && (
-                  <span className={styles.badgeNeedsReview}>Проверьте</span>
-                )}
-                {isFieldModified('result') && (
-                  <span className={styles.badgeModified}>Изменено вами</span>
-                )}
+              <div className={styles.stepConnector} aria-hidden="true">
+                <div className={styles.connectorLine} />
+                <div className={styles.connectorArrow}>↓</div>
               </div>
 
-              {!isFieldModified('result') && (
-                <button
-                  type="button"
-                  className={styles.evidenceButton}
-                  onClick={() => openEvidence('result')}
-                  aria-label="Откуда взят результат"
-                >
-                  <SearchIcon size={13} />
-                  <span>Откуда это</span>
-                </button>
-              )}
-            </div>
+              <div
+                className={`
+                  ${styles.storyStep}
+                  ${isFieldNeedsReview('result') ? styles.storyStepNeedsReview : ''}
+                `}
+              >
+                <div className={styles.stepHeader}>
+                  <div className={styles.stepTitleGroup}>
+                    <span className={`${styles.stepPill} ${styles.stepPillEmerald}`}>
+                      <span className={styles.stepNumber}>3</span>
+                      Стало · Достигнутый результат
+                    </span>
+                    {isFieldNeedsReview('result') && (
+                      <span className={styles.badgeNeedsReview}>Проверьте</span>
+                    )}
+                    {isFieldModified('result') && (
+                      <span className={styles.badgeModified}>Изменено вами</span>
+                    )}
+                  </div>
 
-            <textarea
-              id="result-input"
-              className={styles.textarea}
-              value={draft.result}
-              onChange={(e) => updateField('result', e.target.value)}
-              placeholder="Как изменились показатели и процессы после запуска"
-              aria-describedby={validationErrors.result ? 'result-error' : undefined}
-              aria-invalid={Boolean(validationErrors.result)}
-            />
-            {validationErrors.result && (
-              <p id="result-error" className={styles.errorMessage}>
-                {validationErrors.result}
-              </p>
-            )}
+                  {!isFieldModified('result') && (
+                    <button
+                      type="button"
+                      className={styles.evidenceButton}
+                      onClick={() => openEvidence('result')}
+                      aria-label="Откуда взят результат"
+                    >
+                      <SearchIcon size={13} />
+                      <span>Откуда это</span>
+                    </button>
+                  )}
+                </div>
+
+                <textarea
+                  id="result-input"
+                  className={styles.textarea}
+                  value={draft.result}
+                  onChange={(e) => updateField('result', e.target.value)}
+                  placeholder="Как изменились показатели и процессы после запуска"
+                  aria-describedby={validationErrors.result ? 'result-error' : undefined}
+                  aria-invalid={Boolean(validationErrors.result)}
+                />
+                {validationErrors.result && (
+                  <p id="result-error" className={styles.errorMessage}>
+                    {validationErrors.result}
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
 
           <QuoteField
@@ -273,22 +318,73 @@ export const CaseReviewEditor = ({ reviewState }) => {
             onOpenEvidence={() => openEvidence('quote')}
           />
 
-          <div className={styles.fieldCard}>
-            <label htmlFor="tags-input" className={styles.fieldTitle}>
-              Теги и ниша (через запятую):
-            </label>
-            <input
-              id="tags-input"
-              type="text"
-              className={styles.tagsInput}
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onBlur={handleTagsBlur}
-              placeholder="например: B2B, Автоматизация, Финтех"
-              aria-describedby="tags-hint"
-            />
+          <div className={styles.tagsCard}>
+            <div className={styles.sectionHeader}>
+              <div className={styles.sectionTitleArea}>
+                <div className={styles.sectionIconBadge}>
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                    <line x1="7" y1="7" x2="7.01" y2="7" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className={styles.sectionHeading}>Теги и ниша проекта</h3>
+                  <p className={styles.sectionSubheading}>
+                    Помогают клиентам фильтровать кейсы по своей отрасли
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.tagsWrap}>
+              {(draft.tags || []).map((tag, idx) => (
+                <span key={`${tag}-${idx}`} className={styles.tagChip}>
+                  <span>#{tag}</span>
+                  <button
+                    type="button"
+                    className={styles.tagRemoveBtn}
+                    onClick={() => {
+                      const updated = (draft.tags || []).filter((_, i) => i !== idx)
+                      updateField('tags', updated)
+                      setTagInput(updated.join(', '))
+                    }}
+                    aria-label={`Удалить тег ${tag}`}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+
+            <div className={styles.tagInputRow}>
+              <input
+                id="tags-input"
+                type="text"
+                className={styles.tagsInput}
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onBlur={handleTagsBlur}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleTagsBlur()
+                  }
+                }}
+                placeholder="Добавьте теги через запятую, например: Торты, Кондитерская, Отзыв"
+                aria-describedby="tags-hint"
+              />
+            </div>
             <p id="tags-hint" className={styles.inputHint}>
-              Теги отображаются на карточке кейса для фильтрации и контекста.
+              Нажмите Enter или кликните в сторону, чтобы сохранить теги.
             </p>
           </div>
 
@@ -311,26 +407,34 @@ export const CaseReviewEditor = ({ reviewState }) => {
           `}
           aria-label="Превью карточки кейса"
         >
-          <div className={styles.previewHeader}>
-            <h3 className={styles.previewHeading}>Живое превью карточки</h3>
-            <div className={styles.variantBar}>
-              {STYLES_LIST.map((style) => (
-                <button
-                  key={style.id}
-                  type="button"
-                  className={`${styles.variantBtn} ${
-                    (selectedVariant || 'dark') === style.id ? styles.variantBtnActive : ''
-                  }`}
-                  onClick={() => handleSelectVariant?.(style.id)}
-                >
-                  {style.title}
-                </button>
-              ))}
+          <div className={styles.previewStickyWrapper}>
+            <div className={styles.previewHeader}>
+              <div className={styles.previewHeadingRow}>
+                <h3 className={styles.previewHeading}>Живое превью карточки</h3>
+                <span className={styles.liveIndicator}>
+                  <span className={styles.liveDot} aria-hidden="true" />
+                  Синхронизировано
+                </span>
+              </div>
+              <div className={styles.variantBar}>
+                {STYLES_LIST.map((style) => (
+                  <button
+                    key={style.id}
+                    type="button"
+                    className={`${styles.variantBtn} ${
+                      (selectedVariant || 'dark') === style.id ? styles.variantBtnActive : ''
+                    }`}
+                    onClick={() => handleSelectVariant?.(style.id)}
+                  >
+                    {style.title}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div className={styles.previewCardWrapper}>
-            <CaseCard variant={selectedVariant || 'dark'} data={cardPreviewData} />
+            <div className={styles.previewCardWrapper}>
+              <CaseCard variant={selectedVariant || 'dark'} data={cardPreviewData} />
+            </div>
           </div>
         </aside>
       </div>

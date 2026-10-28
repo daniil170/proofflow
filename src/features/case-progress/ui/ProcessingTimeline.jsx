@@ -1,6 +1,14 @@
 import PropTypes from 'prop-types'
 import styles from './ProcessingTimeline.module.css'
 
+const STAGE_ICONS = {
+  preparing: '📁',
+  transcribing: '🎙️',
+  reading: '💬',
+  analyzing: '🧠',
+  verifying: '🛡️',
+}
+
 export const ProcessingTimeline = ({
   stages = [],
   isLongWait = false,
@@ -47,6 +55,9 @@ export const ProcessingTimeline = ({
 
               <div className={styles.content}>
                 <div className={styles.labelRow}>
+                  <span className={styles.stageIcon} aria-hidden="true">
+                    {STAGE_ICONS[stage.id] || '⚡'}
+                  </span>
                   <p
                     className={`
                       ${styles.label}

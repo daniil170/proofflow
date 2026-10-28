@@ -31,6 +31,10 @@ export const ProcessingScreen = ({ progressState }) => {
 
   const isFailed = status === 'failed'
   const clientLabel = caseItem?.clientLabel || caseItem?.client || 'Новый кейс'
+  const progressPercent = Math.min(
+    100,
+    Math.max(12, caseItem?.stageProgress || (status === 'processing' ? 25 : 100))
+  )
 
   return (
     <div className={styles.container}>
@@ -65,6 +69,60 @@ export const ProcessingScreen = ({ progressState }) => {
           </div>
         </div>
       </header>
+
+      {!isFailed && (
+        <section className={styles.synthesisCanvas} aria-label="Синтез кейса нейросетью">
+          <div className={styles.orbContainer}>
+            <div className={styles.glowBackdrop} />
+            <div className={styles.outerOrbitRing} />
+            <div className={styles.innerOrbitRing} />
+            <div className={styles.radarSweep} />
+            <div className={styles.coreOrb}>
+              <div className={styles.coreSparkle}>
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.progressHud}>
+            <div className={styles.hudMetaRow}>
+              <span className={styles.hudLabel}>
+                <span className={styles.hudDot} />
+                Мультимодальный анализ ProofFlow AI
+              </span>
+              <span className={styles.hudPercent}>{progressPercent}%</span>
+            </div>
+
+            <div className={styles.progressBarTrack}>
+              <div
+                className={styles.progressBarFill}
+                style={{ width: `${progressPercent}%` }}
+              >
+                <div className={styles.progressBarGlow} />
+              </div>
+            </div>
+
+            <div className={styles.terminalBox}>
+              <span className={styles.terminalPrompt}>AI &gt;</span>
+              <span className={styles.terminalMsg}>
+                {caseItem?.stageMessage || 'Обработка и синтез материалов проекта...'}
+              </span>
+              <span className={styles.terminalCursor}>_</span>
+            </div>
+          </div>
+        </section>
+      )}
 
       {isFailed && (
         <section className={styles.failedAlertCard} aria-live="polite">

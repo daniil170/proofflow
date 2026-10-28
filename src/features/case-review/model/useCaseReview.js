@@ -45,6 +45,11 @@ const transformTextTone = (text, mode, prefix = '') => {
   return clean
 }
 
+const cleanPrefix = (str, prefix) => {
+  if (!str) return ''
+  return str.replace(new RegExp(`^${prefix}:\\s*`, 'i'), '')
+}
+
 export const useCaseReview = ({
   caseItem,
   repository = getCaseRepository(),
@@ -58,9 +63,9 @@ export const useCaseReview = ({
         label: caseItem?.draft?.metric?.label || '',
         evidenceId: caseItem?.draft?.metric?.evidenceId || null,
       },
-      problem: caseItem?.draft?.problem || '',
-      solution: caseItem?.draft?.solution || '',
-      result: caseItem?.draft?.result || '',
+      problem: cleanPrefix(caseItem?.draft?.problem || '', 'было'),
+      solution: cleanPrefix(caseItem?.draft?.solution || '', 'сделано'),
+      result: cleanPrefix(caseItem?.draft?.result || '', 'стало'),
       quote: {
         text: caseItem?.draft?.quote?.text || '',
         authorLabel: caseItem?.draft?.quote?.authorLabel || 'Анна К.',
@@ -432,9 +437,9 @@ export const useCaseReview = ({
     return {
       metric: draft.metric?.value || '+0%',
       metricLabel: draft.metric?.label || 'метрика',
-      before: draft.problem || 'Было: описание проблемы',
-      done: draft.solution || 'Сделано: реализованное решение',
-      after: draft.result || 'Стало: подтвержденный результат',
+      before: cleanPrefix(draft.problem, 'было') || 'Описание проблемы',
+      done: cleanPrefix(draft.solution, 'сделано') || 'Реализованное решение',
+      after: cleanPrefix(draft.result, 'стало') || 'Подтвержденный результат',
       quote: draft.quote?.text || 'Цитата клиента',
       author: draft.quote?.authorLabel || 'Анна К.',
       authorRole: draft.quote?.authorRole || '',
