@@ -110,20 +110,17 @@ export const CaseStyleSelector = ({ styleState, onNextStep = null }) => {
             </div>
           </div>
 
-          <div className={styles.previewCanvas}>
+          <div className={styles.previewCanvas} style={{ '--case-accent': accentColor }}>
             {activeMode === 'card' && (
-              <div
-                className={styles.cardPreviewWrapper}
-                style={{ '--case-accent': accentColor }}
-              >
-                <CaseCard variant={selectedVariant} data={previewData} />
+              <div className={styles.cardPreviewWrapper}>
+                <CaseCard variant={selectedVariant} data={{ ...previewData, accentColor }} />
               </div>
             )}
             {activeMode === 'site' && (
-              <SitePreview variant={selectedVariant} data={previewData} />
+              <SitePreview variant={selectedVariant} data={{ ...previewData, accentColor }} />
             )}
             {activeMode === 'story' && (
-              <StoryPreview variant={selectedVariant} data={previewData} />
+              <StoryPreview variant={selectedVariant} data={{ ...previewData, accentColor }} />
             )}
           </div>
 

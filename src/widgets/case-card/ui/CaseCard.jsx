@@ -22,12 +22,17 @@ const getDefaultDataForVariant = (variant) => {
   return DEFAULT_CASE_DATA
 }
 
-export const CaseCard = ({ variant = 'dark', data, className }) => {
+export const CaseCard = ({ variant = 'dark', data, className, style }) => {
   const Component = VARIANT_COMPONENTS[variant] || DarkCard
   const caseData = data || getDefaultDataForVariant(variant)
 
+  const cardStyle = {
+    ...(caseData?.accentColor ? { '--case-accent': caseData.accentColor } : {}),
+    ...style,
+  }
+
   return (
-    <div className={`${styles.wrapper} ${className || ''}`}>
+    <div className={`${styles.wrapper} ${className || ''}`} style={cardStyle}>
       <Component data={caseData} />
     </div>
   )
@@ -51,6 +56,8 @@ CaseCard.propTypes = {
     channel: PropTypes.string,
     duration: PropTypes.string,
     chatMessages: PropTypes.arrayOf(PropTypes.string),
+    accentColor: PropTypes.string,
   }),
   className: PropTypes.string,
+  style: PropTypes.object,
 }

@@ -33,7 +33,7 @@
 .highlightBox {
   display: inline-block;
   align-self: flex-start;
-  background-color: #ffd13b;
+  background-color: var(--case-accent, #ffd13b);
   padding: 6px 14px;
   border-radius: 4px;
 }

@@ -5,14 +5,22 @@ import { StoryHeader } from './StoryHeader'
 import { StoryReplyBar } from './StoryReplyBar'
 import styles from './StoryPreview.module.css'
 
-export const StoryPreview = ({ item }) => {
+export const StoryPreview = ({ item, variant, data }) => {
+  const effectiveVariant = variant || item?.variant || 'dark'
+  const effectiveData = data || item?.data || {}
+  const storyBackground =
+    item?.storyBackground ||
+    (effectiveVariant === 'dark'
+      ? 'radial-gradient(circle at 50% 30%, #1a2a22 0%, #0d1714 100%)'
+      : '#141414')
+
   return (
     <div className={styles.container}>
       <div
         className={styles.storyFrame}
-        style={{ background: item.storyBackground }}
+        style={{ background: storyBackground }}
         role="region"
-        aria-label={`Сторис с кейсом стиля ${item.title}`}
+        aria-label={`Сторис с кейсом стиля ${item?.title || effectiveVariant}`}
       >
         <div className={styles.topOverlay} aria-hidden="true">
           <StoryProgress />
@@ -21,7 +29,7 @@ export const StoryPreview = ({ item }) => {
 
         <div className={styles.safeAreaCard}>
           <div className={styles.cardScaler}>
-            <CaseCard variant={item.variant} data={item.data} />
+            <CaseCard variant={effectiveVariant} data={effectiveData} />
           </div>
         </div>
 
@@ -35,11 +43,13 @@ export const StoryPreview = ({ item }) => {
 
 StoryPreview.propTypes = {
   item: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    variant: PropTypes.string.isRequired,
-    title: PropTypes.string.isRequired,
-    description: PropTypes.string.isRequired,
-    storyBackground: PropTypes.string.isRequired,
-    data: PropTypes.object.isRequired,
-  }).isRequired,
+    id: PropTypes.string,
+    variant: PropTypes.string,
+    title: PropTypes.string,
+    description: PropTypes.string,
+    storyBackground: PropTypes.string,
+    data: PropTypes.object,
+  }),
+  variant: PropTypes.string,
+  data: PropTypes.object,
 }

@@ -1,9 +1,23 @@
+import { useState } from 'react'
 import PropTypes from 'prop-types'
 import { CaseCard } from '@/widgets/case-card'
 import { DeviceFrame } from './DeviceFrame'
 import styles from './SitePreview.module.css'
 
-export const SitePreview = ({ item, device, onDeviceChange }) => {
+export const SitePreview = ({
+  item,
+  variant,
+  data,
+  device: externalDevice,
+  onDeviceChange: externalOnDeviceChange,
+}) => {
+  const [internalDevice, setInternalDevice] = useState('desktop')
+  const device = externalDevice || internalDevice
+  const onDeviceChange = externalOnDeviceChange || setInternalDevice
+
+  const effectiveVariant = variant || item?.variant || 'dark'
+  const effectiveData = data || item?.data || {}
+
   return (
     <DeviceFrame device={device} onDeviceChange={onDeviceChange}>
       <div className={styles.pageContainer}>
@@ -28,7 +42,7 @@ export const SitePreview = ({ item, device, onDeviceChange }) => {
           </p>
 
           <div className={styles.embedWrapper}>
-            <CaseCard variant={item.variant} data={item.data} />
+            <CaseCard variant={effectiveVariant} data={effectiveData} />
           </div>
 
           <p className={styles.paragraph}>
@@ -48,13 +62,15 @@ export const SitePreview = ({ item, device, onDeviceChange }) => {
 
 SitePreview.propTypes = {
   item: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    variant: PropTypes.string.isRequired,
-    title: PropTypes.string.isRequired,
-    description: PropTypes.string.isRequired,
-    storyBackground: PropTypes.string.isRequired,
-    data: PropTypes.object.isRequired,
-  }).isRequired,
-  device: PropTypes.oneOf(['desktop', 'mobile']).isRequired,
-  onDeviceChange: PropTypes.func.isRequired,
+    id: PropTypes.string,
+    variant: PropTypes.string,
+    title: PropTypes.string,
+    description: PropTypes.string,
+    storyBackground: PropTypes.string,
+    data: PropTypes.object,
+  }),
+  variant: PropTypes.string,
+  data: PropTypes.object,
+  device: PropTypes.oneOf(['desktop', 'mobile']),
+  onDeviceChange: PropTypes.func,
 }

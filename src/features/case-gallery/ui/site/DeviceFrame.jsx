@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types'
 import styles from './DeviceFrame.module.css'
 
-export const DeviceFrame = ({ device, onDeviceChange, children }) => {
+export const DeviceFrame = ({ device = 'desktop', onDeviceChange = () => {}, children }) => {
   return (
     <div className={styles.container}>
       <div
@@ -90,7 +90,7 @@ export const DeviceFrame = ({ device, onDeviceChange, children }) => {
 }
 
 DeviceFrame.propTypes = {
-  device: PropTypes.oneOf(['desktop', 'mobile']).isRequired,
-  onDeviceChange: PropTypes.func.isRequired,
+  device: PropTypes.oneOf(['desktop', 'mobile']),
+  onDeviceChange: PropTypes.func,
   children: PropTypes.node.isRequired,
 }

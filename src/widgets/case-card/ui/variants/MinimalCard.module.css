@@ -59,7 +59,7 @@
 .redSquare {
   width: 12px;
   height: 12px;
-  background-color: #e64a19;
+  background-color: var(--case-accent, #e64a19);
   flex-shrink: 0;
 }
 
