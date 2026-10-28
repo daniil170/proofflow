@@ -2,7 +2,7 @@ import { createServer } from 'node:http'
 import { webhookCallback } from 'grammy'
 import { config } from '../shared/config.js'
 import { logger } from '../shared/logger.js'
-import { createBot } from './bot.js'
+import { createBot, registerBotCommands } from './bot.js'
 
 const bootstrap = async (): Promise<void> => {
   if (!config.botToken) {
@@ -11,6 +11,15 @@ const bootstrap = async (): Promise<void> => {
   }
 
   const bot = createBot()
+
+  try {
+    await registerBotCommands(bot)
+    logger.info('Bot commands registered successfully')
+  } catch (error) {
+    logger.warn('Failed to register bot commands via setMyCommands', {
+      error: error instanceof Error ? error.message : String(error),
+    })
+  }
 
   const isWebhook = config.mode === 'webhook'
   const webhookHandler = isWebhook

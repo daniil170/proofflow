@@ -116,6 +116,18 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    match /support_tickets/{ticketId} {
+      allow read, write: if false;
+    }
+
+    match /ideas/{ideaId} {
+      allow read, write: if false;
+    }
+
+    match /idea_votes/{voteId} {
+      allow read, write: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

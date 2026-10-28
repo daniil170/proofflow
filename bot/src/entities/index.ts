@@ -1,2 +1,5 @@
 export * from './BetaApplication.js'
 export * from './ConversationStep.js'
+export * from './SupportTicket.js'
+export * from './Idea.js'
+export * from './IdeaVote.js'

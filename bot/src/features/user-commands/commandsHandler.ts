@@ -5,13 +5,50 @@ import {
   createDeleteConfirmKeyboard,
   createWelcomeKeyboard,
 } from '../../shared/keyboards.js'
-import { getRepository } from '../../shared/storage/index.js'
+import {
+  getIdeaRepository,
+  getIdeaVoteRepository,
+  getRepository,
+  getSupportTicketRepository,
+} from '../../shared/storage/index.js'
 import { TEXTS } from '../../shared/texts.js'
 import { config } from '../../shared/config.js'
+import { logger } from '../../shared/logger.js'
 import { getTelegramLinkGateway } from '../account-link/linkService.js'
 import { initialSessionData, signupReducer } from '../signup/machine.js'
+import { initialSupportSessionData } from '../support/machine.js'
+import { initialIdeaSessionData } from '../ideas/machine.js'
 
 export const commandsComposer = new Composer<BotContext>()
+
+export const showMainMenu = async (
+  ctx: BotContext,
+  edit = false
+): Promise<void> => {
+  if (ctx.chat?.type !== 'private') return
+
+  ctx.session.support = { ...initialSupportSessionData }
+  ctx.session.idea = { ...initialIdeaSessionData }
+
+  if (edit && ctx.callbackQuery?.message) {
+    await ctx.editMessageText(TEXTS.welcome.greeting, {
+      reply_markup: createWelcomeKeyboard(),
+    })
+  } else {
+    await ctx.reply(TEXTS.welcome.greeting, {
+      reply_markup: createWelcomeKeyboard(),
+    })
+  }
+}
+
+commandsComposer.command('menu', async (ctx) => {
+  await showMainMenu(ctx, false)
+})
+
+commandsComposer.callbackQuery('menu:main', async (ctx) => {
+  await ctx.answerCallbackQuery()
+  await showMainMenu(ctx, true)
+})
 
 commandsComposer.command('start', async (ctx) => {
   const userId = ctx.from?.id
@@ -137,11 +174,37 @@ commandsComposer.callbackQuery('delete:confirm', async (ctx) => {
   if (!userId) return
 
   const repo = getRepository()
-  const deleted = await repo.deleteByTelegramUserId(userId)
+  const ticketRepo = getSupportTicketRepository()
+  const ideaRepo = getIdeaRepository()
+  const voteRepo = getIdeaVoteRepository()
+
+  const [deletedApp, deletedTickets, deletedIdeas, userVotes] = await Promise.all([
+    repo.deleteByTelegramUserId(userId),
+    ticketRepo.deleteByTelegramUserId(userId),
+    ideaRepo.deleteByTelegramUserId(userId),
+    voteRepo.deleteByTelegramUserId(userId),
+  ])
+
+  for (const vote of userVotes) {
+    try {
+      await ideaRepo.incrementVote(vote.ideaId, -1)
+    } catch (err) {
+      logger.warn('Failed to decrement vote during cascade deletion', {
+        ideaId: vote.ideaId,
+        error: err instanceof Error ? err.message : String(err),
+      })
+    }
+  }
+
   ctx.session.deleteConfirmation = false
   ctx.session.signup = { ...initialSessionData }
+  ctx.session.support = { ...initialSupportSessionData }
+  ctx.session.idea = { ...initialIdeaSessionData }
 
-  if (deleted) {
+  const hasAnyData =
+    deletedApp || deletedTickets > 0 || deletedIdeas > 0 || userVotes.length > 0
+
+  if (hasAnyData) {
     await ctx.editMessageText(TEXTS.commands.deleteSuccess)
   } else {
     await ctx.editMessageText(TEXTS.commands.deleteNotFound)
