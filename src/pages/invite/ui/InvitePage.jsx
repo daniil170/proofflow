@@ -81,6 +81,29 @@ export const InvitePage = () => {
     <div className={styles.container}>
       <div className={styles.card}>
         <div className={styles.header}>
+          <div className={styles.logoWrapper}>
+            <div className={styles.logoGlow} />
+            <svg
+              className={styles.animatedLogo}
+              viewBox="0 0 100 100"
+              width="64"
+              height="64"
+              role="img"
+              aria-label="ProofFlow Logo"
+            >
+              <rect width="100" height="100" rx="22" fill="#0b0f19" className={styles.logoBg} />
+              <g transform="translate(50 50) scale(0.62) translate(-50 -50)">
+                <g fill="none" strokeWidth="12" strokeLinecap="round">
+                  <path
+                    d="M35 84V30A14 14 0 0 1 49 16M59 84V30A14 14 0 0 1 73 16"
+                    stroke="#ffffff"
+                    className={styles.logoPipes}
+                  />
+                  <path d="M21 44H79" stroke="#d4ff3a" className={styles.logoFlowBar} />
+                </g>
+              </g>
+            </svg>
+          </div>
           <span className={isInvalid ? styles.badgeError : styles.badge}>
             {isInvalid ? 'Ошибка доступа' : 'Приглашение в ProofFlow'}
           </span>
@@ -129,7 +152,7 @@ export const InvitePage = () => {
             )
           ) : (
             <Link to="/" style={{ textDecoration: 'none' }}>
-              <Button variant="secondary" size="large" className={styles.btn}>
+              <Button variant="secondary" size="large" className={styles.btnSecondary}>
                 На главную страницу
               </Button>
             </Link>
