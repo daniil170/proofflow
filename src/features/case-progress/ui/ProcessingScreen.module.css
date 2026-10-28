@@ -12,7 +12,7 @@
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  color: #9ca3af;
+  color: #64748b;
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
@@ -20,15 +20,16 @@
 }
 
 .backLink:hover {
-  color: #f3f4f6;
+  color: #0f172a;
 }
 
 .headerCard {
-  background-color: #12141a;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: #ffffff;
+  border: 1px solid #e2e0d5;
   border-radius: 16px;
   padding: 24px;
   margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
 .headerRow {
@@ -43,9 +44,9 @@
   display: inline-block;
   font-size: 12px;
   font-weight: 600;
-  color: #10b981;
-  background-color: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  color: #059669;
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
   padding: 2px 8px;
   border-radius: 6px;
   margin-bottom: 8px;
@@ -54,14 +55,14 @@
 .title {
   font-size: 22px;
   font-weight: 700;
-  color: #f9fafb;
+  color: #0f172a;
   margin: 0 0 6px;
   line-height: 1.3;
 }
 
 .subtitle {
   font-size: 14px;
-  color: #9ca3af;
+  color: #64748b;
   margin: 0;
   line-height: 1.5;
 }
@@ -74,15 +75,15 @@
   font-weight: 600;
   padding: 6px 12px;
   border-radius: 9999px;
-  background-color: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  color: #10b981;
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #059669;
 }
 
 .statusBadgeFailed {
-  background-color: rgba(239, 68, 68, 0.12);
-  border-color: rgba(239, 68, 68, 0.25);
-  color: #ef4444;
+  background-color: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
 }
 
 .statusDot {
@@ -100,12 +101,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: radial-gradient(circle at 50% 20%, rgba(16, 185, 129, 0.08) 0%, rgba(18, 20, 26, 0.95) 70%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+  border: 1px solid #e2e0d5;
   border-radius: 20px;
   padding: 36px 24px;
   margin-bottom: 24px;
-  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
   position: relative;
   overflow: hidden;
 }
@@ -125,8 +126,8 @@
   width: 140px;
   height: 140px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.35) 0%, rgba(212, 255, 58, 0.15) 50%, transparent 70%);
-  filter: blur(20px);
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, rgba(214, 249, 76, 0.15) 50%, transparent 70%);
+  filter: blur(18px);
   animation: glowBreath 3s ease-in-out infinite;
 }
 
@@ -135,7 +136,7 @@
   width: 150px;
   height: 150px;
   border-radius: 50%;
-  border: 2px dashed rgba(212, 255, 58, 0.35);
+  border: 2px dashed rgba(16, 185, 129, 0.35);
   animation: orbitClockwise 12s linear infinite;
 }
 
@@ -144,7 +145,7 @@
   width: 110px;
   height: 110px;
   border-radius: 50%;
-  border: 1.5px dashed rgba(16, 185, 129, 0.5);
+  border: 1.5px dashed rgba(132, 204, 22, 0.45);
   animation: orbitCounter 8s linear infinite;
 }
 
@@ -153,7 +154,7 @@
   width: 130px;
   height: 130px;
   border-radius: 50%;
-  background: conic-gradient(from 0deg, transparent 0deg, rgba(16, 185, 129, 0.25) 60deg, transparent 65deg);
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(16, 185, 129, 0.18) 60deg, transparent 65deg);
   animation: radarSpin 2.5s linear infinite;
   pointer-events: none;
 }
@@ -165,7 +166,7 @@
   height: 64px;
   border-radius: 50%;
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  box-shadow: 0 0 24px rgba(16, 185, 129, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.4);
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35), inset 0 2px 4px rgba(255, 255, 255, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -173,7 +174,7 @@
 }
 
 .coreSparkle {
-  color: #0b111e;
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -199,8 +200,8 @@
   gap: 8px;
   font-size: 13px;
   font-weight: 600;
-  color: #94a3b8;
-  letter-spacing: 0.02em;
+  color: #475569;
+  letter-spacing: 0.01em;
 }
 
 .hudDot {
@@ -208,14 +209,14 @@
   height: 6px;
   border-radius: 50%;
   background-color: #10b981;
-  box-shadow: 0 0 8px #10b981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
   animation: pulseDot 1.2s ease-in-out infinite;
 }
 
 .hudPercent {
   font-size: 18px;
   font-weight: 800;
-  color: #d4ff3a;
+  color: #0f172a;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
 }
@@ -223,7 +224,8 @@
 .progressBarTrack {
   width: 100%;
   height: 8px;
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
   border-radius: 9999px;
   overflow: hidden;
   position: relative;
@@ -231,7 +233,7 @@
 
 .progressBarFill {
   height: 100%;
-  background: linear-gradient(90deg, #10b981 0%, #d4ff3a 60%, #06b6d4 100%);
+  background: linear-gradient(90deg, #10b981 0%, #84cc16 60%, #06b6d4 100%);
   border-radius: 9999px;
   position: relative;
   transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -243,7 +245,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
   animation: shimmerSweep 1.8s infinite;
 }
 
@@ -251,22 +253,23 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background-color: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 8px;
-  padding: 8px 14px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 14px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .terminalPrompt {
-  color: #d4ff3a;
+  color: #059669;
   font-weight: 700;
   flex-shrink: 0;
 }
 
 .terminalMsg {
-  color: #e2e8f0;
+  color: #1e293b;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -320,11 +323,11 @@
 @keyframes corePulse {
   0%, 100% {
     transform: scale(1);
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
   }
   50% {
     transform: scale(1.06);
-    box-shadow: 0 0 35px rgba(212, 255, 58, 0.7);
+    box-shadow: 0 6px 24px rgba(132, 204, 22, 0.5);
   }
 }
 
@@ -355,8 +358,8 @@
 }
 
 .failedAlertCard {
-  background-color: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
   border-radius: 14px;
   padding: 20px;
   margin-bottom: 24px;
@@ -366,14 +369,14 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #fca5a5;
+  color: #b91c1c;
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 8px;
 }
 
 .failedReason {
-  color: #fecaca;
+  color: #991b1b;
   font-size: 14px;
   line-height: 1.5;
   margin: 0 0 18px;
@@ -395,8 +398,8 @@
   padding: 0 20px;
   font-size: 14px;
   font-weight: 600;
-  color: #0c0d10;
-  background-color: #10b981;
+  color: #ffffff;
+  background-color: #059669;
   border: none;
   border-radius: 10px;
   cursor: pointer;
@@ -404,7 +407,7 @@
 }
 
 .retryButton:hover:not(:disabled) {
-  background-color: #059669;
+  background-color: #047857;
 }
 
 .retryButton:disabled {
@@ -421,24 +424,26 @@
   padding: 0 18px;
   font-size: 14px;
   font-weight: 500;
-  color: #e5e7eb;
-  background-color: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #475569;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
   border-radius: 10px;
   text-decoration: none;
   transition: all 0.15s ease;
 }
 
 .supportButton:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+  background-color: #f8fafc;
+  color: #0f172a;
+  border-color: #94a3b8;
 }
 
 .mainCard {
-  background-color: #12141a;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: #ffffff;
+  border: 1px solid #e2e0d5;
   border-radius: 16px;
   padding: 28px 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
 .loadingCard {
@@ -447,17 +452,18 @@
   align-items: center;
   justify-content: center;
   padding: 64px 24px;
-  background-color: #12141a;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: #ffffff;
+  border: 1px solid #e2e0d5;
   border-radius: 16px;
   gap: 16px;
-  color: #9ca3af;
+  color: #64748b;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
 .spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid rgba(255, 255, 255, 0.1);
+  border: 3px solid #e2e8f0;
   border-top-color: #10b981;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;

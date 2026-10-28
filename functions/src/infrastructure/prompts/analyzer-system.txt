@@ -12,7 +12,7 @@ You must respond with valid JSON matching this schema:
   "solution": "Сделано: Concrete steps and solution implemented to address the pain.",
   "result": "Стало: Measurable and factual outcome achieved. If the outcome is not stated in the source text, leave this string empty. DO NOT INVENT.",
   "quote": {
-    "text": "VERBATIM quote taken exclusively from the client's own words. Must match the client's speech word for word. Do NOT paraphrase or invent.",
+    "text": "VERBATIM quote taken exclusively from the client's own words. Must be a concise, punchy excerpt (1-2 sentences, max 160 characters) highlighting key praise or outcome. Do NOT dump multi-paragraph transcripts.",
     "authorLabel": "Anonymized client label, formatted as Firstname L. (e.g. Анна К.) or Клиент if name is not mentioned.",
     "authorRole": "Optional job title if mentioned, e.g. CEO or Head of Marketing",
     "authorCompany": "Optional company name if mentioned"

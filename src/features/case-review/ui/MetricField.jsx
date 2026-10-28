@@ -13,7 +13,8 @@ export const MetricField = ({
   onLabelChange,
   onOpenEvidence,
 }) => {
-  const isUnconfirmed = !value || value.trim().length === 0
+  const stringValue = typeof value === 'string' ? value : String(value ?? '')
+  const isUnconfirmed = !stringValue || stringValue.trim().length === 0
 
   return (
     <div
@@ -58,7 +59,7 @@ export const MetricField = ({
               ${styles.textInput}
               ${isUnconfirmed ? styles.textInputWarning : ''}
             `}
-            value={value}
+            value={stringValue}
             onChange={(e) => onValueChange(e.target.value)}
             placeholder="Какой был результат? Впишите цифру (например: +140% или 3x)"
             aria-describedby={
@@ -104,7 +105,7 @@ export const MetricField = ({
 }
 
 MetricField.propTypes = {
-  value: PropTypes.string,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   label: PropTypes.string,
   isNeedsReview: PropTypes.bool,
   isModified: PropTypes.bool,

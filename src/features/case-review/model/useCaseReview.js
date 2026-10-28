@@ -59,15 +59,15 @@ export const useCaseReview = ({
   const initialDraft = useMemo(() => {
     return {
       metric: {
-        value: caseItem?.draft?.metric?.value || '',
-        label: caseItem?.draft?.metric?.label || '',
+        value: String(caseItem?.draft?.metric?.value ?? ''),
+        label: String(caseItem?.draft?.metric?.label ?? ''),
         evidenceId: caseItem?.draft?.metric?.evidenceId || null,
       },
-      problem: cleanPrefix(caseItem?.draft?.problem || '', 'было'),
-      solution: cleanPrefix(caseItem?.draft?.solution || '', 'сделано'),
-      result: cleanPrefix(caseItem?.draft?.result || '', 'стало'),
+      problem: cleanPrefix(String(caseItem?.draft?.problem ?? ''), 'было'),
+      solution: cleanPrefix(String(caseItem?.draft?.solution ?? ''), 'сделано'),
+      result: cleanPrefix(String(caseItem?.draft?.result ?? ''), 'стало'),
       quote: {
-        text: caseItem?.draft?.quote?.text || '',
+        text: String(caseItem?.draft?.quote?.text ?? ''),
         authorLabel: caseItem?.draft?.quote?.authorLabel || 'Анна К.',
         evidenceId: caseItem?.draft?.quote?.evidenceId || null,
         authorRole: caseItem?.draft?.quote?.authorRole || '',
@@ -131,22 +131,29 @@ export const useCaseReview = ({
   const runValidation = useCallback((currentDraft) => {
     const errors = {}
 
-    if (!currentDraft.metric.value || !currentDraft.metric.value.trim()) {
+    const metricValue = String(currentDraft?.metric?.value ?? '').trim()
+    const metricLabel = String(currentDraft?.metric?.label ?? '').trim()
+    const problem = String(currentDraft?.problem ?? '').trim()
+    const solution = String(currentDraft?.solution ?? '').trim()
+    const result = String(currentDraft?.result ?? '').trim()
+    const quoteText = String(currentDraft?.quote?.text ?? '').trim()
+
+    if (!metricValue) {
       errors['metric.value'] = 'Укажите числовое значение или процент'
     }
-    if (!currentDraft.metric.label || !currentDraft.metric.label.trim()) {
+    if (!metricLabel) {
       errors['metric.label'] = 'Укажите подпись к метрике'
     }
-    if (!currentDraft.problem || !currentDraft.problem.trim()) {
+    if (!problem) {
       errors.problem = 'Опишите, какая была проблема'
     }
-    if (!currentDraft.solution || !currentDraft.solution.trim()) {
+    if (!solution) {
       errors.solution = 'Опишите, что было сделано'
     }
-    if (!currentDraft.result || !currentDraft.result.trim()) {
+    if (!result) {
       errors.result = 'Опишите полученный результат'
     }
-    if (!currentDraft.quote.text || !currentDraft.quote.text.trim()) {
+    if (!quoteText) {
       errors['quote.text'] = 'Цитата не может быть пустой'
     }
 

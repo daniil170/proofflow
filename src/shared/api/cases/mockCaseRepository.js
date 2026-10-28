@@ -157,23 +157,6 @@ const loadCases = () => {
     }
 
     return parsed.map((item) => {
-      const clientName = (item.clientLabel || item.client || '').toLowerCase()
-      if (
-        clientName.includes('кондитер') ||
-        clientName.includes('торт') ||
-        clientName.includes('мари') ||
-        clientName === 'клиент' ||
-        item.draft?.problem?.includes('дегустации') ||
-        item.draft?.problem?.includes('сбор и согласование отчетов')
-      ) {
-        const contextual = buildContextualDraft(item.clientLabel || 'Мария Торты')
-        return {
-          ...item,
-          clientLabel: item.clientLabel === 'Клиент' ? 'Мария Торты' : item.clientLabel,
-          draft: contextual.draft,
-          evidences: contextual.evidences,
-        }
-      }
       if (item.draft) {
         return {
           ...item,
@@ -222,17 +205,18 @@ const analyzeImageWithGemini = async (file, apiKey) => {
         const rawResult = String(reader.result || '')
         const base64Data = rawResult.includes(',') ? rawResult.split(',')[1] : rawResult
         const mimeType = file.type || 'image/jpeg'
-        const prompt = `Ты — эксперт ProofFlow по анализу отзывов и кейсов.
-Проанализируй скриншот переписки с клиентом и верни строго JSON следующего формата:
+        const prompt = `Ты — ведущий эксперт по упаковке клиентских кейсов и отзывов.
+Внимательно прочитай скриншот диалога/переписки между клиентом и исполнителем.
+Извлеки данные и верни СТРОГО валидный JSON следующего формата:
 {
-  "clientLabel": "Название компании или специалиста из переписки (например: Мария Торты)",
-  "author": "Имя или статус автора отзыва (например: Постоянный клиент или имя заказчика)",
-  "quote": "Дословная прямая цитата отзыва клиента из диалога слово в слово с эмодзи",
+  "clientLabel": "Название компании или сфера деятельности клиента (например: Недвижимость или Мария Торты)",
+  "author": "Имя клиента, оставившего отзыв (например: Дмитрий или Анна)",
+  "quote": "Краткая, емкая дословная выжимка ключевой фразы или похвалы из отзыва (1-2 предложения, максимум 150-180 символов, без простыни текста, сохраняя эмодзи автора)",
   "problem": "Исходная задача или трудность клиента (без префикса Было:, на русском языке)",
   "solution": "Что сделал исполнитель/бизнес для клиента (без префикса Сделано:, на русском языке)",
   "result": "Финальный результат и эффект (без префикса Стало:, на русском языке)",
-  "metricValue": "Ключевое число или цифра из отзыва (например: 5 мин или 100%)",
-  "metricLabel": "Краткая подпись к цифре (например: съели торт, ни крошки не осталось)",
+  "metricValue": "Ключевое число или цифра из отзыва строкой (например: 340 ₽ или +428 лидов или 5 мин)",
+  "metricLabel": "Краткая подпись к цифре (например: стоимость лида в недвижимости)",
   "tags": ["Массив", "из 3-4", "релевантных", "тегов"]
 }`
 
@@ -344,75 +328,124 @@ export const mockCaseRepository = Object.freeze({
     notifyListeners()
 
     if (newCase.status === 'processing') {
-      const steps = [
-        { stage: 'transcribing', progress: 30, msg: 'Анализ аудиодорожек и распознавание речи...' },
-        { stage: 'reading', progress: 55, msg: 'Мультимодальное сканирование скриншота диалога (Vision AI)...' },
-        { stage: 'analyzing', progress: 75, msg: 'Выделение ключевой метрики, проблемы и решения...' },
-        { stage: 'verifying', progress: 92, msg: 'Верификация дословной цитаты и проверка доказательств...' },
-        { stage: 'done', progress: 100, msg: 'Карточка кейса собрана и готова к проверке!', status: 'review' },
-      ]
-
-      let delay = 800
-      for (const step of steps) {
-        setTimeout(() => {
-          casesStore = casesStore.map((c) =>
-            c.id === caseId
-              ? {
-                  ...c,
-                  status: step.status || 'processing',
-                  stage: step.stage,
-                  stageProgress: step.progress,
-                  stageMessage: step.msg,
-                  updatedAt: Date.now(),
-                }
-              : c
-          )
-          saveCases(casesStore)
-          notifyListeners()
-        }, delay)
-        delay += 850
-      }
-
       const imageSource = (caseData.sources || []).find(
         (s) => s.file instanceof Blob && s.file.type.startsWith('image/')
       )
       const apiKey =
         (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GEMINI_API_KEY) || ''
 
+      const updateCase = (patch) => {
+        casesStore = casesStore.map((c) =>
+          c.id === caseId ? { ...c, ...patch, updatedAt: Date.now() } : c
+        )
+        saveCases(casesStore)
+        notifyListeners()
+      }
+
       if (imageSource && apiKey) {
-        analyzeImageWithGemini(imageSource.file, apiKey).then((aiResult) => {
-          if (!aiResult) return
-          casesStore = casesStore.map((c) => {
-            if (c.id !== caseId) return c
-            const resolvedClient = aiResult.clientLabel || c.clientLabel || 'Клиент'
-            return {
-              ...c,
-              clientLabel: resolvedClient,
-              title: `Кейс для ${resolvedClient}`,
-              draft: {
-                ...c.draft,
-                metric: {
-                  value: aiResult.metricValue || c.draft.metric.value,
-                  label: aiResult.metricLabel || c.draft.metric.label,
-                  evidenceId: 'ev-metric-1',
-                },
-                problem: aiResult.problem || c.draft.problem,
-                solution: aiResult.solution || c.draft.solution,
-                result: aiResult.result || c.draft.result,
-                quote: {
-                  ...c.draft.quote,
-                  text: aiResult.quote || c.draft.quote.text,
-                  authorLabel: aiResult.author || c.draft.quote.authorLabel,
-                  authorCompany: resolvedClient,
-                },
-                tags: aiResult.tags || c.draft.tags,
-              },
-              updatedAt: Date.now(),
-            }
+        setTimeout(() => {
+          updateCase({
+            stage: 'transcribing',
+            stageProgress: 30,
+            stageMessage: 'Анализ аудиодорожек и распознавание речи...',
           })
-          saveCases(casesStore)
-          notifyListeners()
-        })
+        }, 600)
+
+        setTimeout(() => {
+          updateCase({
+            stage: 'reading',
+            stageProgress: 55,
+            stageMessage: 'Мультимодальное сканирование скриншота диалога (Vision AI)...',
+          })
+        }, 1300)
+
+        setTimeout(() => {
+          updateCase({
+            stage: 'analyzing',
+            stageProgress: 75,
+            stageMessage: 'Выделение ключевой метрики, проблемы и решения...',
+          })
+        }, 2000)
+
+        analyzeImageWithGemini(imageSource.file, apiKey)
+          .then((aiResult) => {
+            const current = casesStore.find((c) => c.id === caseId) || newCase
+            if (aiResult) {
+              const resolvedClient = aiResult.clientLabel || current.clientLabel || 'Клиент'
+              updateCase({
+                clientLabel: resolvedClient,
+                title: `Кейс для ${resolvedClient}`,
+                stage: 'verifying',
+                stageProgress: 92,
+                stageMessage: 'Верификация дословной цитаты и проверка доказательств...',
+                draft: {
+                  ...current.draft,
+                  metric: {
+                    value: String(aiResult.metricValue || current.draft?.metric?.value || ''),
+                    label: String(aiResult.metricLabel || current.draft?.metric?.label || ''),
+                    evidenceId: 'ev-metric-1',
+                  },
+                  problem: aiResult.problem || current.draft?.problem,
+                  solution: aiResult.solution || current.draft?.solution,
+                  result: aiResult.result || current.draft?.result,
+                  quote: {
+                    ...current.draft?.quote,
+                    text: aiResult.quote || current.draft?.quote?.text,
+                    authorLabel: aiResult.author || current.draft?.quote?.authorLabel,
+                    authorCompany: resolvedClient,
+                  },
+                  tags:
+                    Array.isArray(aiResult.tags) && aiResult.tags.length > 0
+                      ? aiResult.tags
+                      : current.draft?.tags,
+                },
+              })
+            } else {
+              updateCase({
+                stage: 'verifying',
+                stageProgress: 92,
+                stageMessage: 'Верификация дословной цитаты и проверка доказательств...',
+              })
+            }
+
+            setTimeout(() => {
+              updateCase({
+                stage: 'done',
+                stageProgress: 100,
+                stageMessage: 'Карточка кейса собрана и готова к проверке!',
+                status: 'review',
+              })
+            }, 700)
+          })
+          .catch(() => {
+            updateCase({
+              stage: 'done',
+              stageProgress: 100,
+              stageMessage: 'Карточка кейса собрана и готова к проверке!',
+              status: 'review',
+            })
+          })
+      } else {
+        const steps = [
+          { stage: 'transcribing', progress: 30, msg: 'Анализ аудиодорожек и распознавание речи...' },
+          { stage: 'reading', progress: 55, msg: 'Мультимодальное сканирование скриншота диалога (Vision AI)...' },
+          { stage: 'analyzing', progress: 75, msg: 'Выделение ключевой метрики, проблемы и решения...' },
+          { stage: 'verifying', progress: 92, msg: 'Верификация дословной цитаты и проверка доказательств...' },
+          { stage: 'done', progress: 100, msg: 'Карточка кейса собрана и готова к проверке!', status: 'review' },
+        ]
+
+        let delay = 600
+        for (const step of steps) {
+          setTimeout(() => {
+            updateCase({
+              status: step.status || 'processing',
+              stage: step.stage,
+              stageProgress: step.progress,
+              stageMessage: step.msg,
+            })
+          }, delay)
+          delay += 700
+        }
       }
     }
 
