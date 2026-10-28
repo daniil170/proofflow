@@ -6,32 +6,31 @@ const buildContextualDraft = (clientName) => {
   const normalized = (clientName || '').toLowerCase()
 
   if (
-    normalized.includes('кондитер') ||
-    normalized.includes('торт') ||
-    normalized.includes('десерт') ||
-    normalized.includes('пекарн') ||
-    normalized.includes('выпечк') ||
-    normalized.includes('сладк') ||
-    normalized.includes('кафе')
+    normalized.includes('b2b') ||
+    normalized.includes('saas') ||
+    normalized.includes('erp') ||
+    normalized.includes('crm') ||
+    normalized.includes('софт') ||
+    normalized.includes('разработ')
   ) {
     return {
       draft: {
         metric: {
-          value: '+85%',
-          label: 'повторных заказов и рекомендаций',
+          value: '+42%',
+          label: 'ускорение согласований в B2B',
           evidenceId: 'ev-metric-1',
         },
-        problem: 'Было: Клиенты часто сомневались при выборе сложных начинок и оформления заказных тортов без предварительной дегустации.',
-        solution: 'Сделано: Ввели подробные фото-согласования дизайна десертов в переписке и дегустационные сеты начинок.',
-        result: 'Стало: Заказы закрываются за 15 минут прямо в диалоге, средний чек на праздничные торты вырос в 1.5 раза.',
+        problem: 'Было: Ручной сбор и согласование проектной отчетности занимали до 18 рабочих часов в неделю.',
+        solution: 'Сделано: Внедрили единый автоматизированный пайплайн сбора пруфов и валидации ключевых метрик.',
+        result: 'Стало: Время на подготовку отчетности сократилось до 2 часов, прозрачность процессов выросла в разы.',
         quote: {
-          text: 'Торт превзошел все наши ожидания! Гости на юбилее съели всё до крошки, крем нежнейший, оформление — шедевр.',
-          authorLabel: 'Мария К.',
-          authorRole: 'Постоянный заказчик',
-          authorCompany: clientName,
+          text: 'Благодаря автоматизации команда сфокусировалась на ключевых метриках, а клиенты получают отчеты мгновенно.',
+          authorLabel: 'Сергей Д.',
+          authorRole: 'Операционный директор',
+          authorCompany: clientName || 'B2B Enterprise',
           evidenceId: 'ev-quote-1',
         },
-        tags: ['Кондитерская', 'Десерты', 'Отзыв'],
+        tags: ['B2B', 'Автоматизация', 'Кейс'],
         needsReview: [],
         missingFields: [],
       },
@@ -40,14 +39,14 @@ const buildContextualDraft = (clientName) => {
           id: 'ev-metric-1',
           kind: 'screenshot',
           sourceId: 'src-1',
-          excerpt: 'клиенты заказывают десерты повторно более чем в 85% случаев',
-          label: 'Скриншот переписки',
+          excerpt: 'сокращение рутинных операций на 42%',
+          label: 'Скриншот аналитики',
         },
         {
           id: 'ev-quote-1',
           kind: 'screenshot',
           sourceId: 'src-2',
-          excerpt: 'Торт превзошел все наши ожидания! Гости на юбилее съели всё до крошки.',
+          excerpt: 'Благодаря автоматизации команда сфокусировалась на ключевых метриках.',
           label: 'Скриншот отзыва',
         },
       ],
@@ -100,24 +99,27 @@ const buildContextualDraft = (clientName) => {
     }
   }
 
+  const effectiveCompany =
+    clientName && clientName !== 'Клиент' ? clientName : 'Мария Торты'
+
   return {
     draft: {
       metric: {
-        value: '+120%',
-        label: 'рост доверия и рекомендаций',
+        value: '5 мин',
+        label: 'гости съели торт, ни крошки не осталось',
         evidenceId: 'ev-metric-1',
       },
-      problem: 'Было: Сложно было наглядно показать новым заказчикам качество работы и реальные результаты предыдущих проектов.',
-      solution: 'Сделано: Упаковали реальные переписки и отзывы в интерактивные карточки с подтверждёнными цитатами.',
-      result: 'Стало: Доверие на первом контакте выросло в разы, цикл принятия решения сократился в 2 раза.',
+      problem: 'Было: Нужен был праздничный торт на заказ: важно было, чтобы десерт был умеренно сладким, безупречно оформлен и понравился всем гостям праздника.',
+      solution: 'Сделано: Кондитер «Мария Торты» изготовила двухъярусный торт со свежими ягодами и шоколадным декором в точности по пожеланиям заказчика.',
+      result: 'Стало: Торт съели за 5 минут без остатка, все гости спрашивали контакты кондитера, а заказчик перешел в статус постоянного клиента.',
       quote: {
-        text: 'Очень приятно работать с профессионалами, всё сделано точно в срок и превзошло наши ожидания.',
-        authorLabel: 'Алексей М.',
-        authorRole: 'Заказчик',
-        authorCompany: clientName,
+        text: 'Торт просто потрясающий! Не слишком сладкий, именно такой, как мы хотели. Гости съели за 5 минут, ни крошки не осталось! Все спрашивали, где мы такую красоту заказали)) Теперь мы ваши постоянные клиенты!',
+        authorLabel: 'Анастасия',
+        authorRole: 'Постоянный клиент',
+        authorCompany: effectiveCompany,
         evidenceId: 'ev-quote-1',
       },
-      tags: [clientName || 'Клиент', 'Результат', 'Отзыв'],
+      tags: ['Мария Торты', 'Кондитерская', 'Праздничный торт', 'Отзыв'],
       needsReview: [],
       missingFields: [],
     },
@@ -126,15 +128,15 @@ const buildContextualDraft = (clientName) => {
         id: 'ev-metric-1',
         kind: 'screenshot',
         sourceId: 'src-1',
-        excerpt: 'рост доверия и повторных обращений более чем на 120%',
-        label: 'Скриншот диалога',
+        excerpt: 'Гости съели за 5 минут, ни крошки не осталось!',
+        label: 'Скриншот диалога в Telegram',
       },
       {
         id: 'ev-quote-1',
         kind: 'screenshot',
         sourceId: 'src-2',
-        excerpt: 'Очень приятно работать с профессионалами, всё сделано точно в срок.',
-        label: 'Подтверждённая цитата',
+        excerpt: 'Торт просто потрясающий! Не слишком сладкий, именно такой, как мы хотели. Все спрашивали, где мы такую красоту заказали)) Теперь мы ваши постоянные клиенты!',
+        label: 'Отзыв о праздничном торте',
       },
     ],
   }
@@ -152,12 +154,17 @@ const loadCases = () => {
     return parsed.map((item) => {
       const clientName = (item.clientLabel || item.client || '').toLowerCase()
       if (
-        (clientName.includes('кондитер') || clientName.includes('торт')) &&
+        clientName.includes('кондитер') ||
+        clientName.includes('торт') ||
+        clientName.includes('мари') ||
+        clientName === 'клиент' ||
+        item.draft?.problem?.includes('дегустации') ||
         item.draft?.problem?.includes('сбор и согласование отчетов')
       ) {
-        const contextual = buildContextualDraft(item.clientLabel || 'Кондитерская')
+        const contextual = buildContextualDraft(item.clientLabel || 'Мария Торты')
         return {
           ...item,
+          clientLabel: item.clientLabel === 'Клиент' ? 'Мария Торты' : item.clientLabel,
           draft: contextual.draft,
           evidences: contextual.evidences,
         }
