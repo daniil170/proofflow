@@ -102,7 +102,16 @@ export const renderStoryPng = (data) => {
 
   ctx.fillStyle = '#a1a1aa'
   ctx.font = '600 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  ctx.fillText(`— ${data.author || 'Анна К.'}, ${data.company || 'ProofFlow'}`, cardX + 60, cardY + cardHeight - 50)
+  const storyAuthor =
+    data.author &&
+    data.company &&
+    data.author !== 'Клиент' &&
+    data.company !== 'ProofFlow' &&
+    !data.company.toLowerCase().includes('клиент') &&
+    !data.company.toLowerCase().includes(data.author.toLowerCase())
+      ? `— ${data.author}, ${data.company}`
+      : `— ${data.author || 'Клиент'}`
+  ctx.fillText(storyAuthor, cardX + 60, cardY + cardHeight - 50)
 
   ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
   ctx.font = '700 26px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
@@ -183,7 +192,16 @@ export const renderCardPng = (data) => {
 
   ctx.fillStyle = '#a1a1aa'
   ctx.font = '600 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  ctx.fillText(`— ${data.author || 'Анна К.'}, ${data.company || 'ProofFlow'}`, cardX + 50, cardY + cardHeight - 40)
+  const cardAuthor =
+    data.author &&
+    data.company &&
+    data.author !== 'Клиент' &&
+    data.company !== 'ProofFlow' &&
+    !data.company.toLowerCase().includes('клиент') &&
+    !data.company.toLowerCase().includes(data.author.toLowerCase())
+      ? `— ${data.author}, ${data.company}`
+      : `— ${data.author || 'Клиент'}`
+  ctx.fillText(cardAuthor, cardX + 50, cardY + cardHeight - 40)
 
   ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
   ctx.font = '700 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'

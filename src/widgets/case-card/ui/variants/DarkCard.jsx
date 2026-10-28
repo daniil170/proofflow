@@ -67,7 +67,14 @@ export const DarkCard = ({ data, className }) => {
           </div>
           <div className={styles.authorMeta}>
             <span className={styles.authorName}>
-              {data.author}, {data.company}
+              {data.author &&
+              data.company &&
+              data.author !== 'Клиент' &&
+              data.company !== 'ProofFlow' &&
+              !data.company.toLowerCase().includes('клиент') &&
+              !data.company.toLowerCase().includes(data.author.toLowerCase())
+                ? `${data.author}, ${data.company}`
+                : data.author || 'Клиент'}
             </span>
             <span className={styles.authorRole}>
               {data.authorRole || (data.category ? `Клиент · ${data.category}` : 'Клиент')}

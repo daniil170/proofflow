@@ -57,7 +57,15 @@ export const NewspaperCard = ({ data, className }) => {
         <div className={styles.quoteContent}>
           <blockquote className={styles.quoteText}>{data.quote}</blockquote>
           <span className={styles.quoteAuthor}>
-            — {data.author}, {data.company}
+            —{' '}
+            {data.author &&
+            data.company &&
+            data.author !== 'Клиент' &&
+            data.company !== 'ProofFlow' &&
+            !data.company.toLowerCase().includes('клиент') &&
+            !data.company.toLowerCase().includes(data.author.toLowerCase())
+              ? `${data.author}, ${data.company}`
+              : data.author || 'Клиент'}
           </span>
         </div>
       </div>
