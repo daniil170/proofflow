@@ -39,7 +39,9 @@ const getRateLimiter = (): FirestoreRateLimiter =>
   new FirestoreRateLimiter(admin.firestore())
 
 const getAdminEmails = (): string[] => {
-  const raw = process.env.ADMIN_EMAILS || 'admin@proofflow.ru,owner@proofflow.ru'
+  const raw =
+    process.env.ADMIN_EMAILS ||
+    'dutpayev74@gmail.com,daniilivakin30@gmail.com,admin@proofflow.ru,owner@proofflow.ru'
   return raw
     .split(',')
     .map((e) => e.trim().toLowerCase())
