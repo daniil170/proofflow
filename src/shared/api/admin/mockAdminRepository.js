@@ -8,172 +8,56 @@ const generateMockCode = () => {
   return `PF-${rand(5)}-${rand(5)}`
 }
 
-const INITIAL_MOCK_APPLICATIONS = [
-  {
-    id: 'app-mock-1',
-    source: 'web',
-    channel: 'web',
-    email: 'mikhail@vector-studio.ru',
-    telegramUsername: 'mikhail_vector',
-    businessType: 'web_studio',
-    casesVolume: '4_to_10',
-    currentProcess: 'Собираем PDF-презентации в Figma, уходит по 3 дня на кейс',
-    consent: true,
-    status: 'new',
-    history: [{ action: 'submitted', timestamp: Date.now() - 3600000, performedBy: 'client' }],
-    createdAt: Date.now() - 3600000,
-  },
-  {
-    id: 'app-mock-2',
-    source: 'telegram',
-    channel: 'telegram',
-    email: null,
-    telegramUsername: 'artem_marketing',
-    telegramUserId: 554433221,
-    businessType: 'marketing_agency',
-    casesVolume: '10_to_30',
-    currentProcess: 'Тексты пишет копирайтер по перепискам из Telegram',
-    consent: true,
-    status: 'new',
-    history: [{ action: 'submitted', timestamp: Date.now() - 14400000, performedBy: 'bot' }],
-    createdAt: Date.now() - 14400000,
-  },
-  {
-    id: 'app-mock-3',
-    source: 'web',
-    channel: 'web',
-    email: 'daria@growth-agency.com',
-    telegramUsername: null,
-    businessType: 'agency_or_studio',
-    casesVolume: '4_to_10',
-    currentProcess: 'Пишем статьи на VC.ru',
-    consent: true,
-    status: 'approved',
-    inviteCode: 'PF-8T2K-7V',
-    ownerNote: 'Сильное агентство с хорошим портфолио',
-    history: [
-      { action: 'submitted', timestamp: Date.now() - 86400000, performedBy: 'client' },
-      { action: 'approved', timestamp: Date.now() - 43200000, performedBy: 'admin', note: 'Выдан инвайт PF-8T2K-7V' },
-    ],
-    createdAt: Date.now() - 86400000,
-  },
-  {
-    id: 'app-mock-4',
-    source: 'web',
-    channel: 'web',
-    email: 'ivan@dev-outsource.io',
-    telegramUsername: 'ivan_lead',
-    businessType: 'it_outsource',
-    casesVolume: '1_to_3',
-    currentProcess: 'Кейсы почти не делаем, нет времени',
-    consent: true,
-    status: 'invited',
-    inviteCode: 'PF-5M9Q-3X',
-    invitedAt: Date.now() - 100000000,
-    history: [
-      { action: 'submitted', timestamp: Date.now() - 172800000, performedBy: 'client' },
-      { action: 'approved', timestamp: Date.now() - 120000000, performedBy: 'admin', note: 'Выдан инвайт PF-5M9Q-3X' },
-      { action: 'invited', timestamp: Date.now() - 100000000, performedBy: 'admin' },
-    ],
-    createdAt: Date.now() - 172800000,
-  },
-  {
-    id: 'app-mock-5',
-    source: 'telegram',
-    channel: 'telegram',
-    email: 'elena@brandconsult.ru',
-    telegramUsername: 'elena_brand',
-    telegramUserId: 887766554,
-    businessType: 'consulting',
-    casesVolume: '1_to_3',
-    currentProcess: 'Отзывы в WhatsApp скриним',
-    consent: true,
-    status: 'activated',
-    inviteCode: 'PF-2N6Y-4B',
-    invitedAt: Date.now() - 250000000,
-    activatedAt: Date.now() - 200000000,
-    history: [
-      { action: 'submitted', timestamp: Date.now() - 300000000, performedBy: 'bot' },
-      { action: 'approved', timestamp: Date.now() - 260000000, performedBy: 'admin' },
-      { action: 'invited', timestamp: Date.now() - 250000000, performedBy: 'admin' },
-      { action: 'activated', timestamp: Date.now() - 200000000, performedBy: 'system' },
-    ],
-    createdAt: Date.now() - 300000000,
-  },
-]
-
-const INITIAL_MOCK_INVITES = [
-  {
-    code: 'PF-8T2K-7V',
-    status: 'issued',
-    applicationId: 'app-mock-3',
-    expiresAt: Date.now() + 14 * 86400000,
-    channel: 'web',
-    email: 'daria@growth-agency.com',
-    createdBy: 'admin',
-    createdAt: Date.now() - 43200000,
-  },
-  {
-    code: 'PF-5M9Q-3X',
-    status: 'issued',
-    applicationId: 'app-mock-4',
-    expiresAt: Date.now() + 12 * 86400000,
-    channel: 'web',
-    email: 'ivan@dev-outsource.io',
-    telegramUsername: 'ivan_lead',
-    createdBy: 'admin',
-    createdAt: Date.now() - 120000000,
-  },
-  {
-    code: 'PF-2N6Y-4B',
-    status: 'used',
-    applicationId: 'app-mock-5',
-    expiresAt: Date.now() + 10 * 86400000,
-    channel: 'telegram',
-    email: 'elena@brandconsult.ru',
-    telegramUserId: 887766554,
-    usedBy: 'user-mock-elena',
-    usedAt: Date.now() - 200000000,
-    createdBy: 'admin',
-    createdAt: Date.now() - 260000000,
-  },
-]
+const INITIAL_MOCK_APPLICATIONS = []
+const INITIAL_MOCK_INVITES = []
 
 const getStoredApplications = () => {
   if (typeof window === 'undefined' || !window.localStorage) {
-    return [...INITIAL_MOCK_APPLICATIONS]
+    return []
   }
   try {
     const raw = window.localStorage.getItem(ADMIN_STORAGE_KEYS.MOCK_APPLICATIONS)
     if (!raw) {
+      return []
+    }
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return []
+    const cleaned = parsed.filter((app) => app && !String(app.id || '').startsWith('app-mock-'))
+    if (cleaned.length !== parsed.length) {
       window.localStorage.setItem(
         ADMIN_STORAGE_KEYS.MOCK_APPLICATIONS,
-        JSON.stringify(INITIAL_MOCK_APPLICATIONS)
+        JSON.stringify(cleaned)
       )
-      return [...INITIAL_MOCK_APPLICATIONS]
     }
-    return JSON.parse(raw)
+    return cleaned
   } catch {
-    return [...INITIAL_MOCK_APPLICATIONS]
+    return []
   }
 }
 
 const getStoredInvites = () => {
   if (typeof window === 'undefined' || !window.localStorage) {
-    return [...INITIAL_MOCK_INVITES]
+    return []
   }
   try {
     const raw = window.localStorage.getItem(ADMIN_STORAGE_KEYS.MOCK_INVITES)
     if (!raw) {
+      return []
+    }
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return []
+    const cleaned = parsed.filter(
+      (inv) => inv && !String(inv.applicationId || '').startsWith('app-mock-')
+    )
+    if (cleaned.length !== parsed.length) {
       window.localStorage.setItem(
         ADMIN_STORAGE_KEYS.MOCK_INVITES,
-        JSON.stringify(INITIAL_MOCK_INVITES)
+        JSON.stringify(cleaned)
       )
-      return [...INITIAL_MOCK_INVITES]
     }
-    return JSON.parse(raw)
+    return cleaned
   } catch {
-    return [...INITIAL_MOCK_INVITES]
+    return []
   }
 }
 
@@ -588,20 +472,17 @@ export const mockAnalyticsRepository = Object.freeze({
       }
     } else {
       productAnalytics = {
-        casesStarted: 18,
-        reachedReview: 14,
-        casesPublished: 11,
-        positiveFeedback: 9,
-        negativeFeedback: 1,
-        satisfactionRate: 90,
-        fieldEdits: [
-          { field: 'quote', label: 'Цитата клиента', count: 12 },
-          { field: 'metric', label: 'Метрика и число', count: 9 },
-          { field: 'problem', label: 'Проблема («Было»)', count: 6 },
-          { field: 'solution', label: 'Решение («Сделано»)', count: 4 },
-          { field: 'result', label: 'Результат («Стало»)', count: 4 },
-          { field: 'author', label: 'Подпись автора', count: 3 },
-        ],
+        casesStarted: 0,
+        reachedReview: 0,
+        casesPublished: 0,
+        positiveFeedback: 0,
+        negativeFeedback: 0,
+        satisfactionRate: 0,
+        fieldEdits: Object.entries(FIELD_LABELS).map(([field, label]) => ({
+          field,
+          label,
+          count: 0,
+        })),
       }
     }
 
@@ -616,7 +497,7 @@ export const mockAnalyticsRepository = Object.freeze({
       dailyTrend,
       funnel,
       productAnalytics,
-      hasEvents: true,
+      hasEvents: mockEvents.length > 0,
     }
   },
 })
