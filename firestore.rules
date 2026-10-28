@@ -128,6 +128,14 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    match /rate_limits/{docId} {
+      allow read, write: if false;
+    }
+
+    match /invite_attempts/{docId} {
+      allow read, write: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

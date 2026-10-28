@@ -27,8 +27,10 @@ export const isProductionEnvironment = (): boolean => {
 export const onCaseProcessTrigger = onDocumentWritten(
   {
     document: 'cases/{caseId}',
+    region: 'us-central1',
     timeoutSeconds: 540,
     memory: '2GiB',
+    maxInstances: 5,
     secrets: [openAiApiKey, anthropicApiKey, geminiApiKey],
   },
   async (event) => {

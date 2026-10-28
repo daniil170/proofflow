@@ -437,7 +437,7 @@ export const useCaseReview = ({
         }
       }
     },
-    [caseItem?.id, repository]
+    [caseItem, repository]
   )
 
   const cardPreviewData = useMemo(() => {

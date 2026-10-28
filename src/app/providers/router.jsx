@@ -18,48 +18,72 @@ import {
   CookiesPage,
 } from '@/pages'
 import { ProtectedRoute } from '@/features/auth'
+import { AppErrorBoundary, RouteRobotsGuard } from '@/shared/ui'
 import { AdminLayout, AppLayout } from '@/widgets'
 
 export const router = createBrowserRouter([
   {
     path: '/',
     element: <LandingPage />,
+    errorElement: <AppErrorBoundary />,
   },
   {
     path: '/login',
-    element: <LoginPage />,
+    element: (
+      <RouteRobotsGuard noindex={true}>
+        <LoginPage />
+      </RouteRobotsGuard>
+    ),
+    errorElement: <AppErrorBoundary />,
   },
   {
     path: '/invite/:code',
-    element: <InvitePage />,
+    element: (
+      <RouteRobotsGuard noindex={true}>
+        <InvitePage />
+      </RouteRobotsGuard>
+    ),
+    errorElement: <AppErrorBoundary />,
   },
   {
     path: '/c/:id',
     element: <PublicCasePage />,
+    errorElement: <AppErrorBoundary />,
   },
   {
     path: '/consent/:token',
-    element: <ConsentPage />,
+    element: (
+      <RouteRobotsGuard noindex={true}>
+        <ConsentPage />
+      </RouteRobotsGuard>
+    ),
+    errorElement: <AppErrorBoundary />,
   },
   {
     path: '/terms',
     element: <TermsPage />,
+    errorElement: <AppErrorBoundary />,
   },
   {
     path: '/privacy',
     element: <PrivacyPage />,
+    errorElement: <AppErrorBoundary />,
   },
   {
     path: '/cookies',
     element: <CookiesPage />,
+    errorElement: <AppErrorBoundary />,
   },
   {
     path: '/app',
     element: (
       <ProtectedRoute>
-        <AppLayout />
+        <RouteRobotsGuard noindex={true}>
+          <AppLayout />
+        </RouteRobotsGuard>
       </ProtectedRoute>
     ),
+    errorElement: <AppErrorBoundary />,
     children: [
       {
         index: true,
@@ -87,9 +111,12 @@ export const router = createBrowserRouter([
     path: '/admin',
     element: (
       <ProtectedRoute>
-        <AdminLayout />
+        <RouteRobotsGuard noindex={true}>
+          <AdminLayout />
+        </RouteRobotsGuard>
       </ProtectedRoute>
     ),
+    errorElement: <AppErrorBoundary />,
     children: [
       {
         index: true,
@@ -108,5 +135,6 @@ export const router = createBrowserRouter([
   {
     path: '*',
     element: <NotFoundPage />,
+    errorElement: <AppErrorBoundary />,
   },
 ])

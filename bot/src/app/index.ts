@@ -1,12 +1,14 @@
 import { createServer } from 'node:http'
 import { webhookCallback } from 'grammy'
-import { config } from '../shared/config.js'
+import { config, validateBotConfig } from '../shared/config.js'
 import { logger } from '../shared/logger.js'
 import { createBot, registerBotCommands } from './bot.js'
 
 const bootstrap = async (): Promise<void> => {
-  if (!config.botToken) {
-    logger.error('BOT_TOKEN is not defined in environment variables')
+  try {
+    validateBotConfig(config)
+  } catch (error) {
+    logger.error('Startup validation failed', error)
     process.exit(1)
   }
 

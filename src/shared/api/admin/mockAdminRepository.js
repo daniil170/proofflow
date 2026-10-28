@@ -8,9 +8,6 @@ const generateMockCode = () => {
   return `PF-${rand(5)}-${rand(5)}`
 }
 
-const INITIAL_MOCK_APPLICATIONS = []
-const INITIAL_MOCK_INVITES = []
-
 const getStoredApplications = () => {
   if (typeof window === 'undefined' || !window.localStorage) {
     return []

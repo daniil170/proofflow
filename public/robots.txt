@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Disallow: /app/
+Disallow: /app
+Disallow: /admin/
+Disallow: /admin
+Disallow: /login/
+Disallow: /login
+Disallow: /invite/
+Disallow: /invite
+Disallow: /consent/
+Disallow: /consent
+Disallow: /c/
+
+Sitemap: https://proofflow.ru/sitemap.xml

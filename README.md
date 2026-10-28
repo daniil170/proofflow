@@ -1,263 +1,221 @@
 # ProofFlow (`proofflow`)
 
-> **Статус:** 🟢 Активная фаза валидации (CustDev)  
-> **Главная цель:** Создать AI-инструмент для автоматической упаковки сырого контента (созвонов, видео, скриншотов) в готовые B2B-кейсы и виджеты социального доказательства.
+> **Статус:** 🟢 Релиз-кандидат v0.1.0-beta  
+> **Миссия:** Автоматическая AI-упаковка сырых артефактов (созвонов, видео, переписок и скриншотов) в продающие B2B-кейсы и интерактивные виджеты социального доказательства.
 
 ---
 
-## 1. Обзор продукта (Overview)
+## 1. Архитектура проекта и пакеты
 
-### 🔴 Проблема
+Репозиторий устроен как модульный монорепозиторий из четырёх ключевых компонентов:
 
-Бизнесы (маркетинговые агентства, веб-студии, IT-аутсорс и фрилансеры) тратят слишком много времени (от нескольких дней до недель) на создание качественных кейсов, сбор отзывов и оформление портфолио:
-
-- Клиенты ленятся писать развернутые отзывы или структурировать обратную связь.
-- У маркетологов уходят десятки часов на рутину: транскрибацию созвонов, выделение смыслов, копирайтинг, верстку и дизайн.
-- В итоге ценные результаты проектов и социальные доказательства пылятся в архивах созвонов вместо того, чтобы приносить новые продажи.
-
-### 🟢 Решение (ProofFlow)
-
-AI-платформа, которая за 1 минуту превращает сырые данные (запись Zoom/Google Meet созвона, голосовое сообщение, запись экрана или скриншоты) в:
-
-1. **Полноценный продающий B2B-кейс** (структура: «Проблема → Процесс → Измеримый результат»).
-2. **Интерактивную карточку / виджет социального доказательства** для вставки на сайт.
-3. **Структурированный регламент или мануал** (при необходимости для внутренних процессов).
-
----
-
-## 2. Целевая аудитория (Target Audience)
-
-- **B2B-сегмент:** Маркетинговые агентства, веб-студии, IT-аутсорс компании, консалтинг.
-- **Инди-мейкеры / Фрилансеры:** Разработчики и дизайнеры, которым некогда возиться с оформлением портфолио.
-- **Лица, принимающие решения (ЛПР):** Фаундеры, маркетологи, сейлз-директоры.
-
----
-
-## 3. Архитектура и функционал MVP (Scope)
-
-### Ключевые возможности первой версии:
-
-1. **Загрузка данных:** Загрузка аудио/видеофайла (запись созвона с клиентом, интервью, скринкаст) или текста/скриншотов.
-2. **AI-Парсинг и Транскрибация:**
-   - Интеграция с **OpenAI Whisper** для точной расшифровки речи на русском и английском языках.
-   - LLM (**Claude 3.5 Sonnet / GPT-4o**) для семантического анализа: выделение боли клиента, шагов решения и твердых метрик/результатов.
-3. **Генерация контента:** Автоматическое оформление карточки кейса с ключевыми цитатами, артефактами и инфографикой.
-4. **Embed Widget:** Легкий скрипт (Embed JS / iframe) для интеграции готового кейса или отзыва на сайт клиента в один клик.
-
----
-
-## 4. Технологический стек (Tech Stack)
-
-| Слой                        | Технологии                                                      |
-| --------------------------- | --------------------------------------------------------------- |
-| **Frontend**                | React 19, Vite, Tailwind CSS                                    |
-| **Backend**                 | Node.js (REST API, очереди задач)                               |
-| **База данных & Хранилище** | Firebase (Cloud Firestore, Firebase Storage)                    |
-| **AI & ML**                 | OpenAI Whisper API, Anthropic Claude 3.5 Sonnet, Google Gemini (Vertex AI), Google Cloud Speech-to-Text |
-
----
-
-## 5. Валидация и Customer Development (Текущий этап)
-
-### Шаги валидации:
-
-1. **Google Форма для сбора болей:** Вопросы о текущих процессах создания кейсов, стоимости времени сотрудников и оценке ценности автоматизации.
-2. **Холодный аутрич (Cold Outreach):** Прямой контакт с целевыми агентствами и студиями в Telegram, LinkedIn и Email.
-3. **CRM аутрича:** Учет контактов, конверсий, возражений и качественного фидбека в таблице.
-
-### Основные вопросы CustDev-интервью:
-
-- _Какой у вас тип бизнеса и сколько кейсов/отзывов вы упаковываете в месяц?_
-- _С какими главными сложностями сталкиваетесь при создании кейсов и получении отзывов от клиентов?_
-- _Сколько времени и ресурсов сейчас занимает упаковка одного кейса?_
-- _Как вы оцениваете концепцию AI-генерации продающего кейса из записи созвона за 1 минуту?_
-
----
-
-## 6. План развития (Roadmap)
-
-- [x] **Шаг 1:** Придумать название и концепцию (`ProofFlow`)
-- [ ] **Шаг 2:** Провести валидацию через опрос и собрать фидбек от 30–50 бизнесов
-- [ ] **Шаг 3:** Спроектировать архитектуру и UX/UI прототип MVP
-- [ ] **Шаг 4:** Реализовать MVP на стеке React + Node.js + Firebase + AI APIs
-- [ ] **Шаг 5:** Запустить закрытое бета-тестирование для респондентов опроса
-
----
-
-## 7. Запуск проекта локально (Quick Start)
-
-### Требования
-
-- Node.js 18+
-- npm / pnpm / yarn
-
-### Установка и запуск
-
-```bash
-# Клонирование репозитория (если еще не склонирован)
-git clone https://github.com/daniil170/proofflow.git
-cd proofflow
-
-# Установка зависимостей
-npm install
-
-# Запуск локального сервера разработки
-npm run dev
-
-# Сборка проекта для продакшена
-npm run build
 ```
-
----
-
-## 8. Структура проекта
-
-```text
 proofflow/
-├── public/              # Статические ассеты (favicon, манифест)
-├── src/
-│   ├── assets/          # Медиа-ресурсы и иконки
-│   ├── App.jsx          # Главный компонент приложения
-│   ├── index.css        # Базовые стили
-│   └── main.jsx         # Точка входа React
-├── functions/           # Cloud Functions (Node.js, TypeScript)
-├── firestore.rules      # Правила безопасности Firestore
-├── storage.rules        # Правила безопасности Cloud Storage
-├── firestore.indexes.json # Составные индексы Firestore
-├── firebase.json        # Конфигурация Firebase CLI и эмуляторов
-├── index.html           # HTML-шаблон
-├── package.json         # Зависимости и скрипты
-├── vite.config.js       # Конфигурация Vite
-└── README.md            # Документация проекта
+├── src/                  # Web SPA (React 19, Vite, Tailwind CSS, Feature-Sliced Design)
+│   ├── app/              # Инициализация приложения, провайдеры, роутер с error boundaries
+│   ├── pages/            # Маршруты: лендинг, вход, кейсы, админка, юридические страницы
+│   ├── widgets/          # Составные блоки интерфейса (хедер, футер, карточки кейсов)
+│   ├── features/         # Бизнес-фичи: загрузка, ревью, публикация, заявки, онбординг
+│   ├── entities/         # Модели данных и валидация Zod (кейсы, пользователи, инвайты)
+│   └── shared/           # API-клиенты, дизайн-система, утилиты, токены, защита от моков
+├── functions/            # Бэкенд Cloud Functions v2 (Node.js 22, TypeScript)
+│   ├── src/application/  # Сценарии: запуск пайплайна, подтверждение линка, публикация
+│   ├── src/domain/       # Лимиты, схемы данных, типы
+│   ├── src/infrastructure# Адаптеры Gemini (Vertex AI), Whisper, Claude, Firestore, Storage
+│   └── src/interfaces/   # Триггеры Firestore, HTTP эндпоинты, Callable-функции
+├── bot/                  # Telegram-бот сервиса (grammY, TypeScript, архитектура слоев)
+│   ├── src/app/          # Бот-инстанс, middleware, валидатор продакшен-конфигурации
+│   ├── src/features/     # Сценарии: заявка, поддержка (24ч), банк идей, FAQ, команды
+│   ├── src/entities/     # Модели SupportTicket, Idea, IdeaVote, BetaApplication
+│   └── src/shared/       # Тексты, клавиатуры, репозитории (Firestore + In-Memory)
+├── embed/                # Легковесный встраиваемый виджет embed.js (Vite IIFE, 2.09 KB gzip)
+├── firestore.rules       # Правила безопасности Firestore (Default Deny, закрытые коллекции)
+├── storage.rules         # Правила безопасности Cloud Storage (проверка владельца и MIME)
+├── firestore.indexes.json# Составные индексы Firestore
+├── firebase.json         # Конфигурация Firebase CLI, регион us-central1, rewrites
+└── docs/                 # Документация и чеклисты релиза
 ```
 
 ---
 
-## 9. Деплой (Deployment)
+## 2. Локальный запуск
 
-### Предварительные требования
+### 2.1 Быстрый старт с In-Memory моками (без эмуляторов)
 
-1. Установлен Firebase CLI: `npm install -g firebase-tools`
-2. Авторизация в аккаунте: `firebase login`
-3. Выбор активного проекта: `firebase use <PROJECT_ID>`
+1. **Фронтенд:**
+   ```bash
+   cp .env.example .env
+   # В .env: VITE_USE_MOCK_API=true
+   npm install
+   npm run dev
+   ```
+2. **Телеграм-бот:**
+   ```bash
+   cd bot
+   cp .env.example .env
+   # В bot/.env: BOT_STORAGE=memory, BOT_TOKEN=<ваш_токен>
+   npm install
+   npm run dev
+   ```
 
-### 1. Настройка секретов (Secret Manager)
+### 2.2 Локальный запуск с Firebase Emulators (полный стек)
 
-Чувствительные API-ключи внешних AI-провайдеров хранятся в Google Cloud Secret Manager через Firebase Functions Secrets:
+1. **Запуск эмуляторов Firestore, Storage, Auth, Functions:**
+   ```bash
+   firebase emulators:start --project demo-proofflow-rules-test
+   ```
+2. **Запуск фронтенда с эмуляторами:**
+   ```bash
+   # В .env: VITE_USE_MOCK_API=false
+   npm run dev
+   ```
+3. **Запуск локального пайплайна обработки:**
+   ```bash
+   cd functions
+   npm run local -- --input fixtures/sample-case/chat.png
+   ```
+
+---
+
+## 3. Переменные окружения и секреты
+
+### 3.1 Web SPA (Root Frontend)
+
+| Переменная | Где хранится | Обязательна в Prod | Описание и пример |
+| :--- | :--- | :--- | :--- |
+| `VITE_USE_MOCK_API` | `.env` / CI | Нет (в prod строго `false`) | `false` |
+| `VITE_FIREBASE_API_KEY` | `.env` / Hosting | Да | Ключ веб-приложения Firebase |
+| `VITE_FIREBASE_AUTH_DOMAIN` | `.env` / Hosting | Да | `proofflow-b6955.firebaseapp.com` |
+| `VITE_FIREBASE_PROJECT_ID` | `.env` / Hosting | Да | `proofflow-b6955` |
+| `VITE_FIREBASE_STORAGE_BUCKET`| `.env` / Hosting | Да | `proofflow-b6955.firebasestorage.app` |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID`| `.env` / Hosting | Да | Числовой ID отправителя |
+| `VITE_FIREBASE_APP_ID` | `.env` / Hosting | Да | App ID из консоли Firebase |
+| `VITE_ADMIN_EMAILS` | `.env` / Hosting | Да | `admin@proofflow.ru,daniilivakin30@gmail.com` |
+| `VITE_TELEGRAM_SUPPORT_URL`| `.env` / Hosting | Да | `https://t.me/proofflowbot` |
+
+### 3.2 Cloud Functions (`functions`)
+
+| Переменная / Секрет | Где хранится | Обязательна в Prod | Описание и пример |
+| :--- | :--- | :--- | :--- |
+| `OPENAI_API_KEY` | Secret Manager | Да (если выбран openai) | Секретный ключ OpenAI Whisper |
+| `ANTHROPIC_API_KEY` | Secret Manager | Да (если выбран anthropic)| Секретный ключ Claude 3.5 |
+| `GEMINI_API_KEY` | Secret Manager | Да (если выбран google) | Ключ Gemini Developer API |
+| `TELEGRAM_BOT_SECRET`| Secret Manager | Да | Общий секрет для привязки Telegram |
+| `GEMINI_TIER` | `functions/.env` | Да (`pay-as-you-go`/`paid`)| `pay-as-you-go` (`free` запрещён) |
+| `GEMINI_MODEL` | `functions/.env` | Да | `gemini-2.5-flash` |
+| `ADMIN_EMAILS` | `functions/.env` | Да | `admin@proofflow.ru,daniilivakin30@gmail.com` |
+| `USE_MOCK_ADAPTERS` | `functions/.env` | Нет (в prod строго `false`) | `false` |
+| `STORAGE_RETENTION_DAYS`| `functions/.env`| Нет | `14` |
+
+### 3.3 Telegram Bot (`bot`)
+
+| Переменная | Где хранится | Обязательна в Prod | Описание и пример |
+| :--- | :--- | :--- | :--- |
+| `BOT_TOKEN` | Secret Manager / Env | Да | Токен Telegram-бота от @BotFather |
+| `TELEGRAM_BOT_SECRET`| Secret Manager / Env | Да | Общий секрет подтверждения link |
+| `ADMIN_CHAT_ID` | Env / Secret Manager | Да | ID группы команды для тикетов и идей |
+| `BOT_STORAGE` | Env | Да (в prod строго `firestore`)| `firestore` |
+| `BOT_MODE` | Env | Да | `polling` или `webhook` |
+| `MAX_DAILY_TICKETS_AND_IDEAS`| Env | Нет | `5` |
+| `PRIVACY_URL` | Env | Нет | `https://proofflow.ru/privacy` |
+| `RATE_LIMIT_PER_SECOND`| Env | Нет | `3` |
+| `PORT` | Env | Да (для webhook) | `3000` |
+
+---
+
+## 4. Единая последовательность первого деплоя
+
+Развёртывание выполняется в строгом порядке зависимостей:
+
+### Шаг 1. Сохранение секретов в Secret Manager
 
 ```bash
-# Ключ OpenAI (для Whisper транскрибации)
+# 1. API-ключи AI-провайдеров для Functions
 firebase functions:secrets:set OPENAI_API_KEY
-
-# Ключ Anthropic (для Claude 3.5 анализа кейса и OCR)
 firebase functions:secrets:set ANTHROPIC_API_KEY
+firebase functions:secrets:set GEMINI_API_KEY
 
-# Общий секрет бота для подтверждения привязки аккаунтов
+# 2. Общий секрет привязки Telegram-аккаунтов
 firebase functions:secrets:set TELEGRAM_BOT_SECRET
 ```
 
-### 2. Деплой правил безопасности и индексов
-
-Перед деплоем бэкенда примените правила доступа и индексы базы данных:
+### Шаг 2. Развёртывание правил безопасности и индексов Firestore
 
 ```bash
-# Деплой правил Firestore и Cloud Storage
-firebase deploy --only firestore:rules,storage
-
-# Деплой составных индексов базы данных
-firebase deploy --only firestore:indexes
+# Деплой правил Firestore, правил Storage и составных индексов:
+firebase deploy --only firestore:rules,storage,firestore:indexes
 ```
 
-### 3. Сборка и деплой Cloud Functions
-
-Соберите TypeScript-код функций и запустите деплой:
+### Шаг 3. Сборка и деплой Cloud Functions
 
 ```bash
-# Сборка функций
-npm --prefix functions run build
-
-# Деплой триггеров пайплайна обработки
+cd functions
+npm ci
+npm run build
+cd ..
 firebase deploy --only functions
 ```
 
-### 4. Локальное тестирование и эмуляторы
-
-Для проверки правил безопасности и локальной разработки используйте встроенные эмуляторы:
+### Шаг 4. Сборка и деплой фронтенда и виджета (Hosting)
 
 ```bash
-# Запуск юнит-тестов правил безопасности (поднимает эмуляторы Firestore и Storage)
-npm run test:rules
+# Сборка React SPA и embed.js в папку dist:
+npm ci
+npm run build
 
-# Запуск полного стека эмуляторов
-firebase emulators:start
+# Деплой статики и rewrites:
+firebase deploy --only hosting
 ```
 
----
+### Шаг 5. Деплой Telegram-бота
 
-## 10. Лимиты управляемой беты
-
-В период закрытой беты действуют следующие базовые ограничения (настраиваются через `.env` и переменные окружения Cloud Functions):
-
-- `MAX_CASES_PER_ACCOUNT = 3`: максимальное количество кейсов на один аккаунт. При исчерпании лимита интерфейс выводит предупреждение и ссылку на поддержку.
-- `MAX_RECORDING_DURATION_SEC = 1200` (20 минут): максимальная длительность одной аудио/видео записи.
-- `MAX_FILES_PER_CASE = 10`: максимальное количество файлов в рамках одного кейса.
-- `MAX_FILE_SIZE_BYTES = 104857600` (100 МБ): ограничение размера одного файла.
-- `STORAGE_RETENTION_DAYS = 14`: исходные файлы (аудиозаписи, скриншоты) автоматически удаляются scheduled-функцией через 14 дней после готовности черновика. Сгенерированные кейсы и цитаты сохраняются навсегда.
-
----
-
-## 11. Управление доступом (CLI)
-
-Для ручной выдачи доступа и назначения администраторов используется скрипт `scripts/grant-access`:
+#### Вариант А: Cloud Run (Webhook-режим, рекомендуется для production)
 
 ```bash
-# Выдача активного доступа пользователю по email или UID:
-./scripts/grant-access user@example.com
-./scripts/grant-access USER_FIREBASE_UID
+# Сборка контейнера и деплой в Cloud Run:
+gcloud builds submit --tag gcr.io/proofflow-b6955/proofflow-bot bot/
+gcloud run deploy proofflow-bot \
+  --image gcr.io/proofflow-b6955/proofflow-bot \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --set-env-vars BOT_MODE=webhook,BOT_STORAGE=firestore,ADMIN_CHAT_ID=7517071405,NODE_ENV=production \
+  --set-secrets BOT_TOKEN=TELEGRAM_BOT_TOKEN:latest,TELEGRAM_BOT_SECRET=TELEGRAM_BOT_SECRET:latest,WEBHOOK_SECRET_TOKEN=TELEGRAM_WEBHOOK_SECRET:latest
 
-# Выдача активного доступа с правами администратора (admin: true):
-./scripts/grant-access admin@example.com --admin
-./scripts/grant-access ADMIN_FIREBASE_UID --admin
+# Регистрация Webhook в Telegram:
+curl -F "url=https://<CLOUD_RUN_URL>/webhook" \
+     -F "secret_token=<WEBHOOK_SECRET_TOKEN>" \
+     https://api.telegram.org/bot<BOT_TOKEN>/setWebhook
 ```
 
-Скрипт обновляет статус `accessStatus: "active"` в коллекции Firestore `users/{uid}`, а также выставляет Custom User Claims в Firebase Auth (`access: "active"`, и опционально `admin: true`).
-
----
-
-## 12. Telegram-бот (`bot`)
-
-Бот принимает заявки в закрытую бету и выполняет безопасную привязку Telegram-аккаунтов пользователей (`/start link_<токен>`).
-
-### Настройка секрета бота
-
-Вызов функции подтверждения привязки `confirmTelegramLink` защищён общим секретом:
-
-- В production (Secret Manager):
-  ```bash
-  firebase functions:secrets:set TELEGRAM_BOT_SECRET
-  ```
-- Локально в `functions/.env` и `bot/.env`:
-  ```bash
-  TELEGRAM_BOT_SECRET=ваш_секретный_ключ
-  ```
-
-### Локальный запуск бота
+#### Вариант Б: Сервер / Docker Compose (Long Polling режим)
 
 ```bash
 cd bot
-cp .env.example .env
-# Укажите BOT_TOKEN и TELEGRAM_BOT_SECRET в bot/.env
-npm install
-npm run dev
+docker build -t proofflow-bot .
+docker run -d \
+  --name proofflow-bot \
+  --restart unless-stopped \
+  --env-file /etc/proofflow/bot.env \
+  proofflow-bot
 ```
 
 ---
 
-## 13. Мультипровайдерный AI-пайплайн и сравнение моделей
+## 5. Тестирование и верификация
 
-ProofFlow поддерживает гибкое переключение провайдеров на каждом шаге пайплайна:
-- Транскрибация: Whisper (`openai`), Gemini (`google`), Speech-to-Text (`google-speech`).
-- OCR/Скриншоты: Claude (`anthropic`), Gemini (`google`).
-- Анализ и сборка черновика: Claude (`anthropic`), Gemini (`google`).
+```bash
+# Проверка корневого пакета (Frontend)
+npm run lint
+npm run build
+npm test
 
-Для интеграции с Google Gemini используется корпоративный Vertex AI без передачи API-ключей. Подробная инструкция по настройке ролей IAM, переменным окружения и запуску утилиты сравнения моделей на материалах (`scripts/compare-providers`) приведена в [functions/README.md](functions/README.md).
+# Проверка Cloud Functions
+cd functions && npm run lint && npm run build && npm test && cd ..
+
+# Проверка Telegram-бота
+cd bot && npm run lint && npm run build && npm test && cd ..
+
+# Проверка правил безопасности в эмуляторе
+npm run test:rules
+```

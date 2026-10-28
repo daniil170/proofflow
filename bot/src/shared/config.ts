@@ -56,3 +56,36 @@ export const config: BotConfig = Object.freeze({
     appId: process.env.FIREBASE_APP_ID || process.env.VITE_FIREBASE_APP_ID,
   }),
 })
+
+export const validateBotConfig = (
+  cfg: BotConfig = config,
+  nodeEnv = process.env.NODE_ENV
+): void => {
+  if (!cfg.botToken) {
+    throw new Error('BOT_TOKEN is not defined in environment variables')
+  }
+
+  const isProd = nodeEnv === 'production'
+  if (isProd) {
+    if (cfg.storageType === 'memory') {
+      throw new Error(
+        'Критическая ошибка конфигурации: в продакшен-окружении запрещено использовать in-memory хранилище (BOT_STORAGE=memory). Установите BOT_STORAGE=firestore.'
+      )
+    }
+    if (!cfg.adminChatId) {
+      throw new Error(
+        'Критическая ошибка конфигурации: в продакшен-окружении переменная ADMIN_CHAT_ID обязательна для получения заявок и обращений.'
+      )
+    }
+    if (!cfg.botSecret) {
+      throw new Error(
+        'Критическая ошибка конфигурации: в продакшен-окружении переменная TELEGRAM_BOT_SECRET обязательна для безопасной привязки аккаунтов.'
+      )
+    }
+    if (!cfg.firebase.projectId) {
+      throw new Error(
+        'Критическая ошибка конфигурации: в продакшен-окружении переменная FIREBASE_PROJECT_ID обязательна.'
+      )
+    }
+  }
+}
