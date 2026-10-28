@@ -459,3 +459,42 @@
     opacity: 0.9;
   }
 }
+
+.headerButtons {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.clearAllBtn {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: #dc2626;
+  background-color: transparent;
+  border: 1px solid #fecaca;
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.clearAllBtn:hover {
+  background-color: #fef2f2;
+  border-color: #f87171;
+}
+
+.deleteCaseBtn {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: #ef4444;
+  background: none;
+  border: none;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.deleteCaseBtn:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}

@@ -58,6 +58,34 @@ export const CasesListPage = () => {
     }
   }
 
+  const handleDeleteCase = async (caseId) => {
+    if (!window.confirm('Удалить этот кейс?')) return
+    setError(null)
+    try {
+      if (typeof repository.delete === 'function') {
+        await repository.delete(caseId)
+      }
+    } catch (err) {
+      setError(err?.message || 'Не удалось удалить кейс')
+    }
+  }
+
+  const handleClearAllCases = async () => {
+    if (!window.confirm('Удалить все ваши кейсы? Это освободит лимит.')) return
+    setError(null)
+    try {
+      if (typeof repository.deleteByOwner === 'function' && user?.id) {
+        await repository.deleteByOwner(user.id)
+      } else if (typeof repository.delete === 'function') {
+        for (const c of cases) {
+          await repository.delete(c.id)
+        }
+      }
+    } catch (err) {
+      setError(err?.message || 'Не удалось очистить кейсы')
+    }
+  }
+
   const filteredCases = useMemo(() => {
     if (statusFilter === 'all') {
       return cases
@@ -212,6 +240,17 @@ export const CasesListPage = () => {
                   <Link to={`/app/cases/${caseItem.id}`} className={styles.actionLink}>
                     Открыть процесс →
                   </Link>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      handleDeleteCase(caseItem.id)
+                    }}
+                    className={styles.deleteCaseBtn}
+                    title="Удалить кейс"
+                  >
+                    Удалить
+                  </button>
                 </div>
               </div>
             </article>
@@ -258,10 +297,21 @@ export const CasesListPage = () => {
           </p>
         </div>
 
-        <Link to="/app/cases/new" className={styles.createButton}>
-          <span>+</span>
-          <span>Новый кейс</span>
-        </Link>
+        <div className={styles.headerButtons}>
+          {cases.length > 0 && (
+            <button
+              type="button"
+              onClick={handleClearAllCases}
+              className={styles.clearAllBtn}
+            >
+              Очистить все кейсы
+            </button>
+          )}
+          <Link to="/app/cases/new" className={styles.createButton}>
+            <span>+</span>
+            <span>Новый кейс</span>
+          </Link>
+        </div>
       </header>
 
       {renderContent()}

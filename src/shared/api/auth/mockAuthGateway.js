@@ -67,10 +67,13 @@ export const mockAuthGateway = Object.freeze({
       targetEmail = 'demo@proofflow.ai'
     }
 
+    const cleanEmail = targetEmail.trim().toLowerCase()
+    const safeId = 'user_' + cleanEmail.replace(/[^a-z0-9]/g, '_')
+
     const user = {
-      id: 'mock-user-email',
-      email: targetEmail,
-      displayName: targetEmail.split('@')[0],
+      id: safeId,
+      email: cleanEmail,
+      displayName: cleanEmail.split('@')[0],
       photoURL: null,
     }
 
