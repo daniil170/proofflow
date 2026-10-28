@@ -316,7 +316,7 @@ export const LoginForm = ({ onSuccess }) => {
                     setIsSubmitting(true)
                     try {
                       await signInWithEmailLink(
-                        'admin@proofflow.ru',
+                        'daniilivakin30@gmail.com',
                         `${window.location.origin}/login?mockSignIn=true`
                       )
                       navigate('/admin/applications', { replace: true })
