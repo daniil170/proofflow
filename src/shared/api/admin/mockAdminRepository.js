@@ -183,6 +183,19 @@ let invites = getStoredInvites()
 const appListeners = new Set()
 const inviteListeners = new Set()
 
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (!event.key || event.key === ADMIN_STORAGE_KEYS.MOCK_APPLICATIONS) {
+      applications = getStoredApplications()
+      notifyAppListeners()
+    }
+    if (!event.key || event.key === ADMIN_STORAGE_KEYS.MOCK_INVITES) {
+      invites = getStoredInvites()
+      notifyInviteListeners()
+    }
+  })
+}
+
 const notifyAppListeners = () => {
   appListeners.forEach((cb) => cb([...applications]))
 }

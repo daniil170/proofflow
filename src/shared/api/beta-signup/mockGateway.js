@@ -28,6 +28,7 @@ export const mockBetaSignupGateway = Object.freeze({
         }
         existing.unshift(record)
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(existing))
+        window.dispatchEvent(new Event('storage'))
       } catch {
         inMemoryStore.unshift(record)
       }
