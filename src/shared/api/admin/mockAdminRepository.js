@@ -213,6 +213,7 @@ const persistInvites = () => {
 
 export const mockApplicationRepository = Object.freeze({
   subscribeApplications(callback) {
+    applications = getStoredApplications()
     appListeners.add(callback)
     queueMicrotask(() => {
       callback([...applications])

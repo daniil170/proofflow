@@ -10,20 +10,29 @@ export const mockBetaSignupGateway = Object.freeze({
     const submissionId = `mock-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
     const record = {
       id: submissionId,
-      ...payload,
+      source: payload.source || 'web',
+      channel: payload.channel || payload.source || 'web',
+      status: 'new',
+      createdAt: Date.now(),
       submittedAt: new Date().toISOString(),
+      history: [{ action: 'submitted', timestamp: Date.now(), performedBy: 'client' }],
+      ...payload,
     }
 
     if (typeof window !== 'undefined' && window.localStorage) {
       try {
-        const existing = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || '[]')
-        existing.push(record)
+        const raw = window.localStorage.getItem(STORAGE_KEY)
+        let existing = []
+        if (raw) {
+          existing = JSON.parse(raw)
+        }
+        existing.unshift(record)
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(existing))
       } catch {
-        inMemoryStore.push(record)
+        inMemoryStore.unshift(record)
       }
     } else {
-      inMemoryStore.push(record)
+      inMemoryStore.unshift(record)
     }
 
     return {
