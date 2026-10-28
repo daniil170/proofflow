@@ -104,6 +104,10 @@ export const AuthProvider = ({
     [gateway]
   )
 
+  const clearError = useCallback(() => {
+    setError(null)
+  }, [])
+
   const logout = useCallback(async () => {
     setError(null)
     try {
@@ -131,6 +135,7 @@ export const AuthProvider = ({
       isLoadingAuth,
       isLoadingRecord,
       error,
+      clearError,
       signInWithGoogle,
       sendEmailLink,
       signInWithEmailLink,
@@ -147,6 +152,7 @@ export const AuthProvider = ({
       isLoadingAuth,
       isLoadingRecord,
       error,
+      clearError,
       signInWithGoogle,
       sendEmailLink,
       signInWithEmailLink,

@@ -61,7 +61,7 @@ export const LoginForm = ({ onSuccess }) => {
   }, [isEmailLink, getStoredEmailForSignIn, signInWithEmailLink, handleCompleteSuccess])
 
   const handleGoogleSignIn = async () => {
-    clearError()
+    clearError?.()
     setLocalError('')
     setIsSubmitting(true)
     try {
@@ -76,7 +76,7 @@ export const LoginForm = ({ onSuccess }) => {
 
   const handleSendEmailLink = async (e) => {
     e.preventDefault()
-    clearError()
+    clearError?.()
     setLocalError('')
 
     const cleanEmail = email.trim()
@@ -99,7 +99,7 @@ export const LoginForm = ({ onSuccess }) => {
 
   const handleConfirmEmailLink = async (e) => {
     e.preventDefault()
-    clearError()
+    clearError?.()
     setLocalError('')
 
     const cleanEmail = email.trim()
