@@ -78,19 +78,32 @@ export const useCasePublish = ({
     }
   }, [embedCode, caseItem])
 
-  const downloadCard = useCallback(() => {
+  const buildExportPayload = useCallback(() => {
     const draft = caseItem?.draft || {}
-    const data = {
+    const tags = Array.isArray(draft.tags) ? draft.tags.filter(Boolean) : []
+    const authorRole =
+      draft.quote?.authorRole ||
+      (tags[0] ? `Клиент · ${tags[0]}` : 'Постоянный клиент')
+    const category = caseItem?.clientLabel || tags[0] || 'ФИТНЕС'
+
+    return {
       metric: draft.metric?.value || '+45%',
-      metricLabel: draft.metric?.label || 'рост конверсии',
-      before: draft.problem || 'Клиент терял лиды на первом шаге',
-      done: draft.solution || 'Полностью переработали интерфейс',
-      after: draft.result || 'Увеличили показатель почти в полтора раза',
+      metricLabel: draft.metric?.label || 'рост ключевых показателей',
+      before: draft.problem || 'Сложности на старте проекта',
+      done: draft.solution || 'Комплекс проведенных мероприятий',
+      after: draft.result || 'Достигнутый финальный результат',
       quote: draft.quote?.text || 'Отличный результат!',
-      author: draft.quote?.authorLabel || 'Анна К.',
-      company: caseItem?.branding?.companyName || 'ProofFlow',
+      author: draft.quote?.authorLabel || 'Клиент',
+      authorRole,
+      category,
+      tags,
+      company: caseItem?.branding?.companyName || '',
       accentColor: caseItem?.branding?.accentColor || '#d6f94c',
     }
+  }, [caseItem])
+
+  const downloadCard = useCallback(() => {
+    const data = buildExportPayload()
     const canvas = renderCardPng(data)
     downloadCanvasBlob(canvas, `case-${caseItem?.id || 'card'}.png`)
     trackAnalyticsEvent('png_downloaded', {
@@ -98,21 +111,10 @@ export const useCasePublish = ({
       caseId: caseItem?.id,
       metadata: { format: 'card' },
     })
-  }, [caseItem])
+  }, [caseItem, buildExportPayload])
 
   const downloadStory = useCallback(() => {
-    const draft = caseItem?.draft || {}
-    const data = {
-      metric: draft.metric?.value || '+45%',
-      metricLabel: draft.metric?.label || 'рост конверсии',
-      before: draft.problem || 'Клиент терял лиды на первом шаге',
-      done: draft.solution || 'Полностью переработали интерфейс',
-      after: draft.result || 'Увеличили показатель почти в полтора раза',
-      quote: draft.quote?.text || 'Отличный результат!',
-      author: draft.quote?.authorLabel || 'Анна К.',
-      company: caseItem?.branding?.companyName || 'ProofFlow',
-      accentColor: caseItem?.branding?.accentColor || '#d6f94c',
-    }
+    const data = buildExportPayload()
     const canvas = renderStoryPng(data)
     downloadCanvasBlob(canvas, `case-${caseItem?.id || 'story'}-story.png`)
     trackAnalyticsEvent('png_downloaded', {
@@ -120,7 +122,7 @@ export const useCasePublish = ({
       caseId: caseItem?.id,
       metadata: { format: 'story' },
     })
-  }, [caseItem])
+  }, [caseItem, buildExportPayload])
 
   return {
     isPublished,

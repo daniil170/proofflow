@@ -12,6 +12,44 @@ export const downloadCanvasBlob = (canvas, filename) => {
   }, 'image/png')
 }
 
+const drawRoundRect = (ctx, x, y, width, height, radius) => {
+  if (typeof ctx.roundRect === 'function') {
+    ctx.beginPath()
+    ctx.roundRect(x, y, width, height, radius)
+    return
+  }
+  ctx.beginPath()
+  ctx.moveTo(x + radius, y)
+  ctx.lineTo(x + width - radius, y)
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius)
+  ctx.lineTo(x + width, y + height - radius)
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height)
+  ctx.lineTo(x + radius, y + height)
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius)
+  ctx.lineTo(x, y + radius)
+  ctx.quadraticCurveTo(x, y, x + radius, y)
+  ctx.closePath()
+}
+
+const measureTextLines = (ctx, text, maxWidth) => {
+  if (!text) return []
+  const words = String(text).split(' ')
+  const lines = []
+  let line = ''
+  for (let n = 0; n < words.length; n++) {
+    const testLine = line ? `${line} ${words[n]}` : words[n]
+    const testWidth = ctx.measureText(testLine).width
+    if (testWidth > maxWidth && n > 0) {
+      lines.push(line)
+      line = words[n]
+    } else {
+      line = testLine
+    }
+  }
+  if (line) lines.push(line)
+  return lines
+}
+
 export const renderStoryPng = (data) => {
   const width = 1080
   const height = 1920
@@ -22,211 +60,438 @@ export const renderStoryPng = (data) => {
   if (!ctx) return canvas
 
   const bgGradient = ctx.createLinearGradient(0, 0, width, height)
-  bgGradient.addColorStop(0, '#0d1714')
-  bgGradient.addColorStop(1, '#050a08')
+  bgGradient.addColorStop(0, '#0a100d')
+  bgGradient.addColorStop(0.5, '#040706')
+  bgGradient.addColorStop(1, '#020302')
   ctx.fillStyle = bgGradient
   ctx.fillRect(0, 0, width, height)
 
-  const cardX = 90
-  const cardY = 280
-  const cardWidth = 900
-  const cardHeight = 1320
+  const accentColor = data.accentColor || '#d6f94c'
+  const cardX = 80
+  const cardWidth = 920
+  const cardPadding = 48
+  const contentWidth = cardWidth - cardPadding * 2
 
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.05)'
-  ctx.beginPath()
-  ctx.roundRect(cardX, cardY, cardWidth, cardHeight, 36)
+  const category = (data.category || data.niche || 'КЕЙС').toUpperCase()
+  const authorInitial = data.author ? data.author.charAt(0).toUpperCase() : 'К'
+  const authorRole = data.authorRole || 'Клиент'
+
+  ctx.font = '500 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  const beforeLines = measureTextLines(ctx, data.before || '', contentWidth - 44)
+  const doneLines = measureTextLines(ctx, data.done || '', contentWidth - 44)
+  ctx.font = '600 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  const afterLines = measureTextLines(ctx, data.after || '', contentWidth - 44)
+
+  const lineH = 34
+  const box1Height = Math.max(104, 48 + beforeLines.length * lineH + 14)
+  const box2Height = Math.max(104, 48 + doneLines.length * lineH + 14)
+  const box3Height = Math.max(104, 48 + afterLines.length * lineH + 14)
+
+  ctx.font = 'italic 500 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  const quoteLines = measureTextLines(ctx, `«${data.quote || ''}»`, contentWidth)
+  const quoteHeight = quoteLines.length * 40
+
+  const tags = Array.isArray(data.tags) ? data.tags.filter(Boolean) : []
+  const hasTags = tags.length > 0
+  const tagsHeight = hasTags ? 40 : 0
+
+  const totalContentHeight =
+    32 +
+    24 +
+    96 +
+    14 +
+    36 +
+    28 +
+    box1Height +
+    14 +
+    box2Height +
+    14 +
+    box3Height +
+    (hasTags ? 20 + tagsHeight : 0) +
+    24 +
+    quoteHeight +
+    28 +
+    1 +
+    24 +
+    54
+
+  const cardHeight = cardPadding * 2 + totalContentHeight
+  const cardY = Math.max(80, Math.round((height - cardHeight) / 2))
+
+  ctx.fillStyle = '#0d1714'
+  drawRoundRect(ctx, cardX, cardY, cardWidth, cardHeight, 32)
   ctx.fill()
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)'
-  ctx.lineWidth = 2
-  ctx.stroke()
-
-  ctx.fillStyle = '#a1a1aa'
-  ctx.font = '700 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  ctx.fillText('КЕЙС · ПРОВЕРЕНО ПО ПЕРЕПИСКЕ', cardX + 60, cardY + 90)
-
-  const accentColor = data.accentColor || '#d6f94c'
-  ctx.fillStyle = accentColor
-  ctx.font = '900 110px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  ctx.fillText(data.metric || '+45%', cardX + 60, cardY + 230)
-
-  ctx.fillStyle = '#ffffff'
-  ctx.font = '600 36px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  ctx.fillText(data.metricLabel || 'рост конверсии', cardX + 60, cardY + 290)
-
-  const boxY = cardY + 360
-  const boxHeight = 160
-  const boxWidth = 780
-
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.04)'
-  ctx.beginPath()
-  ctx.roundRect(cardX + 60, boxY, boxWidth, boxHeight, 20)
-  ctx.fill()
-  ctx.fillStyle = '#a1a1aa'
-  ctx.font = '700 20px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  ctx.fillText('БЫЛО', cardX + 90, boxY + 45)
-  ctx.fillStyle = '#ffffff'
-  ctx.font = '500 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  wrapText(ctx, data.before || '', cardX + 90, boxY + 90, boxWidth - 60, 36)
-
-  const box2Y = boxY + 190
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.04)'
-  ctx.beginPath()
-  ctx.roundRect(cardX + 60, box2Y, boxWidth, boxHeight, 20)
-  ctx.fill()
-  ctx.fillStyle = '#a1a1aa'
-  ctx.font = '700 20px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  ctx.fillText('СДЕЛАНО', cardX + 90, box2Y + 45)
-  ctx.fillStyle = '#ffffff'
-  ctx.font = '500 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  wrapText(ctx, data.done || '', cardX + 90, box2Y + 90, boxWidth - 60, 36)
-
-  const box3Y = box2Y + 190
-  ctx.fillStyle = 'rgba(212, 255, 58, 0.1)'
-  ctx.beginPath()
-  ctx.roundRect(cardX + 60, box3Y, boxWidth, boxHeight, 20)
-  ctx.fill()
-  ctx.strokeStyle = accentColor
   ctx.lineWidth = 1.5
   ctx.stroke()
-  ctx.fillStyle = accentColor
+
+  let currentY = cardY + cardPadding
+
+  ctx.fillStyle = '#94a3b8'
+  ctx.font = '700 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  ctx.fillText(`КЕЙС · ${category}`, cardX + cardPadding, currentY + 22)
+
+  ctx.fillStyle = '#22c55e'
   ctx.font = '700 20px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  ctx.fillText('СТАЛО', cardX + 90, box3Y + 45)
+  ctx.textAlign = 'right'
+  ctx.fillText('🛡 Проверено по переписке', cardX + cardWidth - cardPadding, currentY + 22)
+  ctx.textAlign = 'left'
+
+  currentY += 32 + 24
+
+  ctx.fillStyle = accentColor
+  ctx.font = '900 96px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  ctx.fillText(data.metric || '+45%', cardX + cardPadding, currentY + 84)
+
+  currentY += 96 + 14
+
   ctx.fillStyle = '#ffffff'
-  ctx.font = '600 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  wrapText(ctx, data.after || '', cardX + 90, box3Y + 90, boxWidth - 60, 36)
+  ctx.font = '700 32px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  ctx.fillText(data.metricLabel || 'рост ключевых показателей', cardX + cardPadding, currentY + 28)
 
-  const quoteY = box3Y + 220
-  ctx.fillStyle = '#e4e4e7'
-  ctx.font = 'italic 500 30px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  wrapText(ctx, `«${data.quote || ''}»`, cardX + 60, quoteY, boxWidth, 42)
+  currentY += 36 + 28
 
-  ctx.fillStyle = '#a1a1aa'
-  ctx.font = '600 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  const storyAuthor =
-    data.author &&
-    data.company &&
-    data.author !== 'Клиент' &&
-    data.company !== 'ProofFlow' &&
-    !data.company.toLowerCase().includes('клиент') &&
-    !data.company.toLowerCase().includes(data.author.toLowerCase())
-      ? `— ${data.author}, ${data.company}`
-      : `— ${data.author || 'Клиент'}`
-  ctx.fillText(storyAuthor, cardX + 60, cardY + cardHeight - 50)
+  const drawBox = (label, lines, isHighlight, heightVal) => {
+    ctx.fillStyle = isHighlight ? 'rgba(214, 249, 76, 0.1)' : 'rgba(255, 255, 255, 0.04)'
+    drawRoundRect(ctx, cardX + cardPadding, currentY, contentWidth, heightVal, 18)
+    ctx.fill()
+    if (isHighlight) {
+      ctx.strokeStyle = accentColor
+      ctx.lineWidth = 1.5
+      ctx.stroke()
+    } else {
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.07)'
+      ctx.lineWidth = 1
+      ctx.stroke()
+    }
 
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
-  ctx.font = '700 26px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+    ctx.fillStyle = isHighlight ? accentColor : '#94a3b8'
+    ctx.font = '700 17px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+    ctx.fillText(label, cardX + cardPadding + 24, currentY + 34)
+
+    ctx.fillStyle = '#ffffff'
+    ctx.font = isHighlight
+      ? '600 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      : '500 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+
+    let textY = currentY + 68
+    for (const l of lines) {
+      ctx.fillText(l, cardX + cardPadding + 24, textY)
+      textY += lineH
+    }
+    currentY += heightVal + 14
+  }
+
+  drawBox('БЫЛО', beforeLines, false, box1Height)
+  drawBox('СДЕЛАНО', doneLines, false, box2Height)
+  drawBox('СТАЛО', afterLines, true, box3Height)
+
+  currentY -= 14
+
+  if (hasTags) {
+    currentY += 20
+    let tagX = cardX + cardPadding
+    for (const tag of tags.slice(0, 3)) {
+      ctx.font = '600 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      const tagW = ctx.measureText(tag).width + 28
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.06)'
+      drawRoundRect(ctx, tagX, currentY, tagW, 36, 18)
+      ctx.fill()
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)'
+      ctx.lineWidth = 1
+      ctx.stroke()
+      ctx.fillStyle = '#cbd5e1'
+      ctx.fillText(tag, tagX + 14, currentY + 24)
+      tagX += tagW + 10
+    }
+    currentY += tagsHeight
+  }
+
+  currentY += 24
+
+  ctx.fillStyle = '#f4f4f5'
+  ctx.font = 'italic 500 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  let qY = currentY + 28
+  for (const ql of quoteLines) {
+    ctx.fillText(ql, cardX + cardPadding, qY)
+    qY += 40
+  }
+
+  currentY += quoteHeight + 28
+
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)'
+  ctx.lineWidth = 1
+  ctx.beginPath()
+  ctx.moveTo(cardX + cardPadding, currentY)
+  ctx.lineTo(cardX + cardWidth - cardPadding, currentY)
+  ctx.stroke()
+
+  currentY += 24
+
+  const avatarRadius = 26
+  const avatarCenterX = cardX + cardPadding + avatarRadius
+  const avatarCenterY = currentY + avatarRadius
+
+  ctx.fillStyle = '#1e293b'
+  ctx.beginPath()
+  ctx.arc(avatarCenterX, avatarCenterY, avatarRadius, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)'
+  ctx.lineWidth = 1
+  ctx.stroke()
+
+  ctx.fillStyle = '#ffffff'
+  ctx.font = '700 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
   ctx.textAlign = 'center'
-  ctx.fillText('Powered by ProofFlow', width / 2, height - 120)
+  ctx.fillText(authorInitial, avatarCenterX, avatarCenterY + 8)
+  ctx.textAlign = 'left'
+
+  const authorTextX = avatarCenterX + avatarRadius + 16
+  ctx.fillStyle = '#ffffff'
+  ctx.font = '700 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  ctx.fillText(data.author || 'Клиент', authorTextX, currentY + 22)
+
+  ctx.fillStyle = '#94a3b8'
+  ctx.font = '500 17px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  ctx.fillText(authorRole, authorTextX, currentY + 46)
+
+  ctx.textAlign = 'right'
+  const brandX = cardX + cardWidth - cardPadding
+  ctx.fillStyle = '#ffffff'
+  ctx.font = '700 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  ctx.fillText('Powered by ProofFlow', brandX, currentY + 34)
+
+  ctx.fillStyle = '#22c55e'
+  drawRoundRect(ctx, brandX - 228, currentY + 16, 20, 20, 5)
+  ctx.fill()
+  ctx.fillStyle = '#052e16'
+  ctx.font = '900 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  ctx.textAlign = 'center'
+  ctx.fillText('✓', brandX - 218, currentY + 31)
+  ctx.textAlign = 'left'
 
   return canvas
 }
 
 export const renderCardPng = (data) => {
   const width = 1200
-  const height = 800
   const canvas = document.createElement('canvas')
   canvas.width = width
-  canvas.height = height
+  canvas.height = 800
   const ctx = canvas.getContext('2d')
   if (!ctx) return canvas
 
-  ctx.fillStyle = '#090e0c'
-  ctx.fillRect(0, 0, width, height)
+  const accentColor = data.accentColor || '#d6f94c'
+  const cardX = 60
+  const cardWidth = 1080
+  const cardPadding = 48
+  const contentWidth = cardWidth - cardPadding * 2
 
-  const cardX = 80
-  const cardY = 60
-  const cardWidth = 1040
-  const cardHeight = 680
+  const category = (data.category || data.niche || 'КЕЙС').toUpperCase()
+  const authorInitial = data.author ? data.author.charAt(0).toUpperCase() : 'К'
+  const authorRole = data.authorRole || 'Клиент'
+
+  const colWidth = Math.floor((contentWidth - 28) / 3)
+  ctx.font = '500 20px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  const beforeLines = measureTextLines(ctx, data.before || '', colWidth - 36)
+  const doneLines = measureTextLines(ctx, data.done || '', colWidth - 36)
+  ctx.font = '600 20px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  const afterLines = measureTextLines(ctx, data.after || '', colWidth - 36)
+
+  const maxLines = Math.max(beforeLines.length, doneLines.length, afterLines.length)
+  const colHeight = Math.max(130, 44 + maxLines * 28 + 14)
+
+  ctx.font = 'italic 500 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  const quoteLines = measureTextLines(ctx, `«${data.quote || ''}»`, contentWidth)
+  const quoteHeight = quoteLines.length * 34
+
+  const tags = Array.isArray(data.tags) ? data.tags.filter(Boolean) : []
+  const hasTags = tags.length > 0
+  const tagsHeight = hasTags ? 36 : 0
+
+  const totalContentHeight =
+    28 +
+    20 +
+    80 +
+    12 +
+    32 +
+    24 +
+    colHeight +
+    (hasTags ? 18 + tagsHeight : 0) +
+    22 +
+    quoteHeight +
+    24 +
+    1 +
+    22 +
+    52
+
+  const cardHeight = cardPadding * 2 + totalContentHeight
+  const canvasHeight = Math.max(760, cardHeight + 80)
+  canvas.height = canvasHeight
+
+  const bgGradient = ctx.createLinearGradient(0, 0, width, canvasHeight)
+  bgGradient.addColorStop(0, '#0a100d')
+  bgGradient.addColorStop(0.5, '#040706')
+  bgGradient.addColorStop(1, '#020302')
+  ctx.fillStyle = bgGradient
+  ctx.fillRect(0, 0, width, canvasHeight)
+
+  const cardY = Math.round((canvasHeight - cardHeight) / 2)
 
   ctx.fillStyle = '#0d1714'
-  ctx.beginPath()
-  ctx.roundRect(cardX, cardY, cardWidth, cardHeight, 28)
+  drawRoundRect(ctx, cardX, cardY, cardWidth, cardHeight, 28)
   ctx.fill()
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)'
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)'
   ctx.lineWidth = 1.5
   ctx.stroke()
 
-  ctx.fillStyle = '#a1a1aa'
-  ctx.font = '700 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  ctx.fillText('КЕЙС · ПРОВЕРЕНО ПО ПЕРЕПИСКЕ', cardX + 50, cardY + 60)
+  let currentY = cardY + cardPadding
 
-  const accentColor = data.accentColor || '#d6f94c'
+  ctx.fillStyle = '#94a3b8'
+  ctx.font = '700 19px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  ctx.fillText(`КЕЙС · ${category}`, cardX + cardPadding, currentY + 20)
+
+  ctx.fillStyle = '#22c55e'
+  ctx.font = '700 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  ctx.textAlign = 'right'
+  ctx.fillText('🛡 Проверено по переписке', cardX + cardWidth - cardPadding, currentY + 20)
+  ctx.textAlign = 'left'
+
+  currentY += 28 + 20
+
   ctx.fillStyle = accentColor
-  ctx.font = '900 84px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  ctx.fillText(data.metric || '+45%', cardX + 50, cardY + 160)
+  ctx.font = '900 80px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  ctx.fillText(data.metric || '+45%', cardX + cardPadding, currentY + 70)
+
+  currentY += 80 + 12
 
   ctx.fillStyle = '#ffffff'
-  ctx.font = '600 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  ctx.fillText(data.metricLabel || 'рост конверсии', cardX + 50, cardY + 205)
+  ctx.font = '700 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  ctx.fillText(data.metricLabel || 'рост ключевых показателей', cardX + cardPadding, currentY + 24)
 
-  const colWidth = 290
-  const colsY = cardY + 260
-  const colHeight = 160
+  currentY += 32 + 24
 
-  const drawCol = (label, text, x, isHighlight) => {
-    ctx.fillStyle = isHighlight ? 'rgba(212, 255, 58, 0.08)' : 'rgba(255, 255, 255, 0.04)'
-    ctx.beginPath()
-    ctx.roundRect(x, colsY, colWidth, colHeight, 16)
+  const drawCol = (label, lines, isHighlight, colX) => {
+    ctx.fillStyle = isHighlight ? 'rgba(214, 249, 76, 0.1)' : 'rgba(255, 255, 255, 0.04)'
+    drawRoundRect(ctx, colX, currentY, colWidth, colHeight, 16)
     ctx.fill()
     if (isHighlight) {
       ctx.strokeStyle = accentColor
       ctx.lineWidth = 1.5
       ctx.stroke()
+    } else {
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.07)'
+      ctx.lineWidth = 1
+      ctx.stroke()
     }
-    ctx.fillStyle = isHighlight ? accentColor : '#a1a1aa'
+
+    ctx.fillStyle = isHighlight ? accentColor : '#94a3b8'
     ctx.font = '700 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-    ctx.fillText(label, x + 24, colsY + 36)
+    ctx.fillText(label, colX + 18, currentY + 30)
 
     ctx.fillStyle = '#ffffff'
-    ctx.font = '500 20px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-    wrapText(ctx, text, x + 24, colsY + 70, colWidth - 48, 28)
-  }
+    ctx.font = isHighlight
+      ? '600 20px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      : '500 20px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
 
-  drawCol('БЫЛО', data.before || '', cardX + 50, false)
-  drawCol('СДЕЛАНО', data.done || '', cardX + 370, false)
-  drawCol('СТАЛО', data.after || '', cardX + 690, true)
-
-  ctx.fillStyle = '#e4e4e7'
-  ctx.font = 'italic 500 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  wrapText(ctx, `«${data.quote || ''}»`, cardX + 50, cardY + 480, 940, 32)
-
-  ctx.fillStyle = '#a1a1aa'
-  ctx.font = '600 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  const cardAuthor =
-    data.author &&
-    data.company &&
-    data.author !== 'Клиент' &&
-    data.company !== 'ProofFlow' &&
-    !data.company.toLowerCase().includes('клиент') &&
-    !data.company.toLowerCase().includes(data.author.toLowerCase())
-      ? `— ${data.author}, ${data.company}`
-      : `— ${data.author || 'Клиент'}`
-  ctx.fillText(cardAuthor, cardX + 50, cardY + cardHeight - 40)
-
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
-  ctx.font = '700 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  ctx.textAlign = 'right'
-  ctx.fillText('Powered by ProofFlow', cardX + cardWidth - 50, cardY + cardHeight - 40)
-
-  return canvas
-}
-
-const wrapText = (ctx, text, x, y, maxWidth, lineHeight) => {
-  const words = text.split(' ')
-  let line = ''
-  let currentY = y
-
-  for (let n = 0; n < words.length; n++) {
-    const testLine = line + words[n] + ' '
-    const metrics = ctx.measureText(testLine)
-    const testWidth = metrics.width
-    if (testWidth > maxWidth && n > 0) {
-      ctx.fillText(line, x, currentY)
-      line = words[n] + ' '
-      currentY += lineHeight
-    } else {
-      line = testLine
+    let textY = currentY + 60
+    for (const l of lines) {
+      ctx.fillText(l, colX + 18, textY)
+      textY += 28
     }
   }
-  ctx.fillText(line, x, currentY)
+
+  const col1X = cardX + cardPadding
+  const col2X = col1X + colWidth + 14
+  const col3X = col2X + colWidth + 14
+
+  drawCol('БЫЛО', beforeLines, false, col1X)
+  drawCol('СДЕЛАНО', doneLines, false, col2X)
+  drawCol('СТАЛО', afterLines, true, col3X)
+
+  currentY += colHeight
+
+  if (hasTags) {
+    currentY += 18
+    let tagX = cardX + cardPadding
+    for (const tag of tags.slice(0, 4)) {
+      ctx.font = '600 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      const tagW = ctx.measureText(tag).width + 24
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.06)'
+      drawRoundRect(ctx, tagX, currentY, tagW, 32, 16)
+      ctx.fill()
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)'
+      ctx.lineWidth = 1
+      ctx.stroke()
+      ctx.fillStyle = '#cbd5e1'
+      ctx.fillText(tag, tagX + 12, currentY + 22)
+      tagX += tagW + 10
+    }
+    currentY += tagsHeight
+  }
+
+  currentY += 22
+
+  ctx.fillStyle = '#f4f4f5'
+  ctx.font = 'italic 500 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  let qY = currentY + 24
+  for (const ql of quoteLines) {
+    ctx.fillText(ql, cardX + cardPadding, qY)
+    qY += 34
+  }
+
+  currentY += quoteHeight + 24
+
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)'
+  ctx.lineWidth = 1
+  ctx.beginPath()
+  ctx.moveTo(cardX + cardPadding, currentY)
+  ctx.lineTo(cardX + cardWidth - cardPadding, currentY)
+  ctx.stroke()
+
+  currentY += 22
+
+  const avatarRadius = 24
+  const avatarCenterX = cardX + cardPadding + avatarRadius
+  const avatarCenterY = currentY + avatarRadius
+
+  ctx.fillStyle = '#1e293b'
+  ctx.beginPath()
+  ctx.arc(avatarCenterX, avatarCenterY, avatarRadius, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)'
+  ctx.lineWidth = 1
+  ctx.stroke()
+
+  ctx.fillStyle = '#ffffff'
+  ctx.font = '700 20px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  ctx.textAlign = 'center'
+  ctx.fillText(authorInitial, avatarCenterX, avatarCenterY + 7)
+  ctx.textAlign = 'left'
+
+  const authorTextX = avatarCenterX + avatarRadius + 14
+  ctx.fillStyle = '#ffffff'
+  ctx.font = '700 20px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  ctx.fillText(data.author || 'Клиент', authorTextX, currentY + 20)
+
+  ctx.fillStyle = '#94a3b8'
+  ctx.font = '500 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  ctx.fillText(authorRole, authorTextX, currentY + 42)
+
+  ctx.textAlign = 'right'
+  const brandX = cardX + cardWidth - cardPadding
+  ctx.fillStyle = '#ffffff'
+  ctx.font = '700 17px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  ctx.fillText('Powered by ProofFlow', brandX, currentY + 30)
+
+  ctx.fillStyle = '#22c55e'
+  drawRoundRect(ctx, brandX - 212, currentY + 14, 18, 18, 4)
+  ctx.fill()
+  ctx.fillStyle = '#052e16'
+  ctx.font = '900 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  ctx.textAlign = 'center'
+  ctx.fillText('✓', brandX - 203, currentY + 28)
+  ctx.textAlign = 'left'
+
+  return canvas
 }
