@@ -221,7 +221,8 @@ export const syncAdminClaims = onCall(
 
     const isAdmin = Boolean(emailVerified && isEmailInAdminList)
 
-    const existingClaims = request.auth.token
+    const authUser = await admin.auth().getUser(uid)
+    const existingClaims = authUser.customClaims || {}
     const targetClaims = {
       ...existingClaims,
       admin: isAdmin,
@@ -229,6 +230,21 @@ export const syncAdminClaims = onCall(
     }
 
     await admin.auth().setCustomUserClaims(uid, targetClaims)
+
+    if (isAdmin) {
+      const now = Date.now()
+      await admin.firestore().collection('users').doc(uid).set(
+        {
+          id: uid,
+          email: effectiveEmail,
+          accessStatus: 'active',
+          role: 'admin',
+          updatedAt: now,
+          ...(userDoc.exists ? {} : { createdAt: now, workspaceId: uid }),
+        },
+        { merge: true }
+      )
+    }
 
     return {
       isAdmin,

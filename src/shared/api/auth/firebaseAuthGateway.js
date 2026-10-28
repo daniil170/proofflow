@@ -87,6 +87,10 @@ export const firebaseAuthGateway = Object.freeze({
     const functions = getFunctionsInstance()
     const syncFn = httpsCallable(functions, 'syncAdminClaims')
     const res = await syncFn()
+    const auth = getAuthInstance()
+    if (auth.currentUser) {
+      await auth.currentUser.getIdToken(true)
+    }
     return Boolean(res.data?.isAdmin)
   },
 
