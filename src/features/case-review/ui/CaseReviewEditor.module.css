@@ -217,8 +217,44 @@
 
 .previewHeader {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.variantBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  background-color: #f1f5f9;
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.variantBtn {
+  flex: 1;
+  min-width: 58px;
+  padding: 6px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.variantBtn:hover {
+  color: #0f172a;
+}
+
+.variantBtnActive {
+  background-color: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .previewHeading {

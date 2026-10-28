@@ -70,7 +70,7 @@ export const DarkCard = ({ data, className }) => {
               {data.author}, {data.company}
             </span>
             <span className={styles.authorRole}>
-              Клиент {data.category ? data.category.toLowerCase() : 'SMM-стратега'}
+              {data.authorRole || (data.category ? `Клиент · ${data.category}` : 'Клиент')}
             </span>
           </div>
         </div>

@@ -410,6 +410,24 @@ export const useCaseReview = ({
     [caseItem, repository]
   )
 
+  const [selectedVariant, setSelectedVariant] = useState(
+    () => caseItem?.selectedVariant || 'dark'
+  )
+
+  const handleSelectVariant = useCallback(
+    async (variant) => {
+      setSelectedVariant(variant)
+      if (caseItem?.id) {
+        try {
+          await repository.update(caseItem.id, { selectedVariant: variant })
+        } catch {
+          void 0
+        }
+      }
+    },
+    [caseItem?.id, repository]
+  )
+
   const cardPreviewData = useMemo(() => {
     return {
       metric: draft.metric?.value || '+0%',
@@ -419,6 +437,7 @@ export const useCaseReview = ({
       after: draft.result || 'Стало: подтвержденный результат',
       quote: draft.quote?.text || 'Цитата клиента',
       author: draft.quote?.authorLabel || 'Анна К.',
+      authorRole: draft.quote?.authorRole || '',
       company:
         caseItem?.branding?.companyName ||
         draft.quote?.authorCompany ||
@@ -436,6 +455,8 @@ export const useCaseReview = ({
 
   return {
     draft,
+    selectedVariant,
+    handleSelectVariant,
     modifiedFields: Array.from(modifiedFields),
     saveStatus,
     validationErrors,

@@ -8,9 +8,19 @@ import { ReviewActions } from './ReviewActions.jsx'
 import { ClockIcon, SearchIcon } from '@/shared/ui'
 import styles from './CaseReviewEditor.module.css'
 
+const STYLES_LIST = [
+  { id: 'dark', title: 'Тёмная' },
+  { id: 'whatsapp', title: 'WhatsApp' },
+  { id: 'minimal', title: 'Минимализм' },
+  { id: 'newspaper', title: 'Газета' },
+  { id: 'receipt', title: 'Чек' },
+]
+
 export const CaseReviewEditor = ({ reviewState }) => {
   const {
     draft,
+    selectedVariant = 'dark',
+    handleSelectVariant,
     modifiedFields,
     saveStatus,
     validationErrors,
@@ -303,10 +313,24 @@ export const CaseReviewEditor = ({ reviewState }) => {
         >
           <div className={styles.previewHeader}>
             <h3 className={styles.previewHeading}>Живое превью карточки</h3>
+            <div className={styles.variantBar}>
+              {STYLES_LIST.map((style) => (
+                <button
+                  key={style.id}
+                  type="button"
+                  className={`${styles.variantBtn} ${
+                    (selectedVariant || 'dark') === style.id ? styles.variantBtnActive : ''
+                  }`}
+                  onClick={() => handleSelectVariant?.(style.id)}
+                >
+                  {style.title}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className={styles.previewCardWrapper}>
-            <CaseCard variant="dark" data={cardPreviewData} />
+            <CaseCard variant={selectedVariant || 'dark'} data={cardPreviewData} />
           </div>
         </aside>
       </div>

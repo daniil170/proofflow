@@ -66,15 +66,9 @@
 }
 
 .statsGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 10px;
-}
-
-@media (max-width: 640px) {
-  .statsGrid {
-    grid-template-columns: 1fr;
-  }
 }
 
 .statBox {

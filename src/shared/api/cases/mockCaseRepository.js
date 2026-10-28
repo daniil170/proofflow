@@ -2,13 +2,168 @@ import { CASE_STATUS, CASE_STORAGE_KEY, INITIAL_EXAMPLE_CASES } from './types.js
 
 const listeners = new Set()
 
+const buildContextualDraft = (clientName) => {
+  const normalized = (clientName || '').toLowerCase()
+
+  if (
+    normalized.includes('кондитер') ||
+    normalized.includes('торт') ||
+    normalized.includes('десерт') ||
+    normalized.includes('пекарн') ||
+    normalized.includes('выпечк') ||
+    normalized.includes('сладк') ||
+    normalized.includes('кафе')
+  ) {
+    return {
+      draft: {
+        metric: {
+          value: '+85%',
+          label: 'повторных заказов и рекомендаций',
+          evidenceId: 'ev-metric-1',
+        },
+        problem: 'Было: Клиенты часто сомневались при выборе сложных начинок и оформления заказных тортов без предварительной дегустации.',
+        solution: 'Сделано: Ввели подробные фото-согласования дизайна десертов в переписке и дегустационные сеты начинок.',
+        result: 'Стало: Заказы закрываются за 15 минут прямо в диалоге, средний чек на праздничные торты вырос в 1.5 раза.',
+        quote: {
+          text: 'Торт превзошел все наши ожидания! Гости на юбилее съели всё до крошки, крем нежнейший, оформление — шедевр.',
+          authorLabel: 'Мария К.',
+          authorRole: 'Постоянный заказчик',
+          authorCompany: clientName,
+          evidenceId: 'ev-quote-1',
+        },
+        tags: ['Кондитерская', 'Десерты', 'Отзыв'],
+        needsReview: [],
+        missingFields: [],
+      },
+      evidences: [
+        {
+          id: 'ev-metric-1',
+          kind: 'screenshot',
+          sourceId: 'src-1',
+          excerpt: 'клиенты заказывают десерты повторно более чем в 85% случаев',
+          label: 'Скриншот переписки',
+        },
+        {
+          id: 'ev-quote-1',
+          kind: 'screenshot',
+          sourceId: 'src-2',
+          excerpt: 'Торт превзошел все наши ожидания! Гости на юбилее съели всё до крошки.',
+          label: 'Скриншот отзыва',
+        },
+      ],
+    }
+  }
+
+  if (
+    normalized.includes('салон') ||
+    normalized.includes('красот') ||
+    normalized.includes('барбер') ||
+    normalized.includes('маникюр')
+  ) {
+    return {
+      draft: {
+        metric: {
+          value: '4.9 ★',
+          label: 'рейтинг на основе 140 отзывов',
+          evidenceId: 'ev-metric-1',
+        },
+        problem: 'Было: Сложно было донести до новых клиентов экспертность мастеров и стерильность процедур.',
+        solution: 'Сделано: Стали открыто делиться реальными фото работ до/после и собирать живые впечатления сразу после визита.',
+        result: 'Стало: Плотная запись на 2 недели вперед, 70% новых гостей приходят по рекомендациям.',
+        quote: {
+          text: 'Хожу только к вам уже второй год! Всегда безупречный результат, чистота и очень приятная атмосфера.',
+          authorLabel: 'Алина В.',
+          authorRole: 'Постоянный клиент',
+          authorCompany: clientName,
+          evidenceId: 'ev-quote-1',
+        },
+        tags: ['Beauty', 'Услуги', 'Отзыв'],
+        needsReview: [],
+        missingFields: [],
+      },
+      evidences: [
+        {
+          id: 'ev-metric-1',
+          kind: 'screenshot',
+          sourceId: 'src-1',
+          excerpt: 'рейтинг 4.9 на основе более 140 подтвержденных визитов',
+          label: 'Скриншот отзывов',
+        },
+        {
+          id: 'ev-quote-1',
+          kind: 'screenshot',
+          sourceId: 'src-2',
+          excerpt: 'Хожу только к вам уже второй год! Всегда безупречный результат.',
+          label: 'Отзыв в мессенджере',
+        },
+      ],
+    }
+  }
+
+  return {
+    draft: {
+      metric: {
+        value: '+120%',
+        label: 'рост доверия и рекомендаций',
+        evidenceId: 'ev-metric-1',
+      },
+      problem: 'Было: Сложно было наглядно показать новым заказчикам качество работы и реальные результаты предыдущих проектов.',
+      solution: 'Сделано: Упаковали реальные переписки и отзывы в интерактивные карточки с подтверждёнными цитатами.',
+      result: 'Стало: Доверие на первом контакте выросло в разы, цикл принятия решения сократился в 2 раза.',
+      quote: {
+        text: 'Очень приятно работать с профессионалами, всё сделано точно в срок и превзошло наши ожидания.',
+        authorLabel: 'Алексей М.',
+        authorRole: 'Заказчик',
+        authorCompany: clientName,
+        evidenceId: 'ev-quote-1',
+      },
+      tags: [clientName || 'Клиент', 'Результат', 'Отзыв'],
+      needsReview: [],
+      missingFields: [],
+    },
+    evidences: [
+      {
+        id: 'ev-metric-1',
+        kind: 'screenshot',
+        sourceId: 'src-1',
+        excerpt: 'рост доверия и повторных обращений более чем на 120%',
+        label: 'Скриншот диалога',
+      },
+      {
+        id: 'ev-quote-1',
+        kind: 'screenshot',
+        sourceId: 'src-2',
+        excerpt: 'Очень приятно работать с профессионалами, всё сделано точно в срок.',
+        label: 'Подтверждённая цитата',
+      },
+    ],
+  }
+}
+
 const loadCases = () => {
   if (typeof window === 'undefined' || !window.localStorage) {
     return []
   }
   try {
     const raw = window.localStorage.getItem(CASE_STORAGE_KEY)
-    return raw ? JSON.parse(raw) : []
+    if (!raw) return []
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return []
+    return parsed.map((item) => {
+      const clientName = (item.clientLabel || item.client || '').toLowerCase()
+      if (
+        (clientName.includes('кондитер') || clientName.includes('торт')) &&
+        item.draft?.problem?.includes('сбор и согласование отчетов')
+      ) {
+        const contextual = buildContextualDraft(item.clientLabel || 'Кондитерская')
+        return {
+          ...item,
+          draft: contextual.draft,
+          evidences: contextual.evidences,
+        }
+      }
+      return item
+    })
   } catch {
     return []
   }
@@ -80,45 +235,9 @@ export const mockCaseRepository = Object.freeze({
     const caseId = `mock-case-${Math.random().toString(36).substring(2, 9)}`
     const clientName = caseData.clientLabel || 'Клиент'
 
-    const generatedDraft = {
-      metric: {
-        value: '+140%',
-        label: 'рост скорости подготовки кейсов',
-        evidenceId: 'ev-metric-1',
-      },
-      problem: `Было: Команда «${clientName}» тратила до 12 часов в неделю на ручной сбор и согласование отчетов, из-за чего затягивались сроки проектов.`,
-      solution: 'Сделано: Настроили систему автоматического сбора фактов и артефактов на базе ProofFlow с мгновенной верификацией.',
-      result: 'Стало: Срок подготовки материалов сократился в 4 раза, команда освободила более 10 часов в неделю.',
-      quote: {
-        text: 'Сервис окупился в первый же месяц использования, команда в восторге от простоты.',
-        authorLabel: 'Руководитель проектов',
-        authorRole: 'Head of Operations',
-        authorCompany: clientName,
-        evidenceId: 'ev-quote-1',
-      },
-      tags: ['B2B', 'Автоматизация', 'Кейс'],
-      needsReview: [],
-      missingFields: [],
-    }
-
-    const generatedEvidences = [
-      {
-        id: 'ev-metric-1',
-        kind: 'audio',
-        sourceId: 'src-1',
-        excerpt: 'скорость подготовки материалов выросла более чем в 3 раза, до 140%',
-        startSec: 42,
-        endSec: 48,
-        label: 'Аудиозапись (00:42)',
-      },
-      {
-        id: 'ev-quote-1',
-        kind: 'screenshot',
-        sourceId: 'src-2',
-        excerpt: 'Сервис окупился в первый же месяц использования, команда в восторге от простоты.',
-        label: 'Скриншот диалога',
-      },
-    ]
+    const contextual = buildContextualDraft(clientName)
+    const generatedDraft = contextual.draft
+    const generatedEvidences = contextual.evidences
 
     const newCase = {
       id: caseId,
