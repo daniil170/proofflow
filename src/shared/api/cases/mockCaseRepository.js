@@ -213,6 +213,71 @@ const notifyListeners = () => {
   })
 }
 
+const analyzeImageWithGemini = async (file, apiKey) => {
+  if (!file || !apiKey || typeof FileReader === 'undefined') return null
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onload = async () => {
+      try {
+        const rawResult = String(reader.result || '')
+        const base64Data = rawResult.includes(',') ? rawResult.split(',')[1] : rawResult
+        const mimeType = file.type || 'image/jpeg'
+        const prompt = `Ты — эксперт ProofFlow по анализу отзывов и кейсов.
+Проанализируй скриншот переписки с клиентом и верни строго JSON следующего формата:
+{
+  "clientLabel": "Название компании или специалиста из переписки (например: Мария Торты)",
+  "author": "Имя или статус автора отзыва (например: Постоянный клиент или имя заказчика)",
+  "quote": "Дословная прямая цитата отзыва клиента из диалога слово в слово с эмодзи",
+  "problem": "Исходная задача или трудность клиента (без префикса Было:, на русском языке)",
+  "solution": "Что сделал исполнитель/бизнес для клиента (без префикса Сделано:, на русском языке)",
+  "result": "Финальный результат и эффект (без префикса Стало:, на русском языке)",
+  "metricValue": "Ключевое число или цифра из отзыва (например: 5 мин или 100%)",
+  "metricLabel": "Краткая подпись к цифре (например: съели торт, ни крошки не осталось)",
+  "tags": ["Массив", "из 3-4", "релевантных", "тегов"]
+}`
+
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts: [
+                    { inline_data: { mime_type: mimeType, data: base64Data } },
+                    { text: prompt },
+                  ],
+                },
+              ],
+              generationConfig: { response_mime_type: 'application/json' },
+            }),
+          }
+        )
+
+        if (!res.ok) {
+          resolve(null)
+          return
+        }
+
+        const data = await res.json()
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text
+        if (!text) {
+          resolve(null)
+          return
+        }
+
+        const parsed = JSON.parse(text)
+        resolve(parsed)
+      } catch {
+        resolve(null)
+      }
+    }
+    reader.onerror = () => resolve(null)
+    reader.readAsDataURL(file)
+  })
+}
+
 export const mockCaseRepository = Object.freeze({
   subscribeByOwner(ownerId, onUpdate) {
     const listenerRecord = { ownerId, onUpdate }
@@ -306,6 +371,48 @@ export const mockCaseRepository = Object.freeze({
           notifyListeners()
         }, delay)
         delay += 850
+      }
+
+      const imageSource = (caseData.sources || []).find(
+        (s) => s.file instanceof Blob && s.file.type.startsWith('image/')
+      )
+      const apiKey =
+        (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GEMINI_API_KEY) || ''
+
+      if (imageSource && apiKey) {
+        analyzeImageWithGemini(imageSource.file, apiKey).then((aiResult) => {
+          if (!aiResult) return
+          casesStore = casesStore.map((c) => {
+            if (c.id !== caseId) return c
+            const resolvedClient = aiResult.clientLabel || c.clientLabel || 'Клиент'
+            return {
+              ...c,
+              clientLabel: resolvedClient,
+              title: `Кейс для ${resolvedClient}`,
+              draft: {
+                ...c.draft,
+                metric: {
+                  value: aiResult.metricValue || c.draft.metric.value,
+                  label: aiResult.metricLabel || c.draft.metric.label,
+                  evidenceId: 'ev-metric-1',
+                },
+                problem: aiResult.problem || c.draft.problem,
+                solution: aiResult.solution || c.draft.solution,
+                result: aiResult.result || c.draft.result,
+                quote: {
+                  ...c.draft.quote,
+                  text: aiResult.quote || c.draft.quote.text,
+                  authorLabel: aiResult.author || c.draft.quote.authorLabel,
+                  authorCompany: resolvedClient,
+                },
+                tags: aiResult.tags || c.draft.tags,
+              },
+              updatedAt: Date.now(),
+            }
+          })
+          saveCases(casesStore)
+          notifyListeners()
+        })
       }
     }
 

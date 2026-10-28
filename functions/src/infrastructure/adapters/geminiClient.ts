@@ -85,10 +85,11 @@ export class GeminiClient {
     }
     this.mode = rawMode
 
-    const selectedModel = config?.model || process.env.GEMINI_MODEL
-    if (!selectedModel) {
-      throw new Error('Не задана модель Gemini в переменной окружения GEMINI_MODEL.')
-    }
+    const selectedModel =
+      config?.model ||
+      (config as { modelName?: string } | undefined)?.modelName ||
+      process.env.GEMINI_MODEL ||
+      'gemini-2.5-flash'
     this.model = selectedModel
 
     if (this.mode === 'vertex') {
