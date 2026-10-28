@@ -3,15 +3,10 @@ import { promises as fs } from 'fs'
 import dotenv from 'dotenv'
 import { Case, Source, SourceKind } from '../src/domain/types.js'
 import {
-  ClaudeCaseAnalyzer,
-  ClaudeChatReader,
+  createPipelineAdapters,
   LocalStorageAdapter,
   MediaNormalizerImpl,
   MemoryCaseRepository,
-  MockCaseAnalyzer,
-  MockChatReader,
-  MockTranscriber,
-  WhisperTranscriber,
 } from '../src/infrastructure/adapters/index.js'
 import { runPipeline } from '../src/application/use-cases/runPipeline.js'
 
@@ -117,7 +112,9 @@ const main = async () => {
 
   const useMocks =
     process.env.USE_MOCK_ADAPTERS === 'true' ||
-    (!process.env.OPENAI_API_KEY && !process.env.ANTHROPIC_API_KEY)
+    (!process.env.OPENAI_API_KEY &&
+      !process.env.ANTHROPIC_API_KEY &&
+      !process.env.GEMINI_API_KEY)
 
   console.log('--- ProofFlow Pipeline Local Runner ---')
   console.log(`Кейс: ${caseId}`)
@@ -126,20 +123,24 @@ const main = async () => {
   console.log(`Режим: ${useMocks ? 'MOCK (фикстуры)' : 'LIVE (AI API)'}`)
   console.log('---------------------------------------')
 
-  const transcriber =
-    useMocks || !process.env.OPENAI_API_KEY
-      ? new MockTranscriber()
-      : new WhisperTranscriber(process.env.OPENAI_API_KEY)
-
-  const chatReader =
-    useMocks || !process.env.ANTHROPIC_API_KEY
-      ? new MockChatReader()
-      : new ClaudeChatReader(process.env.ANTHROPIC_API_KEY)
-
-  const analyzer =
-    useMocks || !process.env.ANTHROPIC_API_KEY
-      ? new MockCaseAnalyzer()
-      : new ClaudeCaseAnalyzer(process.env.ANTHROPIC_API_KEY)
+  const adapters = createPipelineAdapters({
+    isProd: false,
+    useMocks,
+    openaiKey: process.env.OPENAI_API_KEY,
+    anthropicKey: process.env.ANTHROPIC_API_KEY,
+    geminiApiKey: process.env.GEMINI_API_KEY,
+    geminiConfig: {
+      mode: (process.env.GEMINI_MODE as any) || 'api',
+      apiKey: process.env.GEMINI_API_KEY,
+      region: process.env.GEMINI_REGION,
+      modelName: process.env.GEMINI_MODEL,
+      tier: process.env.GEMINI_TIER,
+    },
+    googleSpeechConfig: {
+      region: process.env.GOOGLE_SPEECH_REGION,
+      languageCode: process.env.GOOGLE_SPEECH_LANGUAGE,
+    },
+  })
 
   const startTime = Date.now()
   const { report } = await runPipeline({
@@ -147,9 +148,9 @@ const main = async () => {
     caseRepository: repo,
     storage,
     normalizer,
-    transcriber,
-    chatReader,
-    analyzer,
+    transcriber: adapters.transcriber,
+    chatReader: adapters.chatReader,
+    analyzer: adapters.analyzer,
   })
 
   const updatedCase = await repo.getCase(caseId)
