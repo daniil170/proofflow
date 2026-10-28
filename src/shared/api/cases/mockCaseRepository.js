@@ -77,15 +77,96 @@ export const mockCaseRepository = Object.freeze({
 
   async create(caseData) {
     const timestamp = Date.now()
+    const caseId = `mock-case-${Math.random().toString(36).substring(2, 9)}`
+    const clientName = caseData.clientLabel || 'Клиент'
+
+    const generatedDraft = {
+      metric: {
+        value: '+140%',
+        label: 'рост скорости подготовки кейсов',
+        evidenceId: 'ev-metric-1',
+      },
+      problem: `Было: Команда «${clientName}» тратила до 12 часов в неделю на ручной сбор и согласование отчетов, из-за чего затягивались сроки проектов.`,
+      solution: 'Сделано: Настроили систему автоматического сбора фактов и артефактов на базе ProofFlow с мгновенной верификацией.',
+      result: 'Стало: Срок подготовки материалов сократился в 4 раза, команда освободила более 10 часов в неделю.',
+      quote: {
+        text: 'Сервис окупился в первый же месяц использования, команда в восторге от простоты.',
+        authorLabel: 'Руководитель проектов',
+        authorRole: 'Head of Operations',
+        authorCompany: clientName,
+        evidenceId: 'ev-quote-1',
+      },
+      tags: ['B2B', 'Автоматизация', 'Кейс'],
+      needsReview: [],
+      missingFields: [],
+    }
+
+    const generatedEvidences = [
+      {
+        id: 'ev-metric-1',
+        kind: 'audio',
+        sourceId: 'src-1',
+        excerpt: 'скорость подготовки материалов выросла более чем в 3 раза, до 140%',
+        startSec: 42,
+        endSec: 48,
+        label: 'Аудиозапись (00:42)',
+      },
+      {
+        id: 'ev-quote-1',
+        kind: 'screenshot',
+        sourceId: 'src-2',
+        excerpt: 'Сервис окупился в первый же месяц использования, команда в восторге от простоты.',
+        label: 'Скриншот диалога',
+      },
+    ]
+
     const newCase = {
-      id: `mock-case-${Math.random().toString(36).substring(2, 9)}`,
+      id: caseId,
       createdAt: timestamp,
       updatedAt: timestamp,
+      stage: 'preparing',
+      stageProgress: 15,
+      stageMessage: 'Подготовка и нормализация источников',
       ...caseData,
+      draft: caseData.draft || generatedDraft,
+      evidences: caseData.evidences || generatedEvidences,
     }
+
     casesStore = [newCase, ...casesStore]
     saveCases(casesStore)
     notifyListeners()
+
+    if (newCase.status === 'processing') {
+      const steps = [
+        { stage: 'transcribing', progress: 35, msg: 'Расшифровка аудио и видео' },
+        { stage: 'reading', progress: 55, msg: 'Извлечение сообщений из скриншотов' },
+        { stage: 'analyzing', progress: 75, msg: 'Сборка структуры кейса' },
+        { stage: 'verifying', progress: 90, msg: 'Проверка фактов и цитат' },
+        { stage: 'done', progress: 100, msg: 'Готово к проверке', status: 'review' },
+      ]
+
+      let delay = 400
+      for (const step of steps) {
+        setTimeout(() => {
+          casesStore = casesStore.map((c) =>
+            c.id === caseId
+              ? {
+                  ...c,
+                  status: step.status || 'processing',
+                  stage: step.stage,
+                  stageProgress: step.progress,
+                  stageMessage: step.msg,
+                  updatedAt: Date.now(),
+                }
+              : c
+          )
+          saveCases(casesStore)
+          notifyListeners()
+        }, delay)
+        delay += 500
+      }
+    }
+
     return newCase
   },
 
