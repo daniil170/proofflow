@@ -10,6 +10,7 @@ export const getAdminFirestore = (): admin.firestore.Firestore => {
   }
 
   dbInstance = admin.firestore()
+  dbInstance.settings({ ignoreUndefinedProperties: true })
   return dbInstance
 }
 

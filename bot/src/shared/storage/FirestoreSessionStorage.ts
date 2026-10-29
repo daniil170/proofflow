@@ -17,9 +17,10 @@ export class FirestoreSessionStorage<T> implements StorageAdapter<T> {
   }
 
   async write(key: string, value: T): Promise<void> {
+    const cleanValue = JSON.parse(JSON.stringify(value))
     await this.db.collection(this.collectionName).doc(key).set(
       {
-        session: value,
+        session: cleanValue,
         updatedAt: new Date().toISOString(),
       },
       { merge: true }

@@ -53,6 +53,18 @@ export const createBot = (
 
   bot.use(createRateLimiter())
 
+  bot.use(async (ctx, next) => {
+    const originalAnswer = ctx.answerCallbackQuery.bind(ctx)
+    ctx.answerCallbackQuery = async (...args) => {
+      try {
+        return await originalAnswer(...args)
+      } catch {
+        return true
+      }
+    }
+    await next()
+  })
+
   bot.use(commandsComposer)
   bot.use(faqComposer)
   bot.use(supportComposer)
