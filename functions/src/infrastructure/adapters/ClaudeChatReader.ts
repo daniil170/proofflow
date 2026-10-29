@@ -1,9 +1,9 @@
 import { promises as fs } from 'fs'
 import path from 'path'
-import { fileURLToPath } from 'url'
 import { chatExtractionSchema } from '../../domain/schemas.js'
 import { ChatExtraction } from '../../domain/types.js'
 import { ChatReader } from '../ports/ChatReader.js'
+import { getChatReaderPrompt } from '../prompts/prompts.js'
 import { withRetry } from './retry.js'
 
 interface AnthropicContentBlock {
@@ -15,19 +15,16 @@ interface AnthropicResponse {
   content?: AnthropicContentBlock[]
 }
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const SYSTEM_PROMPT_PATH = path.resolve(__dirname, '../prompts/chat-reader-system.txt')
-
 export class ClaudeChatReader implements ChatReader {
   private apiKey: string
   private model: string
 
   constructor(apiKey?: string, model?: string) {
-    this.apiKey = apiKey || process.env.ANTHROPIC_API_KEY || ''
     const selectedModel =
       model ||
       process.env.ANTHROPIC_VISION_MODEL ||
       process.env.ANTHROPIC_MODEL
+    this.apiKey = apiKey || process.env.ANTHROPIC_API_KEY || ''
     if (!selectedModel) {
       throw new Error(
         'Не задана модель Claude в переменной окружения ANTHROPIC_MODEL. Укажите актуальное имя модели.'
@@ -45,7 +42,7 @@ export class ClaudeChatReader implements ChatReader {
       throw new Error('ANTHROPIC_API_KEY is not configured for ClaudeChatReader')
     }
 
-    const systemPrompt = await fs.readFile(SYSTEM_PROMPT_PATH, 'utf-8')
+    const systemPrompt = await getChatReaderPrompt()
     const imageBuffer = await fs.readFile(imageFilePath)
     const base64Data = imageBuffer.toString('base64')
 

@@ -1,13 +1,8 @@
-import { promises as fs } from 'fs'
-import path from 'path'
-import { fileURLToPath } from 'url'
 import { caseDraftSchema } from '../../domain/schemas.js'
 import { CaseDraft } from '../../domain/types.js'
 import { AnalysisInput, CaseAnalyzer } from '../ports/CaseAnalyzer.js'
+import { getAnalyzerPrompt } from '../prompts/prompts.js'
 import { GeminiClient, GeminiConfig } from './geminiClient.js'
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const SYSTEM_PROMPT_PATH = path.resolve(__dirname, '../prompts/analyzer-system.txt')
 
 export class GeminiCaseAnalyzer implements CaseAnalyzer {
   private client: GeminiClient
@@ -17,7 +12,7 @@ export class GeminiCaseAnalyzer implements CaseAnalyzer {
   }
 
   async analyze(input: AnalysisInput): Promise<CaseDraft> {
-    const systemPrompt = await fs.readFile(SYSTEM_PROMPT_PATH, 'utf-8')
+    const systemPrompt = await getAnalyzerPrompt()
 
     const userPromptPayload = {
       clientLabel: input.clientLabel || 'Клиент',

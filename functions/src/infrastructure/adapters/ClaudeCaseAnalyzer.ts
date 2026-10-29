@@ -1,9 +1,7 @@
-import { promises as fs } from 'fs'
-import path from 'path'
-import { fileURLToPath } from 'url'
 import { caseDraftSchema } from '../../domain/schemas.js'
 import { CaseDraft } from '../../domain/types.js'
 import { AnalysisInput, CaseAnalyzer } from '../ports/CaseAnalyzer.js'
+import { getAnalyzerPrompt } from '../prompts/prompts.js'
 import { withRetry } from './retry.js'
 
 interface AnthropicContentBlock {
@@ -15,19 +13,16 @@ interface AnthropicResponse {
   content?: AnthropicContentBlock[]
 }
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const SYSTEM_PROMPT_PATH = path.resolve(__dirname, '../prompts/analyzer-system.txt')
-
 export class ClaudeCaseAnalyzer implements CaseAnalyzer {
   private apiKey: string
   private model: string
 
   constructor(apiKey?: string, model?: string) {
-    this.apiKey = apiKey || process.env.ANTHROPIC_API_KEY || ''
     const selectedModel =
       model ||
       process.env.ANTHROPIC_MODEL ||
       process.env.ANALYZER_MODEL
+    this.apiKey = apiKey || process.env.ANTHROPIC_API_KEY || ''
     if (!selectedModel) {
       throw new Error(
         'Не задана модель Claude в переменной окружения ANTHROPIC_MODEL. Укажите актуальное имя модели.'
@@ -41,7 +36,7 @@ export class ClaudeCaseAnalyzer implements CaseAnalyzer {
       throw new Error('ANTHROPIC_API_KEY is not configured for ClaudeCaseAnalyzer')
     }
 
-    const systemPrompt = await fs.readFile(SYSTEM_PROMPT_PATH, 'utf-8')
+    const systemPrompt = await getAnalyzerPrompt()
 
     const userPromptPayload = {
       clientLabel: input.clientLabel || 'Клиент',

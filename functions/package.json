@@ -8,7 +8,7 @@
     "node": "22"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node -e \"fs.cpSync('src/infrastructure/prompts', 'dist/infrastructure/prompts', { recursive: true })\"",
     "lint": "eslint .",
     "test": "vitest run",
     "local": "tsx scripts/run-local.ts",

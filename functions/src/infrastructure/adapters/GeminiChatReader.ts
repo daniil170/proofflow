@@ -1,13 +1,10 @@
 import { promises as fs } from 'fs'
 import path from 'path'
-import { fileURLToPath } from 'url'
 import { chatExtractionSchema } from '../../domain/schemas.js'
 import { ChatExtraction } from '../../domain/types.js'
 import { ChatReader } from '../ports/ChatReader.js'
+import { getChatReaderPrompt } from '../prompts/prompts.js'
 import { GeminiClient, GeminiConfig } from './geminiClient.js'
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const SYSTEM_PROMPT_PATH = path.resolve(__dirname, '../prompts/chat-reader-system.txt')
 
 export class GeminiChatReader implements ChatReader {
   private client: GeminiClient
@@ -21,7 +18,7 @@ export class GeminiChatReader implements ChatReader {
     screenshotSourceId: string,
     order = 0
   ): Promise<ChatExtraction> {
-    const systemPrompt = await fs.readFile(SYSTEM_PROMPT_PATH, 'utf-8')
+    const systemPrompt = await getChatReaderPrompt()
     const imageBuffer = await fs.readFile(imageFilePath)
     const base64Data = imageBuffer.toString('base64')
 
