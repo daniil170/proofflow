@@ -195,42 +195,44 @@ export const SettingsPage = () => {
             <span className={styles.cardIcon}>
               <TelegramIcon size={18} />
             </span>
-            <h2 className={styles.sectionTitle}>Подключение Telegram</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
+              <h2 className={styles.sectionTitle}>Подключение Telegram</h2>
+              <span className={styles.comingSoonBadge}>Скоро</span>
+            </div>
           </div>
 
-          <div className={styles.telegramBox}>
-            <div className={styles.telegramStatusRow}>
-              <span className={styles.telegramStatusLabel}>Статус подключения:</span>
-              {telegramUserId ? (
-                <span className={styles.connectedBadge}>
-                  Подключен (ID: {telegramUserId})
-                </span>
-              ) : (
-                <span className={styles.notConnectedBadge}>Не подключен</span>
-              )}
+          <div className={styles.telegramBlurWrapper}>
+            <div className={styles.telegramBlurredContent} aria-hidden="true">
+              <div className={styles.telegramBox}>
+                <div className={styles.telegramStatusRow}>
+                  <span className={styles.telegramStatusLabel}>Статус подключения:</span>
+                  <span className={styles.notConnectedBadge}>Не подключен</span>
+                </div>
+
+                <p className={styles.supportText}>
+                  Привязка Telegram позволяет отправлять голосовые записи и скриншоты напрямую в чат-бот ProofFlow для мгновенной сборки кейсов.
+                </p>
+
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  disabled
+                  className={styles.primaryBtn}
+                >
+                  <TelegramIcon size={16} />
+                  <span>Подключить Telegram</span>
+                </button>
+              </div>
             </div>
 
-            <p className={styles.supportText}>
-              Привязка Telegram позволяет отправлять голосовые записи и скриншоты напрямую в чат-бот ProofFlow для мгновенной сборки кейсов.
-            </p>
-
-            <button
-              type="button"
-              disabled={isLinking}
-              onClick={handleConnectTelegram}
-              className={styles.primaryBtn}
-            >
-              <TelegramIcon size={16} />
-              <span>
-                {isLinking
-                  ? 'Генерация ссылки...'
-                  : telegramUserId
-                  ? 'Привязать другой аккаунт'
-                  : 'Подключить Telegram'}
-              </span>
-            </button>
-
-            {linkError && <p className={styles.errorText}>{linkError}</p>}
+            <div className={styles.comingSoonOverlay}>
+              <div className={styles.comingSoonCard}>
+                <span className={styles.comingSoonPill}>Скоро будет</span>
+                <p className={styles.comingSoonText}>
+                  Прямой приём голосовых и скриншотов из Telegram появится в ближайшем обновлении
+                </p>
+              </div>
+            </div>
           </div>
 
           <div className={styles.supportDivider} />
