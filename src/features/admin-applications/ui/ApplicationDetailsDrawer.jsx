@@ -3,6 +3,26 @@ import PropTypes from 'prop-types'
 import { useAdminInvite } from '@/features/admin-invites'
 import styles from './ApplicationDetailsDrawer.module.css'
 
+const BUSINESS_TYPE_LABELS = {
+  agency_or_studio: 'Агентство / Студия',
+  marketing_agency: 'Маркетинг',
+  web_studio: 'Веб-студия',
+  it_outsource: 'IT-аутсорс',
+  consulting: 'Консалтинг',
+  freelance: 'Фриланс / Инди',
+}
+
+const CASES_VOLUME_LABELS = {
+  '1_to_3': '1–3 кейса в месяц',
+  '4_to_10': '4–10 кейсов в месяц',
+  '10_to_30': '10–30 кейсов в месяц',
+  'more_than_30': 'Более 30 кейсов в месяц',
+  '1-3': '1–3 кейса в месяц',
+  '4-10': '4–10 кейсов в месяц',
+  'больше 10': 'Более 10 кейсов в месяц',
+  'more_than_10': 'Более 10 кейсов в месяц',
+}
+
 export const ApplicationDetailsDrawer = ({
   application,
   onClose,
@@ -378,11 +398,15 @@ export const ApplicationDetailsDrawer = ({
               </div>
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>Сфера деятельности</span>
-                <span className={styles.fieldValue}>{application.businessType}</span>
+                <span className={styles.fieldValue}>
+                  {BUSINESS_TYPE_LABELS[application.businessType] || application.businessType || '—'}
+                </span>
               </div>
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>Объем кейсов</span>
-                <span className={styles.fieldValue}>{application.casesVolume}</span>
+                <span className={styles.fieldValue}>
+                  {CASES_VOLUME_LABELS[application.casesVolume] || application.casesVolume || '—'}
+                </span>
               </div>
               <div className={`${styles.field} ${styles.fieldFull}`}>
                 <span className={styles.fieldLabel}>Как делают кейсы сейчас</span>

@@ -28,6 +28,17 @@ const BUSINESS_TYPE_LABELS = {
   freelance: 'Фриланс / Инди',
 }
 
+const CASES_VOLUME_LABELS = {
+  '1_to_3': '1–3 в месяц',
+  '4_to_10': '4–10 в месяц',
+  '10_to_30': '10–30 в месяц',
+  'more_than_30': '30+ в месяц',
+  '1-3': '1–3 в месяц',
+  '4-10': '4–10 в месяц',
+  'больше 10': '10+ в месяц',
+  'more_than_10': '10+ в месяц',
+}
+
 export const ApplicationsTable = ({
   applications = [],
   allApplications = [],
@@ -393,7 +404,11 @@ export const ApplicationsTable = ({
                       {BUSINESS_TYPE_LABELS[app.businessType] || app.businessType || '—'}
                     </span>
                   </td>
-                  <td className={styles.td}>{app.casesVolume || '—'}</td>
+                  <td className={styles.td}>
+                    <span className={styles.volumeBadge}>
+                      {CASES_VOLUME_LABELS[app.casesVolume] || app.casesVolume || '—'}
+                    </span>
+                  </td>
                   <td className={styles.td}>
                     <div className={styles.textTruncate} title={app.currentProcess || ''}>
                       {app.currentProcess || '—'}
@@ -500,7 +515,8 @@ export const ApplicationsTable = ({
               </div>
 
               <div className={styles.contactMuted}>
-                {BUSINESS_TYPE_LABELS[app.businessType] || app.businessType || '—'} • {app.casesVolume || '—'}
+                {BUSINESS_TYPE_LABELS[app.businessType] || app.businessType || '—'} •{' '}
+                {CASES_VOLUME_LABELS[app.casesVolume] || app.casesVolume || '—'}
               </div>
 
               {app.currentProcess && (

@@ -6,7 +6,7 @@ import styles from './AdminLayout.module.css'
 export const AdminLayout = () => {
   const { user } = useAuth()
   const applicationsState = useAdminApplications()
-  const { newCount } = applicationsState
+  const { totalCount, newCount } = applicationsState
 
   return (
     <div className={styles.layout}>
@@ -27,7 +27,15 @@ export const AdminLayout = () => {
               }
             >
               <span>Заявки</span>
-              {newCount > 0 && <span className={styles.newBadge}>{newCount}</span>}
+              {totalCount > 0 && (
+                <span
+                  className={styles.countBadge}
+                  title={`Всего заявок: ${totalCount}${newCount > 0 ? ` (новых: ${newCount})` : ''}`}
+                >
+                  {totalCount}
+                  {newCount > 0 && <span className={styles.newDot} />}
+                </span>
+              )}
             </NavLink>
 
             <NavLink
