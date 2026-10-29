@@ -154,17 +154,24 @@ const STYLES = `
   font-size: 11px;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
 }
 
-.pf-watermark svg {
+.pf-watermark svg:first-child {
   flex-shrink: 0;
   display: inline-block;
   vertical-align: middle;
+  margin-right: 5px;
 }
 
-.pf-watermark strong {
-  color: #ffffff;
+.pf-watermark span {
+  margin-right: 3.5px;
+  line-height: 1;
+}
+
+.pf-watermark svg:last-child {
+  flex-shrink: 0;
+  display: inline-block;
+  vertical-align: middle;
 }
 `
 

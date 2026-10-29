@@ -338,11 +338,11 @@ export const renderStoryPng = (data) => {
   ctx.textAlign = 'right'
   ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
   ctx.font = '500 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  const labelX = wordmarkX - 8
+  const labelX = wordmarkX - 4
   ctx.fillText('Powered by', labelX, currentY + 34)
 
   const labelW = ctx.measureText('Powered by').width
-  drawProofFlowIcon(ctx, labelX - labelW - 28, currentY + 17, 20)
+  drawProofFlowIcon(ctx, labelX - labelW - 10, currentY + 17, 20)
   ctx.textAlign = 'left'
 
   return canvas
@@ -564,11 +564,11 @@ export const renderCardPng = (data) => {
   ctx.textAlign = 'right'
   ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
   ctx.font = '500 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  const labelX = wordmarkX - 8
+  const labelX = wordmarkX - 4
   ctx.fillText('Powered by', labelX, currentY + 30)
 
   const labelW = ctx.measureText('Powered by').width
-  drawProofFlowIcon(ctx, labelX - labelW - 26, currentY + 15, 18)
+  drawProofFlowIcon(ctx, labelX - labelW - 10, currentY + 15, 18)
   ctx.textAlign = 'left'
 
   return canvas

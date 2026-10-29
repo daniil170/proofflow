@@ -1,7 +1,6 @@
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
   user-select: none;
   flex-shrink: 0;
 }
@@ -13,6 +12,7 @@
   height: 18px;
   border-radius: 4px;
   object-fit: contain;
+  margin-right: 5px;
 }
 
 .label {
@@ -20,8 +20,9 @@
   font-size: 11px;
   font-weight: 500;
   line-height: 1;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   white-space: nowrap;
+  margin-right: 3.5px;
 }
 
 .wordmark {
@@ -30,6 +31,8 @@
   width: auto;
   flex-shrink: 0;
   object-fit: contain;
+  position: relative;
+  top: -0.5px;
 }
 
 /* Dark variant */
@@ -46,12 +49,14 @@
 .newspaper .label {
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   color: #111111;
+  margin-right: 3px;
 }
 
 .newspaper .appIcon {
   height: 16px;
+  margin-right: 4px;
 }
 
 .newspaper .wordmark {
