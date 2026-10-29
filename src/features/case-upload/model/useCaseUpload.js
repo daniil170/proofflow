@@ -217,7 +217,9 @@ export const useCaseUpload = ({
           const blob = item.getAsFile()
           if (blob) {
             const fileName = `screenshot-${new Date().toISOString().replace(/[:.]/g, '-')}.png`
-            const file = new File([blob], fileName, { type: blob.type || 'image/png' })
+            const file = new File([blob.slice(0, blob.size, blob.type || 'image/png')], fileName, {
+              type: blob.type || 'image/png',
+            })
             imageFiles.push(file)
           }
         }
