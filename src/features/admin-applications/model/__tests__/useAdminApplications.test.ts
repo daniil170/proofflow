@@ -53,6 +53,10 @@ describe('useAdminApplications', () => {
         currentApps = currentApps.map((a) => (a.id === id ? { ...a, ownerNote: note } : a))
         if (listener) listener(currentApps)
       }),
+      deleteApplication: vi.fn(async (id) => {
+        currentApps = currentApps.filter((a) => a.id !== id)
+        if (listener) listener(currentApps)
+      }),
     }
   }
 
@@ -110,5 +114,33 @@ describe('useAdminApplications', () => {
     })
 
     expect(mockRepo.updateNote).toHaveBeenCalledWith('app-1', 'Новая заметка для Анны')
+  })
+
+  it('updates application status and reject reason', async () => {
+    const mockRepo = createMockRepo()
+    const { result } = renderHook(() => useAdminApplications({ repository: mockRepo }))
+
+    await act(async () => {
+      await result.current.updateStatus('app-1', 'rejected', 'Не подходит формат')
+    })
+
+    expect(mockRepo.updateStatus).toHaveBeenCalledWith('app-1', 'rejected', 'Не подходит формат')
+  })
+
+  it('deletes application and clears selection if selected', async () => {
+    const mockRepo = createMockRepo()
+    const { result } = renderHook(() => useAdminApplications({ repository: mockRepo }))
+
+    act(() => {
+      result.current.setSelectedAppId('app-1')
+    })
+    expect(result.current.selectedApplication?.id).toBe('app-1')
+
+    await act(async () => {
+      await result.current.deleteApplication('app-1')
+    })
+
+    expect(mockRepo.deleteApplication).toHaveBeenCalledWith('app-1')
+    expect(result.current.selectedApplication).toBeNull()
   })
 })

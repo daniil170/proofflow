@@ -107,6 +107,13 @@ export const useAdminApplications = ({
     }
   }
 
+  const deleteApplication = async (applicationId) => {
+    await repository.deleteApplication(applicationId)
+    if (selectedAppId === applicationId) {
+      setSelectedAppId(null)
+    }
+  }
+
   return {
     applications: filteredApplications,
     filteredApplications,
@@ -131,5 +138,6 @@ export const useAdminApplications = ({
     updateOwnerNote: saveNote,
     updateStatus,
     updateApplication,
+    deleteApplication,
   }
 }

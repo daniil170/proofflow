@@ -516,13 +516,13 @@ export const updateApplication = onCall(
   async (request) => {
     await requireAdmin(request as { auth?: { uid: string; token: Record<string, unknown> } })
 
-    const { applicationId, status, rejectReason, ownerNote } =
-      (request.data as {
-        applicationId?: string
-        status?: string
-        rejectReason?: string
-        ownerNote?: string
-      }) || {}
+    const rawData = (request.data || {}) as Record<string, unknown>
+    const patch = (rawData.patch && typeof rawData.patch === 'object' ? rawData.patch : {}) as Record<string, unknown>
+
+    const applicationId = (rawData.applicationId || patch.applicationId) as string | undefined
+    const status = (rawData.status !== undefined ? rawData.status : patch.status) as string | undefined
+    const rejectReason = (rawData.rejectReason !== undefined ? rawData.rejectReason : patch.rejectReason) as string | undefined
+    const ownerNote = (rawData.ownerNote !== undefined ? rawData.ownerNote : patch.ownerNote) as string | undefined
 
     if (!applicationId || typeof applicationId !== 'string') {
       throw new HttpsError('invalid-argument', 'Не указан ID заявки')
@@ -566,6 +566,52 @@ export const updateApplication = onCall(
     await appRef.update(updates)
 
     return { success: true }
+  }
+)
+
+export const deleteApplication = onCall(
+  {
+    enforceAppCheck: false,
+    timeoutSeconds: 20,
+  },
+  async (request) => {
+    await requireAdmin(request as { auth?: { uid: string; token: Record<string, unknown> } })
+
+    const { applicationId } = (request.data || {}) as { applicationId?: string }
+
+    if (!applicationId || typeof applicationId !== 'string') {
+      throw new HttpsError('invalid-argument', 'Не указан ID заявки')
+    }
+
+    const db = admin.firestore()
+    const appRef = db.collection('beta_signups').doc(applicationId)
+    const appSnap = await appRef.get()
+
+    if (!appSnap.exists) {
+      throw new HttpsError('not-found', 'Заявка не найдена')
+    }
+
+    const appData = appSnap.data() || {}
+
+    const invitesSnap = await db
+      .collection('invites')
+      .where('applicationId', '==', applicationId)
+      .get()
+
+    const batch = db.batch()
+    invitesSnap.docs.forEach((doc) => {
+      batch.delete(doc.ref)
+    })
+
+    if (appData.inviteCode && typeof appData.inviteCode === 'string') {
+      const directInviteRef = db.collection('invites').doc(appData.inviteCode)
+      batch.delete(directInviteRef)
+    }
+
+    batch.delete(appRef)
+    await batch.commit()
+
+    return { success: true, deletedId: applicationId }
   }
 )
 

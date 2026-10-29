@@ -48,18 +48,24 @@ export const createFirestoreApplicationRepository = () => ({
   async updateNote(applicationId, note) {
     const functions = getFunctionsInstance()
     const call = httpsCallable(functions, 'updateApplication')
-    await call({ applicationId, patch: { ownerNote: note } })
+    await call({ applicationId, ownerNote: note, patch: { ownerNote: note } })
   },
 
   async updateStatus(applicationId, status, rejectReason = '') {
     const functions = getFunctionsInstance()
     const call = httpsCallable(functions, 'updateApplication')
-    await call({ applicationId, patch: { status, rejectReason } })
+    await call({ applicationId, status, rejectReason, patch: { status, rejectReason } })
   },
 
   async markInvited(applicationId) {
     const functions = getFunctionsInstance()
     const call = httpsCallable(functions, 'markApplicationInvited')
+    await call({ applicationId })
+  },
+
+  async deleteApplication(applicationId) {
+    const functions = getFunctionsInstance()
+    const call = httpsCallable(functions, 'deleteApplication')
     await call({ applicationId })
   },
 })

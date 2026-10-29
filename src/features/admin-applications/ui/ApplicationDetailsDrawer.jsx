@@ -8,11 +8,14 @@ export const ApplicationDetailsDrawer = ({
   onClose,
   onSaveNote,
   onUpdateStatus,
+  onDelete,
 }) => {
   const [note, setNote] = useState(application?.ownerNote || '')
   const [isSavingNote, setIsSavingNote] = useState(false)
   const [rejectPromptOpen, setRejectPromptOpen] = useState(false)
   const [rejectReason, setRejectReason] = useState('')
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [actionError, setActionError] = useState('')
 
   const {
@@ -98,6 +101,19 @@ export const ApplicationDetailsDrawer = ({
       await onUpdateStatus(application.id, 'new')
     } catch (err) {
       setActionError(err?.message || 'Не удалось вернуть статус')
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!onDelete) return
+    setIsDeleting(true)
+    setActionError('')
+    try {
+      await onDelete(application.id)
+      onClose()
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Не удалось удалить заявку')
+      setIsDeleting(false)
     }
   }
 
@@ -427,6 +443,51 @@ export const ApplicationDetailsDrawer = ({
               )}
             </div>
           </section>
+
+          {onDelete && (
+            <section className={styles.section}>
+              <div className={styles.dangerCard}>
+                <h4 className={styles.dangerTitle}>Опасная зона</h4>
+                <p className={styles.dangerText}>
+                  Удаление заявки безвозвратно удаляет все данные анкеты и связанные инвайты.
+                </p>
+                {!deleteConfirmOpen ? (
+                  <button
+                    type="button"
+                    onClick={() => setDeleteConfirmOpen(true)}
+                    className={styles.dangerBtn}
+                    style={{ alignSelf: 'flex-start' }}
+                  >
+                    Удалить эту заявку
+                  </button>
+                ) : (
+                  <div className={styles.dangerConfirmBox}>
+                    <span style={{ fontSize: 'var(--font-size-xs)', color: '#ef4444', fontWeight: 600 }}>
+                      Вы уверены? Данное действие нельзя отменить.
+                    </span>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button
+                        type="button"
+                        disabled={isDeleting}
+                        onClick={handleDelete}
+                        className={styles.dangerBtn}
+                      >
+                        {isDeleting ? 'Удаление...' : 'Да, удалить навсегда'}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isDeleting}
+                        onClick={() => setDeleteConfirmOpen(false)}
+                        className={styles.secondaryBtn}
+                      >
+                        Отмена
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
         </div>
       </div>
     </div>
@@ -438,4 +499,5 @@ ApplicationDetailsDrawer.propTypes = {
   onClose: PropTypes.func.isRequired,
   onSaveNote: PropTypes.func.isRequired,
   onUpdateStatus: PropTypes.func.isRequired,
+  onDelete: PropTypes.func,
 }

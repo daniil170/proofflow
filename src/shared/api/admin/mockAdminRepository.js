@@ -175,6 +175,13 @@ export const mockApplicationRepository = Object.freeze({
     )
     persistApplications()
   },
+
+  async deleteApplication(applicationId) {
+    applications = applications.filter((app) => app.id !== applicationId)
+    invites = invites.filter((inv) => inv.applicationId !== applicationId)
+    persistApplications()
+    persistInvites()
+  },
 })
 
 export const mockAdminInviteRepository = Object.freeze({

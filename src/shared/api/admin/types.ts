@@ -48,6 +48,7 @@ export interface ApplicationRepository {
     rejectReason?: string
   ): Promise<void>
   markInvited(applicationId: string): Promise<void>
+  deleteApplication(applicationId: string): Promise<void>
 }
 
 export interface AdminInviteRepository {
