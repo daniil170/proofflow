@@ -1,25 +1,16 @@
-import { getApps, initializeApp } from 'firebase/app'
-import { getFirestore, type Firestore } from 'firebase/firestore'
-import { config } from '../config.js'
+import admin from 'firebase-admin'
 
-let dbInstance: Firestore | null = null
+let dbInstance: admin.firestore.Firestore | null = null
 
-export const getFirestoreDb = (): Firestore => {
+export const getAdminFirestore = (): admin.firestore.Firestore => {
   if (dbInstance) return dbInstance
 
-  const apps = getApps()
-  const app =
-    apps.length > 0
-      ? apps[0]
-      : initializeApp({
-          apiKey: config.firebase.apiKey,
-          authDomain: config.firebase.authDomain,
-          projectId: config.firebase.projectId,
-          storageBucket: config.firebase.storageBucket,
-          messagingSenderId: config.firebase.messagingSenderId,
-          appId: config.firebase.appId,
-        })
+  if (!admin.apps.length) {
+    admin.initializeApp()
+  }
 
-  dbInstance = getFirestore(app)
+  dbInstance = admin.firestore()
   return dbInstance
 }
+
+export const getFirestoreDb = getAdminFirestore

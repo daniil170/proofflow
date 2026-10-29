@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { FirestoreSessionStorage } from '../src/shared/storage/FirestoreSessionStorage.js'
-import type { Firestore } from 'firebase/firestore'
+import type { Firestore } from 'firebase-admin/firestore'
 
 describe('FirestoreSessionStorage', () => {
   it('reads session data when document exists', async () => {

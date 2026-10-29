@@ -1,19 +1,6 @@
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  increment,
-  query,
-  serverTimestamp,
-  updateDoc,
-  where,
-  type Firestore,
-} from 'firebase/firestore'
+import { FieldValue, type Firestore } from 'firebase-admin/firestore'
 import type { Idea } from '../../entities/index.js'
-import { getFirestoreDb } from './firebase.js'
+import { getAdminFirestore } from './firebase.js'
 import type { IdeaRepository } from './IdeaRepository.js'
 
 const COLLECTION_NAME = 'ideas'
@@ -21,17 +8,17 @@ const COLLECTION_NAME = 'ideas'
 export class FirestoreIdeaRepository implements IdeaRepository {
   private readonly db: Firestore
 
-  constructor(db = getFirestoreDb()) {
-    this.db = db
+  constructor(db?: Firestore) {
+    this.db = db || getAdminFirestore()
   }
 
   async create(
     ideaData: Omit<Idea, 'id' | 'createdAt' | 'votesCount'>
   ): Promise<Idea> {
-    const docRef = await addDoc(collection(this.db, COLLECTION_NAME), {
+    const docRef = await this.db.collection(COLLECTION_NAME).add({
       ...ideaData,
       votesCount: 0,
-      createdAt: serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
     })
 
     const now = new Date().toISOString()
@@ -44,10 +31,10 @@ export class FirestoreIdeaRepository implements IdeaRepository {
   }
 
   async findById(id: string): Promise<Idea | null> {
-    const docSnap = await getDoc(doc(this.db, COLLECTION_NAME, id))
-    if (!docSnap.exists()) return null
+    const docSnap = await this.db.collection(COLLECTION_NAME).doc(id).get()
+    if (!docSnap.exists) return null
 
-    const data = docSnap.data()
+    const data = docSnap.data() || {}
     return {
       id: docSnap.id,
       telegramUserId: data.telegramUserId,
@@ -63,15 +50,15 @@ export class FirestoreIdeaRepository implements IdeaRepository {
   }
 
   async findByAdminMessageId(adminMessageId: number): Promise<Idea | null> {
-    const q = query(
-      collection(this.db, COLLECTION_NAME),
-      where('adminMessageId', '==', adminMessageId)
-    )
-    const snapshot = await getDocs(q)
+    const snapshot = await this.db
+      .collection(COLLECTION_NAME)
+      .where('adminMessageId', '==', adminMessageId)
+      .get()
+
     if (snapshot.empty) return null
 
     const docSnap = snapshot.docs[0]
-    const data = docSnap.data()
+    const data = docSnap.data() || {}
     return {
       id: docSnap.id,
       telegramUserId: data.telegramUserId,
@@ -87,11 +74,10 @@ export class FirestoreIdeaRepository implements IdeaRepository {
   }
 
   async update(id: string, updates: Partial<Idea>): Promise<Idea> {
-    const ref = doc(this.db, COLLECTION_NAME, id)
     const payload: Record<string, unknown> = { ...updates }
     delete payload.id
 
-    await updateDoc(ref, payload)
+    await this.db.collection(COLLECTION_NAME).doc(id).update(payload)
     const updated = await this.findById(id)
     if (!updated) {
       throw new Error(`Idea with id ${id} not found after update`)
@@ -103,15 +89,15 @@ export class FirestoreIdeaRepository implements IdeaRepository {
     limit: number,
     offset: number
   ): Promise<{ items: Idea[]; total: number }> {
-    const q = query(
-      collection(this.db, COLLECTION_NAME),
-      where('moderationStatus', '==', 'public')
-    )
-    const snapshot = await getDocs(q)
+    const snapshot = await this.db
+      .collection(COLLECTION_NAME)
+      .where('moderationStatus', '==', 'public')
+      .get()
+
     const all: Idea[] = []
 
     for (const docSnap of snapshot.docs) {
-      const data = docSnap.data()
+      const data = docSnap.data() || {}
       if (data.text && typeof data.text === 'string' && data.text.trim().length > 0) {
         all.push({
           id: docSnap.id,
@@ -141,16 +127,16 @@ export class FirestoreIdeaRepository implements IdeaRepository {
   }
 
   async countDailyByUser(telegramUserId: number, since: Date): Promise<number> {
-    const q = query(
-      collection(this.db, COLLECTION_NAME),
-      where('telegramUserId', '==', telegramUserId)
-    )
-    const snapshot = await getDocs(q)
+    const snapshot = await this.db
+      .collection(COLLECTION_NAME)
+      .where('telegramUserId', '==', telegramUserId)
+      .get()
+
     const sinceTime = since.getTime()
     let count = 0
 
     for (const docSnap of snapshot.docs) {
-      const data = docSnap.data()
+      const data = docSnap.data() || {}
       const createdTime = data.createdAt?.toDate
         ? data.createdAt.toDate().getTime()
         : new Date(data.createdAt || 0).getTime()
@@ -164,15 +150,14 @@ export class FirestoreIdeaRepository implements IdeaRepository {
   }
 
   async deleteByTelegramUserId(telegramUserId: number): Promise<number> {
-    const q = query(
-      collection(this.db, COLLECTION_NAME),
-      where('telegramUserId', '==', telegramUserId)
-    )
-    const snapshot = await getDocs(q)
-    let deleted = 0
+    const snapshot = await this.db
+      .collection(COLLECTION_NAME)
+      .where('telegramUserId', '==', telegramUserId)
+      .get()
 
+    let deleted = 0
     for (const docSnap of snapshot.docs) {
-      await deleteDoc(docSnap.ref)
+      await docSnap.ref.delete()
       deleted += 1
     }
 
@@ -180,9 +165,8 @@ export class FirestoreIdeaRepository implements IdeaRepository {
   }
 
   async incrementVote(id: string, delta: number): Promise<number> {
-    const ref = doc(this.db, COLLECTION_NAME, id)
-    await updateDoc(ref, {
-      votesCount: increment(delta),
+    await this.db.collection(COLLECTION_NAME).doc(id).update({
+      votesCount: FieldValue.increment(delta),
     })
     const updated = await this.findById(id)
     return updated?.votesCount ?? 0

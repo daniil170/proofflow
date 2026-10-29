@@ -30,7 +30,7 @@ const bootstrap = async (): Promise<void> => {
       })
     : null
 
-  if (isWebhook && config.webhookUrl) {
+  if (isWebhook && config.webhookUrl && !config.webhookUrl.includes('onrender.com')) {
     await bot.api.setWebhook(config.webhookUrl, {
       secret_token: config.webhookSecretToken,
     })

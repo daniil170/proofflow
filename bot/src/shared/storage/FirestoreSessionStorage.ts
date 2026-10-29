@@ -1,26 +1,23 @@
-import { doc, getDoc, setDoc, deleteDoc, type Firestore } from 'firebase/firestore'
+import type { Firestore } from 'firebase-admin/firestore'
 import type { StorageAdapter } from 'grammy'
-import { getFirestoreDb } from './firebase.js'
+import { getAdminFirestore } from './firebase.js'
 
 export class FirestoreSessionStorage<T> implements StorageAdapter<T> {
   private readonly db: Firestore
 
   constructor(db?: Firestore, private readonly collectionName = 'bot_sessions') {
-    this.db = db || getFirestoreDb()
+    this.db = db || getAdminFirestore()
   }
 
   async read(key: string): Promise<T | undefined> {
-    const docRef = doc(this.db, this.collectionName, key)
-    const snap = await getDoc(docRef)
-    if (!snap.exists()) return undefined
+    const snap = await this.db.collection(this.collectionName).doc(key).get()
+    if (!snap.exists) return undefined
     const data = snap.data()
     return data?.session as T | undefined
   }
 
   async write(key: string, value: T): Promise<void> {
-    const docRef = doc(this.db, this.collectionName, key)
-    await setDoc(
-      docRef,
+    await this.db.collection(this.collectionName).doc(key).set(
       {
         session: value,
         updatedAt: new Date().toISOString(),
@@ -30,7 +27,6 @@ export class FirestoreSessionStorage<T> implements StorageAdapter<T> {
   }
 
   async delete(key: string): Promise<void> {
-    const docRef = doc(this.db, this.collectionName, key)
-    await deleteDoc(docRef)
+    await this.db.collection(this.collectionName).doc(key).delete()
   }
 }

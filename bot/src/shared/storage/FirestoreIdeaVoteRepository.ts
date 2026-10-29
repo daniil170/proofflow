@@ -1,17 +1,6 @@
-import {
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  serverTimestamp,
-  setDoc,
-  where,
-  type Firestore,
-} from 'firebase/firestore'
+import { FieldValue, type Firestore } from 'firebase-admin/firestore'
 import type { IdeaVote } from '../../entities/index.js'
-import { getFirestoreDb } from './firebase.js'
+import { getAdminFirestore } from './firebase.js'
 import type { IdeaVoteRepository } from './IdeaVoteRepository.js'
 
 const COLLECTION_NAME = 'idea_votes'
@@ -19,8 +8,8 @@ const COLLECTION_NAME = 'idea_votes'
 export class FirestoreIdeaVoteRepository implements IdeaVoteRepository {
   private readonly db: Firestore
 
-  constructor(db = getFirestoreDb()) {
-    this.db = db
+  constructor(db?: Firestore) {
+    this.db = db || getAdminFirestore()
   }
 
   private makeDocId(ideaId: string, telegramUserId: number): string {
@@ -29,49 +18,48 @@ export class FirestoreIdeaVoteRepository implements IdeaVoteRepository {
 
   async addVote(ideaId: string, telegramUserId: number): Promise<boolean> {
     const docId = this.makeDocId(ideaId, telegramUserId)
-    const ref = doc(this.db, COLLECTION_NAME, docId)
-    const existing = await getDoc(ref)
-    if (existing.exists()) {
+    const ref = this.db.collection(COLLECTION_NAME).doc(docId)
+    const existing = await ref.get()
+    if (existing.exists) {
       return false
     }
 
-    await setDoc(ref, {
+    await ref.set({
       ideaId,
       telegramUserId,
-      createdAt: serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
     })
     return true
   }
 
   async removeVote(ideaId: string, telegramUserId: number): Promise<boolean> {
     const docId = this.makeDocId(ideaId, telegramUserId)
-    const ref = doc(this.db, COLLECTION_NAME, docId)
-    const existing = await getDoc(ref)
-    if (!existing.exists()) {
+    const ref = this.db.collection(COLLECTION_NAME).doc(docId)
+    const existing = await ref.get()
+    if (!existing.exists) {
       return false
     }
 
-    await deleteDoc(ref)
+    await ref.delete()
     return true
   }
 
   async hasVoted(ideaId: string, telegramUserId: number): Promise<boolean> {
     const docId = this.makeDocId(ideaId, telegramUserId)
-    const ref = doc(this.db, COLLECTION_NAME, docId)
-    const snap = await getDoc(ref)
-    return snap.exists()
+    const ref = this.db.collection(COLLECTION_NAME).doc(docId)
+    const snap = await ref.get()
+    return snap.exists
   }
 
   async findVotesByUser(telegramUserId: number): Promise<IdeaVote[]> {
-    const q = query(
-      collection(this.db, COLLECTION_NAME),
-      where('telegramUserId', '==', telegramUserId)
-    )
-    const snapshot = await getDocs(q)
-    const votes: IdeaVote[] = []
+    const snapshot = await this.db
+      .collection(COLLECTION_NAME)
+      .where('telegramUserId', '==', telegramUserId)
+      .get()
 
+    const votes: IdeaVote[] = []
     for (const docSnap of snapshot.docs) {
-      const data = docSnap.data()
+      const data = docSnap.data() || {}
       votes.push({
         id: docSnap.id,
         ideaId: data.ideaId,
@@ -84,37 +72,35 @@ export class FirestoreIdeaVoteRepository implements IdeaVoteRepository {
   }
 
   async deleteByTelegramUserId(telegramUserId: number): Promise<IdeaVote[]> {
-    const q = query(
-      collection(this.db, COLLECTION_NAME),
-      where('telegramUserId', '==', telegramUserId)
-    )
-    const snapshot = await getDocs(q)
-    const removed: IdeaVote[] = []
+    const snapshot = await this.db
+      .collection(COLLECTION_NAME)
+      .where('telegramUserId', '==', telegramUserId)
+      .get()
 
+    const removed: IdeaVote[] = []
     for (const docSnap of snapshot.docs) {
-      const data = docSnap.data()
+      const data = docSnap.data() || {}
       removed.push({
         id: docSnap.id,
         ideaId: data.ideaId,
         telegramUserId: data.telegramUserId,
         createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt || new Date().toISOString(),
       })
-      await deleteDoc(docSnap.ref)
+      await docSnap.ref.delete()
     }
 
     return removed
   }
 
   async deleteByIdeaId(ideaId: string): Promise<number> {
-    const q = query(
-      collection(this.db, COLLECTION_NAME),
-      where('ideaId', '==', ideaId)
-    )
-    const snapshot = await getDocs(q)
-    let count = 0
+    const snapshot = await this.db
+      .collection(COLLECTION_NAME)
+      .where('ideaId', '==', ideaId)
+      .get()
 
+    let count = 0
     for (const docSnap of snapshot.docs) {
-      await deleteDoc(docSnap.ref)
+      await docSnap.ref.delete()
       count += 1
     }
 

@@ -1,19 +1,6 @@
-import { getApps, initializeApp } from 'firebase/app'
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDocs,
-  getFirestore,
-  query,
-  serverTimestamp,
-  updateDoc,
-  where,
-  type Firestore,
-} from 'firebase/firestore'
+import { FieldValue, type Firestore } from 'firebase-admin/firestore'
 import type { BetaApplication } from '../../entities/index.js'
-import { config } from '../config.js'
+import { getAdminFirestore } from './firebase.js'
 import type { BetaApplicationRepository } from './BetaApplicationRepository.js'
 
 const COLLECTION_NAME = 'beta_signups'
@@ -21,29 +8,17 @@ const COLLECTION_NAME = 'beta_signups'
 export class FirestoreBetaApplicationRepository implements BetaApplicationRepository {
   private readonly db: Firestore
 
-  constructor() {
-    const apps = getApps()
-    const app =
-      apps.length > 0
-        ? apps[0]
-        : initializeApp({
-            apiKey: config.firebase.apiKey,
-            authDomain: config.firebase.authDomain,
-            projectId: config.firebase.projectId,
-            storageBucket: config.firebase.storageBucket,
-            messagingSenderId: config.firebase.messagingSenderId,
-            appId: config.firebase.appId,
-          })
-    this.db = getFirestore(app)
+  constructor(db?: Firestore) {
+    this.db = db || getAdminFirestore()
   }
 
   async findByTelegramUserId(telegramUserId: number): Promise<BetaApplication | null> {
-    const q = query(
-      collection(this.db, COLLECTION_NAME),
-      where('source', '==', 'telegram'),
-      where('telegramUserId', '==', telegramUserId)
-    )
-    const snapshot = await getDocs(q)
+    const snapshot = await this.db
+      .collection(COLLECTION_NAME)
+      .where('source', '==', 'telegram')
+      .where('telegramUserId', '==', telegramUserId)
+      .get()
+
     if (snapshot.empty) return null
 
     const docSnapshot = snapshot.docs[0]
@@ -72,7 +47,6 @@ export class FirestoreBetaApplicationRepository implements BetaApplicationReposi
   async create(
     application: Omit<BetaApplication, 'id' | 'createdAt' | 'updatedAt'>
   ): Promise<BetaApplication> {
-    const col = collection(this.db, COLLECTION_NAME)
     const docData = {
       ...application,
       channel: 'telegram',
@@ -80,8 +54,8 @@ export class FirestoreBetaApplicationRepository implements BetaApplicationReposi
       status: application.status || 'new',
       email: null,
       currentProcess: application.feedbackText || application.currentProcess || '',
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
       history: [
         {
           action: 'created',
@@ -90,7 +64,7 @@ export class FirestoreBetaApplicationRepository implements BetaApplicationReposi
         },
       ],
     }
-    const docRef = await addDoc(col, docData)
+    const docRef = await this.db.collection(COLLECTION_NAME).add(docData)
     return {
       ...application,
       id: docRef.id,
@@ -105,11 +79,13 @@ export class FirestoreBetaApplicationRepository implements BetaApplicationReposi
   }
 
   async update(id: string, updates: Partial<BetaApplication>): Promise<BetaApplication> {
-    const docRef = doc(this.db, COLLECTION_NAME, id)
-    await updateDoc(docRef, {
-      ...updates,
-      updatedAt: serverTimestamp(),
-    })
+    await this.db
+      .collection(COLLECTION_NAME)
+      .doc(id)
+      .update({
+        ...updates,
+        updatedAt: FieldValue.serverTimestamp(),
+      })
     return {
       id,
       ...(updates as BetaApplication),
@@ -117,32 +93,32 @@ export class FirestoreBetaApplicationRepository implements BetaApplicationReposi
   }
 
   async deleteByTelegramUserId(telegramUserId: number): Promise<boolean> {
-    const q = query(
-      collection(this.db, COLLECTION_NAME),
-      where('source', '==', 'telegram'),
-      where('telegramUserId', '==', telegramUserId)
-    )
-    const snapshot = await getDocs(q)
+    const snapshot = await this.db
+      .collection(COLLECTION_NAME)
+      .where('source', '==', 'telegram')
+      .where('telegramUserId', '==', telegramUserId)
+      .get()
+
     if (snapshot.empty) return false
 
-    const deletePromises = snapshot.docs.map((d) => deleteDoc(d.ref))
+    const deletePromises = snapshot.docs.map((d) => d.ref.delete())
     await Promise.all(deletePromises)
     return true
   }
 
   async setUnsubscribed(telegramUserId: number, unsubscribed: boolean): Promise<boolean> {
-    const q = query(
-      collection(this.db, COLLECTION_NAME),
-      where('source', '==', 'telegram'),
-      where('telegramUserId', '==', telegramUserId)
-    )
-    const snapshot = await getDocs(q)
+    const snapshot = await this.db
+      .collection(COLLECTION_NAME)
+      .where('source', '==', 'telegram')
+      .where('telegramUserId', '==', telegramUserId)
+      .get()
+
     if (snapshot.empty) return false
 
     const updatePromises = snapshot.docs.map((d) =>
-      updateDoc(d.ref, {
+      d.ref.update({
         unsubscribed,
-        updatedAt: serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
       })
     )
     await Promise.all(updatePromises)
