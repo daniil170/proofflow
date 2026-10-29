@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Container } from '@/shared/ui'
 import {
   Audience,
@@ -8,6 +9,7 @@ import {
   Footer,
   Header,
   Hero,
+  LogoDemoIntro,
   Steps,
   StylePicker,
   Trust,
@@ -16,15 +18,20 @@ import BetaProgramSection from '@/components/landing/BetaProgramSection'
 import styles from './LandingPage.module.css'
 
 export const LandingPage = () => {
+  const [showDemoIntro, setShowDemoIntro] = useState(true)
+
   return (
     <>
-      <Header />
+      {showDemoIntro && (
+        <LogoDemoIntro onFinish={() => setShowDemoIntro(false)} />
+      )}
+      <Header onLogoClick={() => setShowDemoIntro(true)} />
       <main>
         <Hero />
         <Audience />
         <Steps />
-        <Comparison />
         <StylePicker />
+        <Comparison />
         <Trust />
         <BetaProgramSection />
         <Faq />

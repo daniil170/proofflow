@@ -1,0 +1,242 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background-color: #0b0b0c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.45s ease;
+  overflow: hidden;
+}
+
+.overlayDismissed {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ambientGlow {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(212, 255, 58, 0.15) 0%, rgba(212, 255, 58, 0.03) 45%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: pulseAmbient 3s ease-in-out infinite alternate;
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+}
+
+.logoCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px;
+  position: relative;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.svgWrapper {
+  width: 280px;
+  max-width: 80vw;
+  height: auto;
+  margin-bottom: 24px;
+}
+
+@media (min-width: 640px) {
+  .svgWrapper {
+    width: 360px;
+  }
+}
+
+.svgLogo {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* Animations for Logo paths */
+.markArch {
+  stroke-dasharray: 200;
+  stroke-dashoffset: 200;
+  animation: drawMark 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.markBeam {
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  animation: drawBeam 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards, glowBeam 1.5s ease-in-out infinite alternate;
+}
+
+.wordmarkLetters {
+  opacity: 0;
+  transform: translateY(6px);
+  animation: fadeInLetters 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.6s forwards;
+}
+
+.wordmarkBeam {
+  stroke-dasharray: 50;
+  stroke-dashoffset: 50;
+  opacity: 0;
+  animation: drawWordmarkBeam 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.8s forwards;
+}
+
+.badgeRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  background-color: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(212, 255, 58, 0.25);
+  border-radius: 9999px;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 1s forwards;
+}
+
+.badgePulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #d4ff3a;
+  box-shadow: 0 0 8px #d4ff3a;
+  animation: pingDot 1.2s ease-in-out infinite alternate;
+}
+
+.badgeText {
+  color: #f3f2ea;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.streamParticles {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.skipButton {
+  position: fixed;
+  bottom: 28px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.skipButton:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+/* Keyframes */
+@keyframes drawMark {
+  0% {
+    stroke-dashoffset: 200;
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes drawBeam {
+  0% {
+    stroke-dashoffset: 60;
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes glowBeam {
+  0% {
+    filter: drop-shadow(0 0 2px #d4ff3a);
+  }
+  100% {
+    filter: drop-shadow(0 0 10px #d4ff3a);
+  }
+}
+
+@keyframes fadeInLetters {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes drawWordmarkBeam {
+  0% {
+    stroke-dashoffset: 50;
+    opacity: 0;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseAmbient {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+@keyframes pingDot {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+}

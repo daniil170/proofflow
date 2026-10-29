@@ -43,7 +43,7 @@ describe('BetaProgramSection component', () => {
     expect(
       screen.getByRole('heading', {
         level: 3,
-        name: /Шаг 4: Пожизненная скидка 50% для первых 10 участников/i,
+        name: /Шаг 4: Пожизненная скидка 20% для первых 10 участников/i,
       })
     ).toBeDefined()
 

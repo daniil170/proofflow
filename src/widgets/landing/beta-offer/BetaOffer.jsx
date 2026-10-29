@@ -81,7 +81,7 @@ export const BetaOffer = () => {
             <span className={styles.conditionTitle}>Что взамен</span>
             <span className={styles.conditionText}>
               Архив переписок или отзывов, честный фидбек и 10-минутный созвон. Взамен — пожизненная
-              скидка 50% (Founder-тариф).
+              скидка 20% (Founder-тариф).
             </span>
           </div>
         </div>

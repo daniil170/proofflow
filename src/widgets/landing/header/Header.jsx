@@ -1,9 +1,10 @@
+import PropTypes from 'prop-types'
 import { Link } from 'react-router-dom'
 import { Button, Container } from '@/shared/ui'
 import logoSvg from '@/assets/logo/proofflow-logo-horizontal-on-light.svg'
 import styles from './Header.module.css'
 
-export const Header = () => {
+export const Header = ({ onLogoClick }) => {
   const handleScrollToForm = () => {
     const target = document.getElementById('beta-form')
     if (target) {
@@ -11,11 +12,23 @@ export const Header = () => {
     }
   }
 
+  const handleLogoClick = (e) => {
+    if (onLogoClick) {
+      e.preventDefault()
+      onLogoClick()
+    }
+  }
+
   return (
     <header className={styles.header}>
       <Container>
         <div className={styles.inner}>
-          <a href="#" className={styles.logoLink} aria-label="ProofFlow Home">
+          <a
+            href="#"
+            className={styles.logoLink}
+            onClick={handleLogoClick}
+            aria-label="ProofFlow Home - смотреть демо анимацию"
+          >
             <img
               src={logoSvg}
               alt="ProofFlow"
@@ -54,4 +67,8 @@ export const Header = () => {
       </Container>
     </header>
   )
+}
+
+Header.propTypes = {
+  onLogoClick: PropTypes.func,
 }
