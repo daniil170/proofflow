@@ -77,6 +77,16 @@ export const AppHeader = () => {
           >
             Настройки
           </NavLink>
+          {isAdmin && (
+            <NavLink
+              to="/admin"
+              className={({ isActive }) =>
+                isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink
+              }
+            >
+              Админка
+            </NavLink>
+          )}
         </nav>
 
         <div className={styles.actionsGroup}>

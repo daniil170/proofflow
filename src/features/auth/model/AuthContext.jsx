@@ -122,8 +122,8 @@ export const AuthProvider = ({
   }, [gateway, setIsAdmin, setUserRecord])
 
   const value = useMemo(() => {
-    const accessStatus = isAdmin ? 'active' : userRecord?.accessStatus || 'active'
-    const isOnboarded = isAdmin ? true : Boolean(userRecord?.isOnboarded ?? userRecord?.profile?.name ?? true)
+    const accessStatus = isAdmin ? 'active' : userRecord?.accessStatus || 'waitlist'
+    const isOnboarded = isAdmin ? true : Boolean(userRecord?.isOnboarded ?? userRecord?.profile?.name ?? false)
 
     return {
       user,
