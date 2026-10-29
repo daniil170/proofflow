@@ -1,4 +1,4 @@
-import { Bot, session } from 'grammy'
+import { Bot, session, type StorageAdapter } from 'grammy'
 import { config } from '../shared/config.js'
 import { logger } from '../shared/logger.js'
 import { TEXTS } from '../shared/texts.js'
@@ -10,6 +10,7 @@ import { signupComposer } from '../features/signup/signupHandler.js'
 import { initialSessionData } from '../features/signup/machine.js'
 import { initialSupportSessionData } from '../features/support/machine.js'
 import { initialIdeaSessionData } from '../features/ideas/machine.js'
+import { FirestoreSessionStorage } from '../shared/storage/FirestoreSessionStorage.js'
 import { createRateLimiter } from './middleware/rateLimiter.js'
 import type { BotContext, SessionData } from './types.js'
 
@@ -28,9 +29,16 @@ export const registerBotCommands = async (bot: Bot<BotContext>): Promise<void> =
 
 export const createBot = (
   token = config.botToken,
-  botConfig?: ConstructorParameters<typeof Bot<BotContext>>[1]
+  botConfig?: ConstructorParameters<typeof Bot<BotContext>>[1],
+  sessionStorage?: StorageAdapter<SessionData>
 ): Bot<BotContext> => {
   const bot = new Bot<BotContext>(token, botConfig)
+
+  const effectiveStorage =
+    sessionStorage ||
+    (config.storageType === 'firestore'
+      ? new FirestoreSessionStorage<SessionData>()
+      : undefined)
 
   bot.use(
     session({
@@ -39,6 +47,7 @@ export const createBot = (
         support: { ...initialSupportSessionData },
         idea: { ...initialIdeaSessionData },
       }),
+      storage: effectiveStorage,
     })
   )
 

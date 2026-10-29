@@ -30,6 +30,7 @@ export * from './InMemoryIdeaRepository.js'
 export * from './IdeaVoteRepository.js'
 export * from './FirestoreIdeaVoteRepository.js'
 export * from './InMemoryIdeaVoteRepository.js'
+export * from './FirestoreSessionStorage.js'
 
 let singletonRepository: BetaApplicationRepository | null = null
 let singletonTicketRepository: SupportTicketRepository | null = null

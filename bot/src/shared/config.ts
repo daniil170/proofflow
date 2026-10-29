@@ -47,13 +47,22 @@ export const config: BotConfig = Object.freeze({
   maxDailyTicketsAndIdeas: getEnvNumber('MAX_DAILY_TICKETS_AND_IDEAS', 5),
   privacyUrl: process.env.PRIVACY_URL || 'https://proofflow.ru/privacy',
   firebase: Object.freeze({
-    apiKey: process.env.FIREBASE_API_KEY || process.env.VITE_FIREBASE_API_KEY,
-    authDomain: process.env.FIREBASE_AUTH_DOMAIN || process.env.VITE_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET || process.env.VITE_FIREBASE_STORAGE_BUCKET,
+    apiKey: process.env.FB_API_KEY || process.env.FIREBASE_API_KEY || process.env.VITE_FIREBASE_API_KEY,
+    authDomain: process.env.FB_AUTH_DOMAIN || process.env.FIREBASE_AUTH_DOMAIN || process.env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId:
+      process.env.FB_PROJECT_ID ||
+      process.env.FIREBASE_PROJECT_ID ||
+      process.env.GCLOUD_PROJECT ||
+      process.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket:
+      process.env.FB_STORAGE_BUCKET ||
+      process.env.FIREBASE_STORAGE_BUCKET ||
+      process.env.VITE_FIREBASE_STORAGE_BUCKET,
     messagingSenderId:
-      process.env.FIREBASE_MESSAGING_SENDER_ID || process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.FIREBASE_APP_ID || process.env.VITE_FIREBASE_APP_ID,
+      process.env.FB_MESSAGING_SENDER_ID ||
+      process.env.FIREBASE_MESSAGING_SENDER_ID ||
+      process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.FB_APP_ID || process.env.FIREBASE_APP_ID || process.env.VITE_FIREBASE_APP_ID,
   }),
 })
 
