@@ -50,8 +50,8 @@ const bootstrap = async (): Promise<void> => {
     res.end('Not Found')
   })
 
-  server.listen(config.port, () => {
-    logger.info(`Server listening on port ${config.port}`, {
+  server.listen(config.port, '0.0.0.0', () => {
+    logger.info(`Server listening on 0.0.0.0:${config.port}`, {
       mode: config.mode,
     })
   })
