@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types'
+import { ProofFlowIcon } from '../ProofFlowIcon'
 import styles from './ReceiptCard.module.css'
 
 export const ReceiptCard = ({ data, className }) => {
@@ -93,9 +94,12 @@ export const ReceiptCard = ({ data, className }) => {
       </div>
 
       <div className={styles.footer}>
-        <span>
-          Powered by <strong>ProofFlow</strong>
-        </span>
+        <div className={styles.brandBadge}>
+          <ProofFlowIcon size={14} />
+          <span>
+            Powered by <strong>ProofFlow</strong>
+          </span>
+        </div>
       </div>
     </div>
   )

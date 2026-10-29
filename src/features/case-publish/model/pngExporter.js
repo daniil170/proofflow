@@ -31,6 +31,45 @@ const drawRoundRect = (ctx, x, y, width, height, radius) => {
   ctx.closePath()
 }
 
+const drawProofFlowIcon = (ctx, x, y, size) => {
+  ctx.fillStyle = '#0B0B0C'
+  drawRoundRect(ctx, x, y, size, size, Math.round(size * 0.23))
+  ctx.fill()
+
+  ctx.save()
+  ctx.lineWidth = Math.max(1.5, size * 0.1)
+  ctx.lineCap = 'round'
+
+  // Twin arches (white)
+  ctx.strokeStyle = '#FFFFFF'
+  const leftX = x + size * 0.38
+  const rightX = x + size * 0.62
+  const bottomY = y + size * 0.78
+  const archTopY = y + size * 0.28
+  const archPeakY = y + size * 0.22
+
+  ctx.beginPath()
+  ctx.moveTo(leftX, bottomY)
+  ctx.lineTo(leftX, archTopY)
+  ctx.quadraticCurveTo(leftX, archPeakY, leftX + size * 0.1, archPeakY)
+  ctx.stroke()
+
+  ctx.beginPath()
+  ctx.moveTo(rightX, bottomY)
+  ctx.lineTo(rightX, archTopY)
+  ctx.quadraticCurveTo(rightX, archPeakY, rightX + size * 0.1, archPeakY)
+  ctx.stroke()
+
+  // Connector bar (lime)
+  ctx.strokeStyle = '#D4FF3A'
+  ctx.beginPath()
+  ctx.moveTo(x + size * 0.24, y + size * 0.44)
+  ctx.lineTo(x + size * 0.76, y + size * 0.44)
+  ctx.stroke()
+
+  ctx.restore()
+}
+
 const measureTextLines = (ctx, text, maxWidth) => {
   if (!text) return []
   const words = String(text).split(' ')
@@ -261,13 +300,8 @@ export const renderStoryPng = (data) => {
   ctx.font = '700 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
   ctx.fillText('Powered by ProofFlow', brandX, currentY + 34)
 
-  ctx.fillStyle = '#22c55e'
-  drawRoundRect(ctx, brandX - 228, currentY + 16, 20, 20, 5)
-  ctx.fill()
-  ctx.fillStyle = '#052e16'
-  ctx.font = '900 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  ctx.textAlign = 'center'
-  ctx.fillText('✓', brandX - 218, currentY + 31)
+  const textWidth = ctx.measureText('Powered by ProofFlow').width
+  drawProofFlowIcon(ctx, brandX - textWidth - 28, currentY + 17, 20)
   ctx.textAlign = 'left'
 
   return canvas
@@ -484,13 +518,8 @@ export const renderCardPng = (data) => {
   ctx.font = '700 17px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
   ctx.fillText('Powered by ProofFlow', brandX, currentY + 30)
 
-  ctx.fillStyle = '#22c55e'
-  drawRoundRect(ctx, brandX - 212, currentY + 14, 18, 18, 4)
-  ctx.fill()
-  ctx.fillStyle = '#052e16'
-  ctx.font = '900 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  ctx.textAlign = 'center'
-  ctx.fillText('✓', brandX - 203, currentY + 28)
+  const textWidth = ctx.measureText('Powered by ProofFlow').width
+  drawProofFlowIcon(ctx, brandX - textWidth - 26, currentY + 14, 18)
   ctx.textAlign = 'left'
 
   return canvas

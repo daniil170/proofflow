@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types'
+import { ProofFlowIcon } from '../ProofFlowIcon'
 import styles from './NewspaperCard.module.css'
 
 export const NewspaperCard = ({ data, className }) => {
@@ -73,7 +74,10 @@ export const NewspaperCard = ({ data, className }) => {
       <div className={styles.ruleThin} aria-hidden="true" />
 
       <div className={styles.footer}>
-        <span className={styles.powered}>POWERED BY PROOFFLOW</span>
+        <div className={styles.poweredBadge}>
+          <ProofFlowIcon size={14} />
+          <span className={styles.powered}>POWERED BY PROOFFLOW</span>
+        </div>
       </div>
     </div>
   )

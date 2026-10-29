@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types'
+import { ProofFlowIcon } from '../ProofFlowIcon'
 import styles from './DarkCard.module.css'
 
 export const DarkCard = ({ data, className }) => {
@@ -83,19 +84,7 @@ export const DarkCard = ({ data, className }) => {
         </div>
 
         <div className={styles.brandBadge}>
-          <div className={styles.checkIconBox} aria-hidden="true">
-            <svg
-              className={styles.checkIcon}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-          </div>
+          <ProofFlowIcon size={16} />
           <span>
             Powered by <strong>ProofFlow</strong>
           </span>
