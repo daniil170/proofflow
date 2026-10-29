@@ -70,6 +70,39 @@ const drawProofFlowIcon = (ctx, x, y, size) => {
   ctx.restore()
 }
 
+const drawProofFlowWordmark = (ctx, x, y, height = 12, color = '#FFFFFF', limeColor = '#D4FF3A') => {
+  ctx.save()
+  const scale = height / 80
+  ctx.translate(x, y)
+  ctx.scale(scale, scale)
+
+  ctx.lineWidth = 9
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+
+  ctx.strokeStyle = color
+  if (typeof Path2D !== 'undefined') {
+    ctx.stroke(
+      new Path2D(
+        'M4.5 75.5V24.5M51.5 55.5V24.5M51.5 40A15.5 15.5 0 0 1 67 24.5M172.5 55.5V16A11.5 11.5 0 0 1 184 4.5M196.5 55.5V16A11.5 11.5 0 0 1 208 4.5M223 4.5V55.5M284 24.5L294 55.5L304 30L314 55.5L324 24.5'
+      )
+    )
+    const drawCircle = (cx, cy, r) => {
+      ctx.beginPath()
+      ctx.arc(cx, cy, r, 0, Math.PI * 2)
+      ctx.stroke()
+    }
+    drawCircle(20, 40, 15.5)
+    drawCircle(96, 40, 15.5)
+    drawCircle(142, 40, 15.5)
+    drawCircle(253.5, 40, 15.5)
+
+    ctx.strokeStyle = limeColor
+    ctx.stroke(new Path2D('M165 24.5H209'))
+  }
+  ctx.restore()
+}
+
 const measureTextLines = (ctx, text, maxWidth) => {
   if (!text) return []
   const words = String(text).split(' ')
@@ -294,14 +327,22 @@ export const renderStoryPng = (data) => {
   ctx.font = '500 17px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
   ctx.fillText(authorRole, authorTextX, currentY + 46)
 
-  ctx.textAlign = 'right'
   const brandX = cardX + cardWidth - cardPadding
-  ctx.fillStyle = '#ffffff'
-  ctx.font = '700 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  ctx.fillText('Powered by ProofFlow', brandX, currentY + 34)
+  const wordmarkW = 62
+  const wordmarkH = 15
+  const wordmarkX = brandX - wordmarkW
+  const wordmarkY = currentY + 22
 
-  const textWidth = ctx.measureText('Powered by ProofFlow').width
-  drawProofFlowIcon(ctx, brandX - textWidth - 28, currentY + 17, 20)
+  drawProofFlowWordmark(ctx, wordmarkX, wordmarkY, wordmarkH, '#FFFFFF', '#D4FF3A')
+
+  ctx.textAlign = 'right'
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
+  ctx.font = '500 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  const labelX = wordmarkX - 8
+  ctx.fillText('Powered by', labelX, currentY + 34)
+
+  const labelW = ctx.measureText('Powered by').width
+  drawProofFlowIcon(ctx, labelX - labelW - 28, currentY + 17, 20)
   ctx.textAlign = 'left'
 
   return canvas
@@ -512,14 +553,22 @@ export const renderCardPng = (data) => {
   ctx.font = '500 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
   ctx.fillText(authorRole, authorTextX, currentY + 42)
 
-  ctx.textAlign = 'right'
   const brandX = cardX + cardWidth - cardPadding
-  ctx.fillStyle = '#ffffff'
-  ctx.font = '700 17px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  ctx.fillText('Powered by ProofFlow', brandX, currentY + 30)
+  const wordmarkW = 54
+  const wordmarkH = 13
+  const wordmarkX = brandX - wordmarkW
+  const wordmarkY = currentY + 19
 
-  const textWidth = ctx.measureText('Powered by ProofFlow').width
-  drawProofFlowIcon(ctx, brandX - textWidth - 26, currentY + 14, 18)
+  drawProofFlowWordmark(ctx, wordmarkX, wordmarkY, wordmarkH, '#FFFFFF', '#D4FF3A')
+
+  ctx.textAlign = 'right'
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
+  ctx.font = '500 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  const labelX = wordmarkX - 8
+  ctx.fillText('Powered by', labelX, currentY + 30)
+
+  const labelW = ctx.measureText('Powered by').width
+  drawProofFlowIcon(ctx, labelX - labelW - 26, currentY + 15, 18)
   ctx.textAlign = 'left'
 
   return canvas

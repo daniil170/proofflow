@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types'
-import { ProofFlowIcon } from '../ProofFlowIcon'
+import { PoweredByProofFlow } from '../PoweredByProofFlow'
 import styles from './MinimalCard.module.css'
 
 export const MinimalCard = ({ data, className }) => {
@@ -45,12 +45,7 @@ export const MinimalCard = ({ data, className }) => {
 
       <div className={styles.footer}>
         <span className={styles.author}>{data.author}</span>
-        <div className={styles.brandBadge}>
-          <ProofFlowIcon size={14} />
-          <span className={styles.powered}>
-            Powered by <strong>ProofFlow</strong>
-          </span>
-        </div>
+        <PoweredByProofFlow theme="light" iconSize={16} wordmarkHeight={11} />
       </div>
     </div>
   )
