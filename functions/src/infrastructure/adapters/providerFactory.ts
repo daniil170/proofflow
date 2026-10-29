@@ -111,7 +111,10 @@ export const createTranscriber = (
   }
 
   if (provider === 'google') {
-    return new GeminiTranscriber(options.geminiConfig)
+    const config = options.geminiApiKey
+      ? { apiKey: options.geminiApiKey, ...options.geminiConfig }
+      : options.geminiConfig
+    return new GeminiTranscriber(config)
   }
 
   if (provider === 'google-speech') {
@@ -138,7 +141,10 @@ export const createChatReader = (
   }
 
   if (provider === 'google') {
-    return new GeminiChatReader(options.geminiConfig)
+    const config = options.geminiApiKey
+      ? { apiKey: options.geminiApiKey, ...options.geminiConfig }
+      : options.geminiConfig
+    return new GeminiChatReader(config)
   }
 
   throw new Error(`Неподдерживаемый провайдер чтения скриншотов: ${provider}`)
@@ -161,7 +167,10 @@ export const createCaseAnalyzer = (
   }
 
   if (provider === 'google') {
-    return new GeminiCaseAnalyzer(options.geminiConfig)
+    const config = options.geminiApiKey
+      ? { apiKey: options.geminiApiKey, ...options.geminiConfig }
+      : options.geminiConfig
+    return new GeminiCaseAnalyzer(config)
   }
 
   throw new Error(`Неподдерживаемый провайдер анализа кейсов: ${provider}`)

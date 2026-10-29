@@ -114,9 +114,16 @@ export class GeminiClient {
       })
     } else {
       this.region = ''
-      const selectedApiKey = config?.apiKey || process.env.GEMINI_API_KEY
+      let selectedApiKey = config?.apiKey || process.env.GEMINI_API_KEY
       if (!selectedApiKey) {
         throw new Error('GEMINI_API_KEY не задан для режима GEMINI_MODE=api.')
+      }
+      selectedApiKey = selectedApiKey.trim()
+      if (selectedApiKey.length > 20 && selectedApiKey.length % 2 === 0) {
+        const half = selectedApiKey.slice(0, selectedApiKey.length / 2)
+        if (half + half === selectedApiKey) {
+          selectedApiKey = half
+        }
       }
       this.apiKey = selectedApiKey
     }
