@@ -140,6 +140,12 @@
   font-weight: 700;
 }
 
+.brandBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .powered {
   font-size: 11px;
   color: #333333;

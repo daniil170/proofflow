@@ -152,10 +152,26 @@ const STYLES = `
   text-decoration: none;
   font-weight: 500;
   font-size: 11px;
+  display: inline-flex;
+  align-items: center;
 }
 
-.pf-watermark strong {
-  color: #ffffff;
+.pf-watermark svg:first-child {
+  flex-shrink: 0;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
+.pf-watermark span {
+  margin-right: 3.5px;
+  line-height: 1;
+}
+
+.pf-watermark svg:last-child {
+  flex-shrink: 0;
+  display: inline-block;
+  vertical-align: middle;
 }
 `
 
@@ -210,7 +226,26 @@ const renderCardIntoShadow = (shadow, data) => {
           <span class="pf-company">, ${escapeHtml(data.companyName || 'ProofFlow')}</span>
         </div>
         <a href="https://proofflow.ru" target="_blank" rel="noopener" class="pf-watermark">
-          Powered by <strong>ProofFlow</strong>
+          <svg width="16" height="16" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect width="100" height="100" rx="23" fill="#0B0B0C"/>
+            <g transform="translate(50 50) scale(0.62) translate(-50 -50)">
+              <g fill="none" stroke-width="12" stroke-linecap="round">
+                <path d="M35 84V30A14 14 0 0 1 49 16M59 84V30A14 14 0 0 1 73 16" stroke="#FFFFFF"/>
+                <path d="M21 44H79" stroke="#D4FF3A"/>
+              </g>
+            </g>
+          </svg>
+          <span>Powered by</span>
+          <svg width="50" height="12" viewBox="0 0 330 80" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="ProofFlow">
+            <g stroke="#FFFFFF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4.5 75.5V24.5M51.5 55.5V24.5M51.5 40A15.5 15.5 0 0 1 67 24.5M172.5 55.5V16A11.5 11.5 0 0 1 184 4.5M196.5 55.5V16A11.5 11.5 0 0 1 208 4.5M223 4.5V55.5M284 24.5L294 55.5L304 30L314 55.5L324 24.5"/>
+              <circle cx="20" cy="40" r="15.5"/>
+              <circle cx="96" cy="40" r="15.5"/>
+              <circle cx="142" cy="40" r="15.5"/>
+              <circle cx="253.5" cy="40" r="15.5"/>
+            </g>
+            <path d="M165 24.5H209" stroke="#D4FF3A" stroke-width="9" stroke-linecap="round"/>
+          </svg>
         </a>
       </div>
     </div>

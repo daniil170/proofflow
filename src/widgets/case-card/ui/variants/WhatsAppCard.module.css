@@ -197,7 +197,8 @@
 .poweredRow {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 6px;
   font-size: 11px;
   color: #63776b;
   padding-top: 4px;

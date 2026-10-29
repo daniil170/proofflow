@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types'
+import { PoweredByProofFlow } from '../PoweredByProofFlow'
 import styles from './WhatsAppCard.module.css'
 
 export const WhatsAppCard = ({ data, className }) => {
@@ -93,22 +94,7 @@ export const WhatsAppCard = ({ data, className }) => {
         </div>
 
         <div className={styles.poweredRow}>
-          <span>
-            Powered by <strong className={styles.proofFlowBrand}>ProofFlow</strong>
-          </span>
-          <span aria-hidden="true">|</span>
-          <svg
-            className={styles.logoWave}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M2 12c4-8 8 8 12 0s8 8 12 0" />
-          </svg>
+          <PoweredByProofFlow theme="light" iconSize={16} wordmarkHeight={11} />
         </div>
       </div>
     </div>

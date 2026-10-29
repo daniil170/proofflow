@@ -31,6 +31,78 @@ const drawRoundRect = (ctx, x, y, width, height, radius) => {
   ctx.closePath()
 }
 
+const drawProofFlowIcon = (ctx, x, y, size) => {
+  ctx.fillStyle = '#0B0B0C'
+  drawRoundRect(ctx, x, y, size, size, Math.round(size * 0.23))
+  ctx.fill()
+
+  ctx.save()
+  ctx.lineWidth = Math.max(1.5, size * 0.1)
+  ctx.lineCap = 'round'
+
+  // Twin arches (white)
+  ctx.strokeStyle = '#FFFFFF'
+  const leftX = x + size * 0.38
+  const rightX = x + size * 0.62
+  const bottomY = y + size * 0.78
+  const archTopY = y + size * 0.28
+  const archPeakY = y + size * 0.22
+
+  ctx.beginPath()
+  ctx.moveTo(leftX, bottomY)
+  ctx.lineTo(leftX, archTopY)
+  ctx.quadraticCurveTo(leftX, archPeakY, leftX + size * 0.1, archPeakY)
+  ctx.stroke()
+
+  ctx.beginPath()
+  ctx.moveTo(rightX, bottomY)
+  ctx.lineTo(rightX, archTopY)
+  ctx.quadraticCurveTo(rightX, archPeakY, rightX + size * 0.1, archPeakY)
+  ctx.stroke()
+
+  // Connector bar (lime)
+  ctx.strokeStyle = '#D4FF3A'
+  ctx.beginPath()
+  ctx.moveTo(x + size * 0.24, y + size * 0.44)
+  ctx.lineTo(x + size * 0.76, y + size * 0.44)
+  ctx.stroke()
+
+  ctx.restore()
+}
+
+const drawProofFlowWordmark = (ctx, x, y, height = 12, color = '#FFFFFF', limeColor = '#D4FF3A') => {
+  ctx.save()
+  const scale = height / 80
+  ctx.translate(x, y)
+  ctx.scale(scale, scale)
+
+  ctx.lineWidth = 9
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+
+  ctx.strokeStyle = color
+  if (typeof Path2D !== 'undefined') {
+    ctx.stroke(
+      new Path2D(
+        'M4.5 75.5V24.5M51.5 55.5V24.5M51.5 40A15.5 15.5 0 0 1 67 24.5M172.5 55.5V16A11.5 11.5 0 0 1 184 4.5M196.5 55.5V16A11.5 11.5 0 0 1 208 4.5M223 4.5V55.5M284 24.5L294 55.5L304 30L314 55.5L324 24.5'
+      )
+    )
+    const drawCircle = (cx, cy, r) => {
+      ctx.beginPath()
+      ctx.arc(cx, cy, r, 0, Math.PI * 2)
+      ctx.stroke()
+    }
+    drawCircle(20, 40, 15.5)
+    drawCircle(96, 40, 15.5)
+    drawCircle(142, 40, 15.5)
+    drawCircle(253.5, 40, 15.5)
+
+    ctx.strokeStyle = limeColor
+    ctx.stroke(new Path2D('M165 24.5H209'))
+  }
+  ctx.restore()
+}
+
 const measureTextLines = (ctx, text, maxWidth) => {
   if (!text) return []
   const words = String(text).split(' ')
@@ -255,19 +327,22 @@ export const renderStoryPng = (data) => {
   ctx.font = '500 17px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
   ctx.fillText(authorRole, authorTextX, currentY + 46)
 
-  ctx.textAlign = 'right'
   const brandX = cardX + cardWidth - cardPadding
-  ctx.fillStyle = '#ffffff'
-  ctx.font = '700 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  ctx.fillText('Powered by ProofFlow', brandX, currentY + 34)
+  const wordmarkW = 62
+  const wordmarkH = 15
+  const wordmarkX = brandX - wordmarkW
+  const wordmarkY = currentY + 22
 
-  ctx.fillStyle = '#22c55e'
-  drawRoundRect(ctx, brandX - 228, currentY + 16, 20, 20, 5)
-  ctx.fill()
-  ctx.fillStyle = '#052e16'
-  ctx.font = '900 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  ctx.textAlign = 'center'
-  ctx.fillText('✓', brandX - 218, currentY + 31)
+  drawProofFlowWordmark(ctx, wordmarkX, wordmarkY, wordmarkH, '#FFFFFF', '#D4FF3A')
+
+  ctx.textAlign = 'right'
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
+  ctx.font = '500 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  const labelX = wordmarkX - 4
+  ctx.fillText('Powered by', labelX, currentY + 34)
+
+  const labelW = ctx.measureText('Powered by').width
+  drawProofFlowIcon(ctx, labelX - labelW - 10, currentY + 17, 20)
   ctx.textAlign = 'left'
 
   return canvas
@@ -478,19 +553,22 @@ export const renderCardPng = (data) => {
   ctx.font = '500 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
   ctx.fillText(authorRole, authorTextX, currentY + 42)
 
-  ctx.textAlign = 'right'
   const brandX = cardX + cardWidth - cardPadding
-  ctx.fillStyle = '#ffffff'
-  ctx.font = '700 17px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  ctx.fillText('Powered by ProofFlow', brandX, currentY + 30)
+  const wordmarkW = 54
+  const wordmarkH = 13
+  const wordmarkX = brandX - wordmarkW
+  const wordmarkY = currentY + 19
 
-  ctx.fillStyle = '#22c55e'
-  drawRoundRect(ctx, brandX - 212, currentY + 14, 18, 18, 4)
-  ctx.fill()
-  ctx.fillStyle = '#052e16'
-  ctx.font = '900 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  ctx.textAlign = 'center'
-  ctx.fillText('✓', brandX - 203, currentY + 28)
+  drawProofFlowWordmark(ctx, wordmarkX, wordmarkY, wordmarkH, '#FFFFFF', '#D4FF3A')
+
+  ctx.textAlign = 'right'
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
+  ctx.font = '500 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  const labelX = wordmarkX - 4
+  ctx.fillText('Powered by', labelX, currentY + 30)
+
+  const labelW = ctx.measureText('Powered by').width
+  drawProofFlowIcon(ctx, labelX - labelW - 10, currentY + 15, 18)
   ctx.textAlign = 'left'
 
   return canvas

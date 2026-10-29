@@ -159,6 +159,12 @@
   padding-top: 6px;
 }
 
+.brandBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .footer strong {
   color: #141414;
   margin-left: 4px;
