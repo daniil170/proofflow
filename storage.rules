@@ -33,7 +33,9 @@ service firebase.storage {
     }
 
     match /cases/{caseId}/{allPaths=**} {
-      allow read: if isCaseOwner(caseId) && hasActiveAccess();
+      allow read: if hasActiveAccess() &&
+        (!firestore.exists(/databases/(default)/documents/cases/$(caseId)) ||
+         firestore.get(/databases/(default)/documents/cases/$(caseId)).data.ownerId == request.auth.uid);
       allow create: if hasActiveAccess() && isAllowedSize() && isAllowedMimeType() &&
         (!firestore.exists(/databases/(default)/documents/cases/$(caseId)) ||
          firestore.get(/databases/(default)/documents/cases/$(caseId)).data.ownerId == request.auth.uid);
