@@ -39,12 +39,30 @@
 ### 1.2 Telegram Bot & Webhook
 1. **Создание бота через @BotFather:**
    - Получить `BOT_TOKEN`.
-   - Сгенерировать криптографический секрет `TELEGRAM_BOT_SECRET` для привязки аккаунтов.
+   - Сгенерировать два разных случайных криптографических секрета командой `openssl rand -hex 32`:
+     * `TELEGRAM_BOT_SECRET` — общий секрет между ботом и Cloud Functions для безопасной привязки аккаунтов (`X-Telegram-Bot-Secret`). Сохранить в Secret Manager: `firebase functions:secrets:set TELEGRAM_BOT_SECRET`.
+     * `WEBHOOK_SECRET_TOKEN` — секретный токен для проверки подлинности входящих webhook-запросов от Telegram API (`X-Telegram-Bot-Api-Secret-Token`).
+     * Внимание: эти секреты решают разные задачи безопасности, приравнивать их запрещено.
 2. **Административный чат:**
    - Создать закрытую группу для команды, добавить бота, назначить администратором.
    - Получить ID группы (`ADMIN_CHAT_ID`) и прописать в окружение бота.
-3. **Регистрация Webhook (при деплое на Cloud Run):**
-   - Установить webhook: `curl -F "url=https://<BOT_CLOUD_RUN_URL>/webhook" -F "secret_token=<WEBHOOK_SECRET_TOKEN>" https://api.telegram.org/bot<BOT_TOKEN>/setWebhook`
+3. **Деплой бота в Cloud Run и регистрация Webhook:**
+   - Деплой сервиса с передачей всех обязательных переменных и секретов:
+     ```bash
+     gcloud run deploy proofflow-bot \
+       --image gcr.io/proofflow-b6955/proofflow-bot \
+       --platform managed \
+       --region us-central1 \
+       --allow-unauthenticated \
+       --set-env-vars BOT_MODE=webhook,BOT_STORAGE=firestore,ADMIN_CHAT_ID=7517071405,NODE_ENV=production,FUNCTIONS_BASE_URL=https://us-central1-proofflow-b6955.cloudfunctions.net \
+       --set-secrets BOT_TOKEN=TELEGRAM_BOT_TOKEN:latest,TELEGRAM_BOT_SECRET=TELEGRAM_BOT_SECRET:latest,WEBHOOK_SECRET_TOKEN=WEBHOOK_SECRET_TOKEN:latest
+     ```
+   - Установить webhook:
+     ```bash
+     curl -F "url=https://<BOT_CLOUD_RUN_URL>/webhook" \
+          -F "secret_token=<WEBHOOK_SECRET_TOKEN>" \
+          https://api.telegram.org/bot<BOT_TOKEN>/setWebhook
+     ```
 
 ---
 

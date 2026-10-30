@@ -3,6 +3,8 @@ import type { Firestore } from 'firebase-admin/firestore'
 import {
   executeConfirmTelegramLink,
   ConfirmTelegramLinkError,
+  verifyTelegramBotSecret,
+  extractTelegramBotSecret,
 } from '../confirmTelegramLink.js'
 
 describe('confirmTelegramLink use-case', () => {
@@ -55,7 +57,12 @@ describe('confirmTelegramLink use-case', () => {
     }
   })
 
-  it('rejects with invalid_secret error when secret does not match', async () => {
+  it('rejects with invalid_secret when secret is not configured in environment', async () => {
+    delete process.env.TELEGRAM_BOT_SECRET
+    delete process.env.BOT_SECRET
+
+    expect(verifyTelegramBotSecret('correct_bot_secret_xyz')).toBe(false)
+
     tokensStore.set('tok-1', {
       token: 'tok-1',
       uid: 'u-1',
@@ -68,7 +75,7 @@ describe('confirmTelegramLink use-case', () => {
           token: 'tok-1',
           telegramUserId: 123456,
           telegramUsername: 'tester',
-          secret: 'wrong_secret',
+          secret: 'correct_bot_secret_xyz',
         },
         mockDb as Firestore
       )
@@ -80,7 +87,7 @@ describe('confirmTelegramLink use-case', () => {
           token: 'tok-1',
           telegramUserId: 123456,
           telegramUsername: 'tester',
-          secret: 'wrong_secret',
+          secret: 'correct_bot_secret_xyz',
         },
         mockDb as Firestore
       )
@@ -89,6 +96,114 @@ describe('confirmTelegramLink use-case', () => {
       expect(typed.code).toBe('invalid_secret')
       expect(typed.message).toContain('Неверный секрет')
     }
+  })
+
+  it('rejects with invalid_secret when secret header is missing', async () => {
+    const extracted = extractTelegramBotSecret({}, {})
+    expect(extracted).toBe('')
+
+    tokensStore.set('tok-1', {
+      token: 'tok-1',
+      uid: 'u-1',
+      expiresAt: Date.now() + 600000,
+    })
+
+    await expect(
+      executeConfirmTelegramLink(
+        {
+          token: 'tok-1',
+          telegramUserId: 123456,
+          telegramUsername: 'tester',
+          secret: extracted,
+        },
+        mockDb as Firestore
+      )
+    ).rejects.toThrowError(ConfirmTelegramLinkError)
+
+    try {
+      await executeConfirmTelegramLink(
+        {
+          token: 'tok-1',
+          telegramUserId: 123456,
+          telegramUsername: 'tester',
+          secret: extracted,
+        },
+        mockDb as Firestore
+      )
+    } catch (err: unknown) {
+      const typed = err as ConfirmTelegramLinkError
+      expect(typed.code).toBe('invalid_secret')
+    }
+  })
+
+  it('rejects with invalid_secret when secret header is invalid', async () => {
+    const extracted = extractTelegramBotSecret({ 'x-telegram-bot-secret': 'wrong_secret_123' }, {})
+    expect(extracted).toBe('wrong_secret_123')
+
+    tokensStore.set('tok-1', {
+      token: 'tok-1',
+      uid: 'u-1',
+      expiresAt: Date.now() + 600000,
+    })
+
+    await expect(
+      executeConfirmTelegramLink(
+        {
+          token: 'tok-1',
+          telegramUserId: 123456,
+          telegramUsername: 'tester',
+          secret: extracted,
+        },
+        mockDb as Firestore
+      )
+    ).rejects.toThrowError(ConfirmTelegramLinkError)
+
+    try {
+      await executeConfirmTelegramLink(
+        {
+          token: 'tok-1',
+          telegramUserId: 123456,
+          telegramUsername: 'tester',
+          secret: extracted,
+        },
+        mockDb as Firestore
+      )
+    } catch (err: unknown) {
+      const typed = err as ConfirmTelegramLinkError
+      expect(typed.code).toBe('invalid_secret')
+    }
+  })
+
+  it('accepts valid secret header and verifies successfully', async () => {
+    const extracted = extractTelegramBotSecret(
+      { 'x-telegram-bot-secret': 'correct_bot_secret_xyz' },
+      {}
+    )
+    expect(extracted).toBe('correct_bot_secret_xyz')
+    expect(verifyTelegramBotSecret(extracted)).toBe(true)
+
+    tokensStore.set('tok-1', {
+      token: 'tok-1',
+      uid: 'u-1',
+      expiresAt: Date.now() + 600000,
+      used: false,
+    })
+    usersStore.set('u-1', {
+      id: 'u-1',
+      email: 'u1@example.com',
+    })
+
+    const result = await executeConfirmTelegramLink(
+      {
+        token: 'tok-1',
+        telegramUserId: 123456,
+        telegramUsername: 'tester',
+        secret: extracted,
+      },
+      mockDb as Firestore
+    )
+    expect(result.success).toBe(true)
+    expect(result.uid).toBe('u-1')
   })
 
   it('rejects with expired_token error when token is expired', async () => {

@@ -17,6 +17,7 @@ import {
   executeConfirmTelegramLink,
   ConfirmTelegramLinkError,
 } from '../application/use-cases/confirmTelegramLink.js'
+import { telegramBotSecret } from './secrets.js'
 
 import { RATE_LIMIT_CONFIGS } from '../domain/rateLimits.js'
 import { FirestoreRateLimiter } from '../infrastructure/adapters/FirestoreRateLimiter.js'
@@ -1128,6 +1129,7 @@ export const confirmTelegramLink = onCall(
   {
     enforceAppCheck: false,
     timeoutSeconds: 15,
+    secrets: [telegramBotSecret],
   },
   async (request) => {
     try {

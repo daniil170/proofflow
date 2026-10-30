@@ -36,6 +36,7 @@ export class HttpTelegramLinkGateway implements TelegramLinkGateway {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Telegram-Bot-Secret': params.secret,
           'x-bot-secret': params.secret,
         },
         body: JSON.stringify({

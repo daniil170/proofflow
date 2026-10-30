@@ -5,7 +5,9 @@ import { FirestoreRateLimiter } from '../infrastructure/adapters/FirestoreRateLi
 import {
   executeConfirmTelegramLink,
   ConfirmTelegramLinkError,
+  extractTelegramBotSecret,
 } from '../application/use-cases/confirmTelegramLink.js'
+import { telegramBotSecret } from './secrets.js'
 
 if (!admin.apps.length) {
   admin.initializeApp()
@@ -156,11 +158,12 @@ export const confirmTelegramLinkHttp = onRequest(
   {
     cors: true,
     timeoutSeconds: 15,
+    secrets: [telegramBotSecret],
   },
   async (req, res) => {
     res.set('Access-Control-Allow-Origin', '*')
     res.set('Access-Control-Allow-Methods', 'POST, OPTIONS')
-    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-bot-secret')
+    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-telegram-bot-secret, x-bot-secret')
 
     if (req.method === 'OPTIONS') {
       res.status(204).send('')
@@ -174,12 +177,7 @@ export const confirmTelegramLinkHttp = onRequest(
 
     try {
       const body = (req.body || {}) as Record<string, unknown>
-      const headerSecret =
-        (req.headers['x-bot-secret'] as string) ||
-        (typeof req.headers.authorization === 'string'
-          ? req.headers.authorization.replace(/^Bearer\s+/i, '')
-          : '')
-      const secret = String(body.secret || body.botSecret || headerSecret || '')
+      const secret = extractTelegramBotSecret(req.headers as Record<string, unknown>, body)
 
       const result = await executeConfirmTelegramLink(
         {

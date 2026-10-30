@@ -112,7 +112,9 @@ proofflow/
 | Переменная | Где хранится | Обязательна в Prod | Описание и пример |
 | :--- | :--- | :--- | :--- |
 | `BOT_TOKEN` | Secret Manager / Env | Да | Токен Telegram-бота от @BotFather |
-| `TELEGRAM_BOT_SECRET`| Secret Manager / Env | Да | Общий секрет подтверждения link |
+| `TELEGRAM_BOT_SECRET`| Secret Manager / Env | Да | Общий секрет подтверждения link (X-Telegram-Bot-Secret) |
+| `WEBHOOK_SECRET_TOKEN`| Secret Manager / Env | Да (для webhook) | Секретный токен входящих webhook от Telegram |
+| `FUNCTIONS_BASE_URL` | Env | Да | URL Cloud Functions (https://us-central1-proofflow-b6955.cloudfunctions.net) |
 | `ADMIN_CHAT_ID` | Env / Secret Manager | Да | ID группы команды для тикетов и идей |
 | `BOT_STORAGE` | Env | Да (в prod строго `firestore`)| `firestore` |
 | `BOT_MODE` | Env | Да | `polling` или `webhook` |
@@ -135,8 +137,15 @@ firebase functions:secrets:set OPENAI_API_KEY
 firebase functions:secrets:set ANTHROPIC_API_KEY
 firebase functions:secrets:set GEMINI_API_KEY
 
-# 2. Общий секрет привязки Telegram-аккаунтов
+# 2. Генерация двух РАЗНЫХ криптографических секретов для бота и функций:
+# Секрет привязки аккаунтов между ботом и Cloud Functions (X-Telegram-Bot-Secret):
+openssl rand -hex 32
 firebase functions:secrets:set TELEGRAM_BOT_SECRET
+
+# Секрет входящего webhook Telegram API (X-Telegram-Bot-Api-Secret-Token):
+openssl rand -hex 32
+# Сохранить в Secret Manager для Cloud Run как WEBHOOK_SECRET_TOKEN
+# Внимание: WEBHOOK_SECRET_TOKEN и TELEGRAM_BOT_SECRET должны быть двумя разными случайными значениями. Приравнивать их запрещено.
 ```
 
 ### Шаг 2. Развёртывание правил безопасности и индексов Firestore
@@ -179,8 +188,8 @@ gcloud run deploy proofflow-bot \
   --platform managed \
   --region us-central1 \
   --allow-unauthenticated \
-  --set-env-vars BOT_MODE=webhook,BOT_STORAGE=firestore,ADMIN_CHAT_ID=7517071405,NODE_ENV=production \
-  --set-secrets BOT_TOKEN=TELEGRAM_BOT_TOKEN:latest,TELEGRAM_BOT_SECRET=TELEGRAM_BOT_SECRET:latest,WEBHOOK_SECRET_TOKEN=TELEGRAM_WEBHOOK_SECRET:latest
+  --set-env-vars BOT_MODE=webhook,BOT_STORAGE=firestore,ADMIN_CHAT_ID=7517071405,NODE_ENV=production,FUNCTIONS_BASE_URL=https://us-central1-proofflow-b6955.cloudfunctions.net \
+  --set-secrets BOT_TOKEN=TELEGRAM_BOT_TOKEN:latest,TELEGRAM_BOT_SECRET=TELEGRAM_BOT_SECRET:latest,WEBHOOK_SECRET_TOKEN=WEBHOOK_SECRET_TOKEN:latest
 
 # Регистрация Webhook в Telegram:
 curl -F "url=https://<CLOUD_RUN_URL>/webhook" \

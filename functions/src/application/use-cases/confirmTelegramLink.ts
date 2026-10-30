@@ -1,3 +1,5 @@
+import crypto from 'node:crypto'
+
 export interface ConfirmTelegramLinkInput {
   token: string
   telegramUserId: string | number
@@ -29,12 +31,38 @@ export class ConfirmTelegramLinkError extends Error {
   }
 }
 
+export function verifyTelegramBotSecret(providedSecret?: string | null): boolean {
+  const configuredSecret = process.env.TELEGRAM_BOT_SECRET || process.env.BOT_SECRET
+  if (!configuredSecret || typeof configuredSecret !== 'string' || !configuredSecret.trim()) {
+    return false
+  }
+  if (!providedSecret || typeof providedSecret !== 'string' || !providedSecret.trim()) {
+    return false
+  }
+  const providedHash = crypto.createHash('sha256').update(providedSecret).digest()
+  const configuredHash = crypto.createHash('sha256').update(configuredSecret).digest()
+  return crypto.timingSafeEqual(providedHash, configuredHash)
+}
+
+export function extractTelegramBotSecret(
+  headers: Record<string, unknown> = {},
+  body: Record<string, unknown> = {}
+): string {
+  const headerSecret =
+    headers['x-telegram-bot-secret'] ||
+    headers['X-Telegram-Bot-Secret'] ||
+    headers['x-bot-secret'] ||
+    (typeof headers.authorization === 'string'
+      ? headers.authorization.replace(/^Bearer\s+/i, '')
+      : '')
+  return String(headerSecret || body.secret || body.botSecret || '')
+}
+
 export async function executeConfirmTelegramLink(
   input: ConfirmTelegramLinkInput,
   db: FirebaseFirestore.Firestore
 ): Promise<ConfirmTelegramLinkResult> {
-  const configuredSecret = process.env.TELEGRAM_BOT_SECRET || process.env.BOT_SECRET
-  if (!configuredSecret || !input.secret || input.secret !== configuredSecret) {
+  if (!verifyTelegramBotSecret(input.secret)) {
     throw new ConfirmTelegramLinkError(
       'invalid_secret',
       'Неверный секрет авторизации бота'

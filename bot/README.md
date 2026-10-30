@@ -46,8 +46,10 @@ Telegram-бот сервиса ProofFlow для сбора заявок на з�
 
 ```env
 BOT_TOKEN=123456789:ABCDefGhIJKlmNoPQRsTUVwxyZ
-TELEGRAM_BOT_SECRET=ваш_секретный_ключ_для_link
-ADMIN_CHAT_ID=ваш_chat_id_для_админ_чата
+TELEGRAM_BOT_SECRET=2785fbfc04ab51aa558d2b2d66d731d5ad4ae2e6000d6f79e69260357ff2b2d4
+WEBHOOK_SECRET_TOKEN=fugVzHYJkw3-8rbBO9fUEMBhPIDoFjMK
+FUNCTIONS_BASE_URL=https://us-central1-proofflow-b6955.cloudfunctions.net
+ADMIN_CHAT_ID=7517071405
 BOT_MODE=polling # polling или webhook
 PORT=3000
 BOT_STORAGE=memory # memory (для dev/тестов) или firestore
