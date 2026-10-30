@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const DEFAULT_ANONYMIZED_AUTHOR_LABEL = 'Анна К.'
+export const DEFAULT_ANONYMIZED_AUTHOR_LABEL = 'Клиент'
 
 export const caseStatusSchema = z.enum([
   'draft',
@@ -52,6 +52,8 @@ export const transcriptSchema = z.object({
 
 export const chatMessageSideSchema = z.enum(['client', 'me'])
 
+export const messengerSchema = z.enum(['telegram', 'whatsapp', 'unknown'])
+
 export const chatMessageSchema = z.object({
   id: z.string().optional(),
   side: chatMessageSideSchema,
@@ -60,8 +62,18 @@ export const chatMessageSchema = z.object({
   order: z.number().int().nonnegative(),
 })
 
+export const persistedChatMessageSchema = z.object({
+  id: z.string().optional(),
+  side: chatMessageSideSchema,
+  text: z.string().min(1),
+  time: z.string().optional(),
+  sourceId: z.string().optional(),
+  order: z.number().int().nonnegative(),
+})
+
 export const chatExtractionSchema = z.object({
   screenshotSourceId: z.string().min(1),
+  messenger: messengerSchema.default('unknown'),
   messages: z.array(chatMessageSchema),
   order: z.number().int().nonnegative(),
   confidence: z.number().min(0).max(1),
@@ -80,6 +92,25 @@ export const evidenceSchema = z.object({
   exactQuote: z.string().min(1),
 })
 
+export const caseDraftHeadlineSchema = z.object({
+  text: z.string().default(''),
+  evidenceId: z.string().nullable().optional(),
+})
+
+export const summaryRowOriginSchema = z.enum([
+  'client_words',
+  'ai_paraphrase',
+  'user_written',
+])
+
+export const summaryRowSchema = z.object({
+  id: z.string().optional(),
+  label: z.string().min(1),
+  text: z.string().min(1),
+  evidenceId: z.string().nullable().optional(),
+  origin: summaryRowOriginSchema.default('ai_paraphrase'),
+})
+
 export const caseDraftMetricSchema = z.object({
   value: z.string(),
   label: z.string(),
@@ -95,10 +126,12 @@ export const caseDraftQuoteSchema = z.object({
 })
 
 export const caseDraftSchema = z.object({
+  headline: caseDraftHeadlineSchema.default({ text: '', evidenceId: null }),
   metric: caseDraftMetricSchema,
-  problem: z.string(),
-  solution: z.string(),
-  result: z.string(),
+  problem: z.string().optional().default(''),
+  solution: z.string().optional().default(''),
+  result: z.string().optional().default(''),
+  summaryRows: z.array(summaryRowSchema).default([]),
   quote: caseDraftQuoteSchema,
   tags: z.array(z.string()).default([]),
   missingFields: z.array(z.string()).default([]),
@@ -134,6 +167,9 @@ export const caseSchema = z.object({
   createdAt: z.number().int().nonnegative(),
   updatedAt: z.number().int().nonnegative(),
   sources: z.array(sourceSchema).default([]),
+  chatMessages: z.array(persistedChatMessageSchema).default([]),
+  selectedChatMessages: z.array(persistedChatMessageSchema).default([]),
+  messenger: messengerSchema.default('unknown'),
   draft: caseDraftSchema.nullable().optional(),
   selectedVariant: caseCardVariantSchema.default('dark'),
   branding: caseBrandingSchema.default({ showLogo: true }),
