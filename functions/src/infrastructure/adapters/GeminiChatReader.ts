@@ -48,12 +48,14 @@ export class GeminiChatReader implements ChatReader {
     })
 
     const parsed = result.parsed as {
+      messenger?: 'telegram' | 'whatsapp' | 'unknown'
       messages?: unknown[]
       confidence?: number
     }
 
     return chatExtractionSchema.parse({
       screenshotSourceId,
+      messenger: parsed.messenger || 'unknown',
       order,
       messages: parsed.messages || [],
       confidence: parsed.confidence !== undefined ? parsed.confidence : 1.0,

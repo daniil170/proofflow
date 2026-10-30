@@ -161,11 +161,27 @@ const main = async () => {
   console.log('\n--- ЧЕРНОВИК КЕЙСА ---')
   if (updatedCase?.draft) {
     const d = updatedCase.draft
+    console.log(`Заголовок:  ${d.headline?.text || '[Нет заголовка, цитата главная]'}`)
     console.log(`Метрика:    ${d.metric.value || '[Не подтверждено]'} (${d.metric.label})`)
+    console.log(`Строки пересказа (summaryRows, ${d.summaryRows?.length || 0} шт.):`)
+    if (d.summaryRows && d.summaryRows.length > 0) {
+      d.summaryRows.forEach((r, idx) => {
+        console.log(`  ${idx + 1}. [${r.origin}] ${r.label}: ${r.text}`)
+      })
+    } else {
+      console.log('  (нет строк пересказа)')
+    }
     console.log(`Проблема:   ${d.problem}`)
     console.log(`Решение:    ${d.solution}`)
     console.log(`Результат:  ${d.result || '[Нет в материалах]'}`)
     console.log(`Цитата:     ${d.quote.text ? `"${d.quote.text}" — ${d.quote.authorLabel}` : '[Отброшена: нет дословного совпадения]'}`)
+    console.log(`Мессенджер: ${updatedCase?.messenger || 'unknown'}`)
+    console.log(`Сообщения для карточки (${updatedCase?.selectedChatMessages?.length || 0} шт.):`)
+    if (updatedCase?.selectedChatMessages && updatedCase.selectedChatMessages.length > 0) {
+      updatedCase.selectedChatMessages.forEach((m, idx) => {
+        console.log(`  ${idx + 1}. [${m.side}] ${m.time ? `(${m.time}) ` : ''}${m.text}`)
+      })
+    }
     console.log(`Теги:       ${d.tags.join(', ')}`)
     console.log(`Пропущено:  ${d.missingFields.join(', ') || 'нет'}`)
     console.log(`На проверку:${d.needsReview.join(', ') || 'нет'}`)

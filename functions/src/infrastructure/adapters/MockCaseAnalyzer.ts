@@ -1,12 +1,36 @@
 import { CaseDraft } from '../../domain/types.js'
-import { AnalysisInput, CaseAnalyzer } from '../ports/CaseAnalyzer.js'
+import { CaseAnalyzer } from '../ports/CaseAnalyzer.js'
 
 export const FIXTURE_CASE_DRAFT: CaseDraft = {
+  headline: {
+    text: '+140% рост конверсии воронки',
+    evidenceId: null,
+  },
   metric: {
     value: '+140%',
     label: 'рост конверсии воронки',
     evidenceId: null,
   },
+  summaryRows: [
+    {
+      label: 'Задача',
+      text: 'Команда тратила по четыре часа в день на ручной сбор и проверку клиентских анкет',
+      origin: 'ai_paraphrase',
+      evidenceId: null,
+    },
+    {
+      label: 'Сделано',
+      text: 'Настроили автоматический парсинг созвонов и экспресс-валидацию ключевых данных',
+      origin: 'ai_paraphrase',
+      evidenceId: null,
+    },
+    {
+      label: 'Результат',
+      text: 'Скорость обработки заявок увеличилась в 3 раза, конверсия воронки выросла на 140%',
+      origin: 'ai_paraphrase',
+      evidenceId: null,
+    },
+  ],
   problem:
     'Было: Команда тратила по четыре часа в день на ручной сбор и проверку клиентских анкет, из-за чего клиенты остывали.',
   solution:
@@ -15,7 +39,7 @@ export const FIXTURE_CASE_DRAFT: CaseDraft = {
     'Стало: Скорость обработки заявок увеличилась в 3 раза, конверсия воронки выросла на 140%.',
   quote: {
     text: 'Сервис окупился в первый же месяц использования, команда освободила более двадцати часов в неделю.',
-    authorLabel: 'Анна К.',
+    authorLabel: 'Клиент',
     authorRole: 'CEO',
     authorCompany: 'Nordic Tech',
     evidenceId: null,
@@ -32,19 +56,13 @@ export class MockCaseAnalyzer implements CaseAnalyzer {
     this.customDraft = customDraft
   }
 
-  async analyze(input: AnalysisInput): Promise<CaseDraft> {
+  async analyze(): Promise<CaseDraft> {
     if (this.customDraft) {
       return this.customDraft
     }
 
-    const clientLabel = input.clientLabel || 'Клиент'
-
     return {
       ...FIXTURE_CASE_DRAFT,
-      quote: {
-        ...FIXTURE_CASE_DRAFT.quote,
-        authorCompany: clientLabel,
-      },
     }
   }
 }

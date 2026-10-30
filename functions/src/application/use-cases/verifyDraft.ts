@@ -2,6 +2,7 @@ import {
   CaseDraft,
   ChatExtraction,
   Evidence,
+  SummaryRow,
   Transcript,
   VerificationReport,
 } from '../../domain/types.js'
@@ -17,10 +18,11 @@ export const normalizeText = (text: string): string => {
 
 export const anonymizeAuthorLabel = (label?: string): string => {
   if (!label || !label.trim()) {
-    return 'Анна К.'
+    return 'Клиент'
   }
   const trimmed = label.trim()
   if (
+    trimmed === 'Клиент' ||
     trimmed.startsWith('@') ||
     trimmed.includes('@') ||
     /^\+?\d[\d\s-]{6,}$/.test(trimmed)
@@ -144,7 +146,11 @@ export const verifyDraft = ({
   const combinedSourceText = normalizeText(allSourceTextsRaw.join(' '))
   const combinedCompactSourceText = combinedSourceText.replace(/\s+/g, '')
 
-  const metricValue = verifiedDraft.metric?.value?.trim() || ''
+  if (!verifiedDraft.metric) {
+    verifiedDraft.metric = { value: '', label: '', evidenceId: null }
+  }
+
+  const metricValue = verifiedDraft.metric.value?.trim() || ''
 
   if (!metricValue) {
     verifiedDraft.metric.value = ''
@@ -248,41 +254,223 @@ export const verifyDraft = ({
     }
   }
 
-  const problemText = verifiedDraft.problem?.trim() || ''
-  if (!problemText) {
-    missingFields.push('problem')
+  if (isMetricVerified && verifiedDraft.metric.value) {
+    const metricHeadline = `${verifiedDraft.metric.value} ${verifiedDraft.metric.label || ''}`.trim()
+    verifiedDraft.headline = {
+      text: metricHeadline,
+      evidenceId: verifiedDraft.metric.evidenceId || null,
+    }
   } else {
-    const norm = normalizeText(problemText)
-    const keywords = norm.split(' ').filter((w) => w.length > 4)
-    const matchCount = keywords.filter((k) => combinedSourceText.includes(k)).length
-    if (keywords.length > 0 && matchCount / keywords.length < 0.25) {
-      needsReview.push('problem')
+    const rawHeadlineCandidate = verifiedDraft.headline?.text?.trim() || ''
+    if (rawHeadlineCandidate) {
+      const words = rawHeadlineCandidate.split(/\s+/).filter(Boolean)
+      const normalizedCandidate = normalizeText(rawHeadlineCandidate)
+      const isVerbatimInSource =
+        normalizedCandidate.length > 0 &&
+        combinedSourceText.includes(normalizedCandidate)
+
+      if (words.length >= 2 && words.length <= 6 && isVerbatimInSource) {
+        let matchedHeadlineEvidence: Evidence | null = null
+
+        for (const extraction of chatExtractions) {
+          for (const msg of extraction.messages) {
+            if (normalizeText(msg.text).includes(normalizedCandidate)) {
+              matchedHeadlineEvidence = {
+                id: `ev-headline-${extraction.screenshotSourceId}-${Date.now()}`,
+                sourceId: extraction.screenshotSourceId,
+                kind: 'chatMessage',
+                reference: `message:${msg.time || msg.order}`,
+                exactQuote: msg.text,
+              }
+              break
+            }
+          }
+          if (matchedHeadlineEvidence) break
+        }
+
+        if (!matchedHeadlineEvidence) {
+          for (const tr of transcripts) {
+            for (const seg of tr.segments) {
+              if (normalizeText(seg.text).includes(normalizedCandidate)) {
+                matchedHeadlineEvidence = {
+                  id: `ev-headline-${tr.sourceId || 'transcript'}-${Date.now()}`,
+                  sourceId: tr.sourceId || 'transcript',
+                  kind: 'transcriptSegment',
+                  reference: `segment:${seg.start}-${seg.end}`,
+                  exactQuote: seg.text,
+                }
+                break
+              }
+            }
+            if (matchedHeadlineEvidence) break
+          }
+        }
+
+        if (matchedHeadlineEvidence) {
+          evidences.push(matchedHeadlineEvidence)
+          verifiedDraft.headline = {
+            text: rawHeadlineCandidate,
+            evidenceId: matchedHeadlineEvidence.id,
+          }
+        } else {
+          verifiedDraft.headline = {
+            text: rawHeadlineCandidate,
+            evidenceId: null,
+          }
+        }
+      } else {
+        verifiedDraft.headline = {
+          text: '',
+          evidenceId: null,
+        }
+      }
+    } else {
+      verifiedDraft.headline = {
+        text: '',
+        evidenceId: null,
+      }
     }
   }
 
-  const solutionText = verifiedDraft.solution?.trim() || ''
-  if (!solutionText) {
-    missingFields.push('solution')
-  } else {
-    const norm = normalizeText(solutionText)
-    const keywords = norm.split(' ').filter((w) => w.length > 4)
-    const matchCount = keywords.filter((k) => combinedSourceText.includes(k)).length
-    if (keywords.length > 0 && matchCount / keywords.length < 0.25) {
-      needsReview.push('solution')
+  const rawSummaryRows: SummaryRow[] = Array.isArray(verifiedDraft.summaryRows)
+    ? verifiedDraft.summaryRows
+    : []
+
+  if (rawSummaryRows.length === 0) {
+    if (verifiedDraft.problem?.trim()) {
+      rawSummaryRows.push({
+        id: 'row-legacy-problem',
+        label: 'Задача',
+        text: verifiedDraft.problem.trim().replace(/^было:\s*/i, ''),
+        origin: 'ai_paraphrase',
+        evidenceId: null,
+      })
+    }
+    if (verifiedDraft.solution?.trim()) {
+      rawSummaryRows.push({
+        id: 'row-legacy-solution',
+        label: 'Сделано',
+        text: verifiedDraft.solution.trim().replace(/^сделано:\s*/i, ''),
+        origin: 'ai_paraphrase',
+        evidenceId: null,
+      })
+    }
+    if (verifiedDraft.result?.trim()) {
+      rawSummaryRows.push({
+        id: 'row-legacy-result',
+        label: 'Результат',
+        text: verifiedDraft.result.trim().replace(/^стало:\s*/i, ''),
+        origin: 'ai_paraphrase',
+        evidenceId: null,
+      })
     }
   }
 
-  const resultText = verifiedDraft.result?.trim() || ''
-  if (!resultText) {
-    missingFields.push('result')
-  } else {
-    const norm = normalizeText(resultText)
-    const keywords = norm.split(' ').filter((w) => w.length > 4)
-    const matchCount = keywords.filter((k) => combinedSourceText.includes(k)).length
-    if (keywords.length > 0 && matchCount / keywords.length < 0.25) {
-      needsReview.push('result')
+  const verifiedSummaryRows: SummaryRow[] = []
+
+  for (let i = 0; i < rawSummaryRows.length; i++) {
+    const row = rawSummaryRows[i]
+    const rowText = row.text?.trim() || ''
+    if (!rowText) continue
+
+    const rowId = row.id || `summary-row-${i + 1}`
+
+    if (row.origin === 'user_written') {
+      verifiedSummaryRows.push({
+        ...row,
+        id: rowId,
+        origin: 'user_written',
+      })
+      continue
     }
+
+    const normRowText = normalizeText(rowText)
+    const rowWords = normRowText.split(' ').filter((w) => w.length > 3)
+
+    let isGrounded = false
+    if (rowWords.length === 0) {
+      isGrounded = combinedSourceText.includes(normRowText)
+    } else {
+      const matchCount = rowWords.filter((w) => combinedSourceText.includes(w)).length
+      isGrounded = matchCount / rowWords.length >= 0.25
+    }
+
+    if (!isGrounded) {
+      continue
+    }
+
+    let rowEvidence: Evidence | null = null
+    for (const extraction of chatExtractions) {
+      for (const msg of extraction.messages) {
+        const normMsg = normalizeText(msg.text)
+        if (normMsg.includes(normRowText) || normRowText.includes(normMsg)) {
+          rowEvidence = {
+            id: `ev-row-${extraction.screenshotSourceId}-${i}-${Date.now()}`,
+            sourceId: extraction.screenshotSourceId,
+            kind: 'chatMessage',
+            reference: `message:${msg.time || msg.order}`,
+            exactQuote: msg.text,
+          }
+          break
+        }
+      }
+      if (rowEvidence) break
+    }
+
+    if (!rowEvidence) {
+      for (const tr of transcripts) {
+        for (const seg of tr.segments) {
+          const normSeg = normalizeText(seg.text)
+          if (normSeg.includes(normRowText) || normRowText.includes(normSeg)) {
+            rowEvidence = {
+              id: `ev-row-${tr.sourceId || 'tr'}-${i}-${Date.now()}`,
+              sourceId: tr.sourceId || 'tr',
+              kind: 'transcriptSegment',
+              reference: `segment:${seg.start}-${seg.end}`,
+              exactQuote: seg.text,
+            }
+            break
+          }
+        }
+        if (rowEvidence) break
+      }
+    }
+
+    if (rowEvidence) {
+      evidences.push(rowEvidence)
+    }
+
+    if (row.origin === 'ai_paraphrase') {
+      needsReview.push(`summaryRow:${rowId}`)
+    }
+
+    verifiedSummaryRows.push({
+      ...row,
+      id: rowId,
+      evidenceId: rowEvidence ? rowEvidence.id : row.evidenceId || null,
+      origin: row.origin || 'ai_paraphrase',
+    })
   }
+
+  verifiedDraft.summaryRows = verifiedSummaryRows
+
+  const taskRow = verifiedSummaryRows.find(
+    (r) => r.label.toLowerCase() === 'задача' || r.label.toLowerCase() === 'было'
+  )
+  const doneRow = verifiedSummaryRows.find(
+    (r) => r.label.toLowerCase() === 'сделано' || r.label.toLowerCase() === 'решение'
+  )
+  const resRow = verifiedSummaryRows.find(
+    (r) => r.label.toLowerCase() === 'результат' || r.label.toLowerCase() === 'стало'
+  )
+
+  verifiedDraft.problem = taskRow ? taskRow.text : verifiedDraft.problem || ''
+  verifiedDraft.solution = doneRow ? doneRow.text : verifiedDraft.solution || ''
+  verifiedDraft.result = resRow ? resRow.text : verifiedDraft.result || ''
+
+  if (!verifiedDraft.problem) missingFields.push('problem')
+  if (!verifiedDraft.solution) missingFields.push('solution')
+  if (!verifiedDraft.result) missingFields.push('result')
 
   const deduplicatedMissing = Array.from(new Set(missingFields))
   const deduplicatedNeedsReview = Array.from(new Set(needsReview))

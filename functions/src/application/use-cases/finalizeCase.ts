@@ -1,4 +1,9 @@
-import { CaseDraft, Evidence } from '../../domain/types.js'
+import {
+  CaseDraft,
+  Evidence,
+  MessengerType,
+  PersistedChatMessage,
+} from '../../domain/types.js'
 import { CaseRepositoryPort } from '../../infrastructure/ports/CaseRepositoryPort.js'
 
 export interface FinalizeCaseInput {
@@ -6,6 +11,9 @@ export interface FinalizeCaseInput {
   caseId: string
   draft: CaseDraft
   evidences: Evidence[]
+  chatMessages?: PersistedChatMessage[]
+  selectedChatMessages?: PersistedChatMessage[]
+  messenger?: MessengerType
   finalStatus?: 'review' | 'ready'
 }
 
@@ -14,7 +22,14 @@ export const finalizeCase = async ({
   caseId,
   draft,
   evidences,
+  chatMessages = [],
+  selectedChatMessages = [],
+  messenger = 'unknown',
   finalStatus = 'review',
 }: FinalizeCaseInput): Promise<void> => {
-  await caseRepository.saveDraft(caseId, draft, evidences, finalStatus)
+  await caseRepository.saveDraft(caseId, draft, evidences, finalStatus, {
+    chatMessages,
+    selectedChatMessages,
+    messenger,
+  })
 }

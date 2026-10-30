@@ -3,6 +3,7 @@ import { ChatReader } from '../ports/ChatReader.js'
 
 export const FIXTURE_CHAT_EXTRACTION: ChatExtraction = {
   screenshotSourceId: 'fixture-scr-1',
+  messenger: 'telegram',
   confidence: 0.96,
   order: 0,
   messages: [

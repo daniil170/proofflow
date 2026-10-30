@@ -1,5 +1,12 @@
 import { getFirestore } from 'firebase-admin/firestore'
-import { Case, CaseDraft, Evidence, PipelineStage } from '../../domain/types.js'
+import {
+  Case,
+  CaseDraft,
+  Evidence,
+  MessengerType,
+  PersistedChatMessage,
+  PipelineStage,
+} from '../../domain/types.js'
 import { CaseRepositoryPort } from '../ports/CaseRepositoryPort.js'
 
 export class FirestoreCaseRepository implements CaseRepositoryPort {
@@ -57,19 +64,35 @@ export class FirestoreCaseRepository implements CaseRepositoryPort {
     caseId: string,
     draft: CaseDraft,
     evidences: Evidence[],
-    finalStatus: 'review' | 'ready' = 'review'
+    finalStatus: 'review' | 'ready' = 'review',
+    options?: {
+      chatMessages?: PersistedChatMessage[]
+      selectedChatMessages?: PersistedChatMessage[]
+      messenger?: MessengerType
+    }
   ): Promise<void> {
+    const updatePayload: Record<string, unknown> = {
+      draft,
+      evidences,
+      status: finalStatus,
+      stage: 'done',
+      stageProgress: 100,
+      updatedAt: Date.now(),
+    }
+    if (options?.chatMessages !== undefined) {
+      updatePayload.chatMessages = options.chatMessages
+    }
+    if (options?.selectedChatMessages !== undefined) {
+      updatePayload.selectedChatMessages = options.selectedChatMessages
+    }
+    if (options?.messenger !== undefined) {
+      updatePayload.messenger = options.messenger
+    }
+
     await this.getDb()
       .collection(this.collectionName)
       .doc(caseId)
-      .update({
-        draft,
-        evidences,
-        status: finalStatus,
-        stage: 'done',
-        stageProgress: 100,
-        updatedAt: Date.now(),
-      })
+      .update(updatePayload)
   }
 
   async countCasesByOwner(ownerId: string): Promise<number> {

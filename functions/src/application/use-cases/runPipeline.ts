@@ -2,7 +2,12 @@ import os from 'os'
 import path from 'path'
 import { promises as fs } from 'fs'
 import { MAX_CASES_PER_ACCOUNT, validateCaseFileParameters } from '../../domain/limits.js'
-import { PipelineStage, VerificationReport } from '../../domain/types.js'
+import {
+  MessengerType,
+  PersistedChatMessage,
+  PipelineStage,
+  VerificationReport,
+} from '../../domain/types.js'
 import { CaseAnalyzer } from '../../infrastructure/ports/CaseAnalyzer.js'
 import { CaseRepositoryPort } from '../../infrastructure/ports/CaseRepositoryPort.js'
 import { ChatReader } from '../../infrastructure/ports/ChatReader.js'
@@ -15,7 +20,7 @@ import { finalizeCase } from './finalizeCase.js'
 import { normalizeSources } from './normalizeSources.js'
 import { readScreenshots } from './readScreenshots.js'
 import { transcribeAudio } from './transcribeAudio.js'
-import { verifyDraft } from './verifyDraft.js'
+import { normalizeText, verifyDraft } from './verifyDraft.js'
 
 export interface RunPipelineInput {
   caseId: string
@@ -165,11 +170,57 @@ export const runPipeline = async ({
       chatExtractions,
     })
 
+    const allChatMessages: PersistedChatMessage[] = []
+    let detectedMessenger: MessengerType = 'unknown'
+
+    chatExtractions.forEach((extraction) => {
+      if (
+        extraction.messenger &&
+        extraction.messenger !== 'unknown' &&
+        detectedMessenger === 'unknown'
+      ) {
+        detectedMessenger = extraction.messenger
+      }
+      extraction.messages.forEach((msg, idx) => {
+        allChatMessages.push({
+          id: msg.id || `msg-${extraction.screenshotSourceId}-${msg.order ?? idx}`,
+          side: msg.side,
+          text: msg.text,
+          time: msg.time,
+          sourceId: extraction.screenshotSourceId,
+          order: msg.order ?? idx,
+        })
+      })
+    })
+
+    let selectedChatMessages: PersistedChatMessage[] = []
+    const quoteText = verifiedDraft.quote?.text?.trim()
+    if (quoteText && allChatMessages.length > 0) {
+      const quoteNorm = normalizeText(quoteText)
+      const qIndex = allChatMessages.findIndex((m) => {
+        const mNorm = normalizeText(m.text)
+        return mNorm.includes(quoteNorm) || quoteNorm.includes(mNorm)
+      })
+      if (qIndex >= 0) {
+        if (qIndex > 0) {
+          selectedChatMessages.push(allChatMessages[qIndex - 1])
+        }
+        selectedChatMessages.push(allChatMessages[qIndex])
+      } else {
+        selectedChatMessages = allChatMessages.slice(0, 2)
+      }
+    } else {
+      selectedChatMessages = allChatMessages.slice(0, 2)
+    }
+
     await finalizeCase({
       caseRepository,
       caseId,
       draft: verifiedDraft,
       evidences,
+      chatMessages: allChatMessages,
+      selectedChatMessages,
+      messenger: detectedMessenger,
       finalStatus: 'review',
     })
 

@@ -104,6 +104,7 @@ export class ClaudeChatReader implements ChatReader {
 
       return chatExtractionSchema.parse({
         screenshotSourceId,
+        messenger: parsed.messenger || 'unknown',
         order,
         messages: parsed.messages || [],
         confidence: parsed.confidence !== undefined ? parsed.confidence : 1.0,
