@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import PropTypes from 'prop-types'
 import { CaseCard } from '@/widgets/case-card'
+import { getAllowedLabelsForVariant } from '@/entities/case'
 import { EvidenceDrawer } from './EvidenceDrawer.jsx'
 import { MetricField } from './MetricField.jsx'
 import { QuoteField } from './QuoteField.jsx'
@@ -32,11 +33,21 @@ export const CaseReviewEditor = ({ reviewState }) => {
     cardPreviewData,
     sourcesDeletedAt,
     storageRetentionDays = 14,
+    messenger = 'unknown',
+    selectedChatMessages = [],
+    allChatMessages = [],
 
     setActiveTab,
     updateField,
+    updateSummaryRow,
+    confirmSummaryRow,
+    addSummaryRow,
+    removeSummaryRow,
+    toggleChatMessage,
+    handleSetMessenger,
     isFieldModified,
     isFieldNeedsReview,
+    isRowNeedsReview,
     openEvidence,
     closeEvidence,
     markAsVerified,
@@ -55,6 +66,9 @@ export const CaseReviewEditor = ({ reviewState }) => {
   }
 
   const hasModifiedFields = modifiedFields.length > 0
+  const allowedLabels = getAllowedLabelsForVariant(selectedVariant)
+
+  const summaryRows = Array.isArray(draft.summaryRows) ? draft.summaryRows : []
 
   return (
     <div className={styles.container}>
@@ -101,12 +115,53 @@ export const CaseReviewEditor = ({ reviewState }) => {
             </span>
           </div>
 
+          <div className={styles.storySectionCard}>
+            <div className={styles.sectionHeader}>
+              <div className={styles.sectionTitleArea}>
+                <div className={styles.sectionIconBadge}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M4 6h16M4 12h16M4 18h7" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className={styles.sectionHeading}>Заголовок карточки</h3>
+                  <p className={styles.sectionSubheading}>
+                    Только из подтвержденных слов клиента или проверенной метрики
+                  </p>
+                </div>
+              </div>
+
+              {draft.headline?.evidenceId && (
+                <button
+                  type="button"
+                  className={styles.evidenceButton}
+                  onClick={() => openEvidence('headline')}
+                  aria-label="Откуда взят заголовок"
+                >
+                  <SearchIcon size={13} />
+                  <span>Откуда это</span>
+                </button>
+              )}
+            </div>
+
+            <div className={styles.tagInputRow}>
+              <input
+                id="headline-input"
+                type="text"
+                className={styles.tagsInput}
+                value={draft.headline?.text || ''}
+                onChange={(e) => updateField('headline.text', e.target.value)}
+                placeholder="Короткий акцент из слов клиента (2-6 слов)"
+              />
+            </div>
+          </div>
+
           <MetricField
-            value={draft.metric.value}
-            label={draft.metric.label}
+            value={draft.metric?.value || ''}
+            label={draft.metric?.label || ''}
             isNeedsReview={isFieldNeedsReview('metric')}
             isModified={isFieldModified('metric.value')}
-            hasEvidence={Boolean(draft.metric.evidenceId)}
+            hasEvidence={Boolean(draft.metric?.evidenceId)}
             error={validationErrors['metric.value']}
             onValueChange={(val) => updateField('metric.value', val)}
             onLabelChange={(val) => updateField('metric.label', val)}
@@ -117,16 +172,7 @@ export const CaseReviewEditor = ({ reviewState }) => {
             <div className={styles.sectionHeader}>
               <div className={styles.sectionTitleArea}>
                 <div className={styles.sectionIconBadge}>
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                     <polyline points="14 2 14 8 20 8" />
                     <line x1="16" y1="13" x2="8" y2="13" />
@@ -134,187 +180,245 @@ export const CaseReviewEditor = ({ reviewState }) => {
                   </svg>
                 </div>
                 <div>
-                  <h3 className={styles.sectionHeading}>Сюжет кейса</h3>
+                  <h3 className={styles.sectionHeading}>Сюжет кейса (строки пересказа)</h3>
                   <p className={styles.sectionSubheading}>
-                    Проблема клиента → Ваше решение → Полученный результат
+                    Каждая строка опирается на источник. ИИ-пересказ требует подтверждения.
                   </p>
                 </div>
               </div>
             </div>
 
             <div className={styles.storyStepsList}>
-              <div
-                className={`
-                  ${styles.storyStep}
-                  ${isFieldNeedsReview('problem') ? styles.storyStepNeedsReview : ''}
-                `}
-              >
-                <div className={styles.stepHeader}>
-                  <div className={styles.stepTitleGroup}>
-                    <span className={`${styles.stepPill} ${styles.stepPillAmber}`}>
-                      <span className={styles.stepNumber}>1</span>
-                      Было · Проблема клиента
-                    </span>
-                    {isFieldNeedsReview('problem') && (
-                      <span className={styles.badgeNeedsReview}>Проверьте</span>
-                    )}
-                    {isFieldModified('problem') && (
-                      <span className={styles.badgeModified}>Изменено вами</span>
-                    )}
+              {summaryRows.map((row, idx) => {
+                const needsRev = isRowNeedsReview ? isRowNeedsReview(row, idx) : false
+                const isClientWords = row.origin === 'client_words'
+                const isUserWritten = row.origin === 'user_written'
+
+                return (
+                  <div
+                    key={row.id || `${row.label}-${idx}`}
+                    className={`
+                      ${styles.storyStep}
+                      ${needsRev ? styles.storyStepNeedsReview : ''}
+                    `}
+                  >
+                    <div className={styles.stepHeader}>
+                      <div className={styles.stepTitleGroup}>
+                        <select
+                          className={styles.stepPill}
+                          value={row.label}
+                          onChange={(e) => updateSummaryRow?.(idx, { label: e.target.value })}
+                        >
+                          {allowedLabels.map((lab) => (
+                            <option key={lab} value={lab}>
+                              {lab}
+                            </option>
+                          ))}
+                          {!allowedLabels.includes(row.label) && (
+                            <option value={row.label}>{row.label}</option>
+                          )}
+                        </select>
+
+                        {isClientWords && (
+                          <span className={styles.badgeModified} style={{ backgroundColor: '#ecfdf5', color: '#065f46' }}>
+                            Из слов клиента
+                          </span>
+                        )}
+                        {row.origin === 'ai_paraphrase' && (
+                          <span className={styles.badgeModified} style={{ backgroundColor: '#eff6ff', color: '#1e40af' }}>
+                            Пересказ ИИ
+                          </span>
+                        )}
+                        {isUserWritten && (
+                          <span className={styles.badgeModified}>
+                            Добавлено вами
+                          </span>
+                        )}
+
+                        {needsRev && (
+                          <span className={styles.badgeNeedsReview}>
+                            Проверьте
+                          </span>
+                        )}
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {needsRev && (
+                          <button
+                            type="button"
+                            className={styles.evidenceButton}
+                            style={{ color: '#059669', borderColor: '#a7f3d0', backgroundColor: '#ecfdf5' }}
+                            onClick={() => confirmSummaryRow?.(row.id || `row-${idx}`)}
+                          >
+                            ✓ Подтвердить
+                          </button>
+                        )}
+
+                        {row.evidenceId && (
+                          <button
+                            type="button"
+                            className={styles.evidenceButton}
+                            onClick={() => openEvidence(row.evidenceId)}
+                            aria-label={`Откуда взято: ${row.label}`}
+                          >
+                            <SearchIcon size={13} />
+                            <span>Откуда это</span>
+                          </button>
+                        )}
+
+                        <button
+                          type="button"
+                          className={styles.tagRemoveBtn}
+                          onClick={() => removeSummaryRow?.(idx)}
+                          aria-label="Удалить строку"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    </div>
+
+                    <textarea
+                      className={styles.textarea}
+                      value={row.text || ''}
+                      onChange={(e) => updateSummaryRow?.(idx, { text: e.target.value })}
+                      placeholder="Фактическое содержание пункта"
+                    />
                   </div>
+                )
+              })}
 
-                  {!isFieldModified('problem') && (
-                    <button
-                      type="button"
-                      className={styles.evidenceButton}
-                      onClick={() => openEvidence('problem')}
-                      aria-label="Откуда взята проблема"
-                    >
-                      <SearchIcon size={13} />
-                      <span>Откуда это</span>
-                    </button>
-                  )}
-                </div>
-
-                <textarea
-                  id="problem-input"
-                  className={styles.textarea}
-                  value={draft.problem}
-                  onChange={(e) => updateField('problem', e.target.value)}
-                  placeholder="С какими трудностями и ограничениями столкнулся клиент"
-                  aria-describedby={
-                    validationErrors.problem ? 'problem-error' : undefined
-                  }
-                  aria-invalid={Boolean(validationErrors.problem)}
-                />
-                {validationErrors.problem && (
-                  <p id="problem-error" className={styles.errorMessage}>
-                    {validationErrors.problem}
-                  </p>
-                )}
-              </div>
-
-              <div className={styles.stepConnector} aria-hidden="true">
-                <div className={styles.connectorLine} />
-                <div className={styles.connectorArrow}>↓</div>
-              </div>
-
-              <div
-                className={`
-                  ${styles.storyStep}
-                  ${isFieldNeedsReview('solution') ? styles.storyStepNeedsReview : ''}
-                `}
+              <button
+                type="button"
+                className={styles.evidenceButton}
+                style={{ alignSelf: 'flex-start', marginTop: '6px' }}
+                onClick={() => addSummaryRow?.({ label: allowedLabels[0] || 'Детали', text: '' })}
               >
-                <div className={styles.stepHeader}>
-                  <div className={styles.stepTitleGroup}>
-                    <span className={`${styles.stepPill} ${styles.stepPillBlue}`}>
-                      <span className={styles.stepNumber}>2</span>
-                      Сделано · Ваше решение
-                    </span>
-                    {isFieldNeedsReview('solution') && (
-                      <span className={styles.badgeNeedsReview}>Проверьте</span>
-                    )}
-                    {isFieldModified('solution') && (
-                      <span className={styles.badgeModified}>Изменено вами</span>
-                    )}
+                ＋ Добавить строку
+              </button>
+            </div>
+          </div>
+
+          {allChatMessages.length > 0 && (
+            <div className={styles.storySectionCard}>
+              <div className={styles.sectionHeader}>
+                <div className={styles.sectionTitleArea}>
+                  <div className={styles.sectionIconBadge}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                    </svg>
                   </div>
-
-                  {!isFieldModified('solution') && (
-                    <button
-                      type="button"
-                      className={styles.evidenceButton}
-                      onClick={() => openEvidence('solution')}
-                      aria-label="Откуда взято решение"
-                    >
-                      <SearchIcon size={13} />
-                      <span>Откуда это</span>
-                    </button>
-                  )}
-                </div>
-
-                <textarea
-                  id="solution-input"
-                  className={styles.textarea}
-                  value={draft.solution}
-                  onChange={(e) => updateField('solution', e.target.value)}
-                  placeholder="Какое конкретное решение или процесс внедрили"
-                  aria-describedby={
-                    validationErrors.solution ? 'solution-error' : undefined
-                  }
-                  aria-invalid={Boolean(validationErrors.solution)}
-                />
-                {validationErrors.solution && (
-                  <p id="solution-error" className={styles.errorMessage}>
-                    {validationErrors.solution}
-                  </p>
-                )}
-              </div>
-
-              <div className={styles.stepConnector} aria-hidden="true">
-                <div className={styles.connectorLine} />
-                <div className={styles.connectorArrow}>↓</div>
-              </div>
-
-              <div
-                className={`
-                  ${styles.storyStep}
-                  ${isFieldNeedsReview('result') ? styles.storyStepNeedsReview : ''}
-                `}
-              >
-                <div className={styles.stepHeader}>
-                  <div className={styles.stepTitleGroup}>
-                    <span className={`${styles.stepPill} ${styles.stepPillEmerald}`}>
-                      <span className={styles.stepNumber}>3</span>
-                      Стало · Достигнутый результат
-                    </span>
-                    {isFieldNeedsReview('result') && (
-                      <span className={styles.badgeNeedsReview}>Проверьте</span>
-                    )}
-                    {isFieldModified('result') && (
-                      <span className={styles.badgeModified}>Изменено вами</span>
-                    )}
+                  <div>
+                    <h3 className={styles.sectionHeading}>Переписка на карточке</h3>
+                    <p className={styles.sectionSubheading}>
+                      Выберите до трех сообщений из скриншота (выбрано: {selectedChatMessages.length} из 3)
+                    </p>
                   </div>
-
-                  {!isFieldModified('result') && (
-                    <button
-                      type="button"
-                      className={styles.evidenceButton}
-                      onClick={() => openEvidence('result')}
-                      aria-label="Откуда взят результат"
-                    >
-                      <SearchIcon size={13} />
-                      <span>Откуда это</span>
-                    </button>
-                  )}
                 </div>
-
-                <textarea
-                  id="result-input"
-                  className={styles.textarea}
-                  value={draft.result}
-                  onChange={(e) => updateField('result', e.target.value)}
-                  placeholder="Как изменились показатели и процессы после запуска"
-                  aria-describedby={validationErrors.result ? 'result-error' : undefined}
-                  aria-invalid={Boolean(validationErrors.result)}
-                />
-                {validationErrors.result && (
-                  <p id="result-error" className={styles.errorMessage}>
-                    {validationErrors.result}
-                  </p>
-                )}
               </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {allChatMessages.map((msg, index) => {
+                  const isSelected = selectedChatMessages.some(
+                    (m) => m.text === msg.text && m.time === msg.time
+                  )
+                  return (
+                    <div
+                      key={`chat-msg-${index}`}
+                      onClick={() => toggleChatMessage?.(msg)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '12px',
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: isSelected ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
+                        backgroundColor: isSelected ? '#eff6ff' : '#ffffff',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => {}}
+                        style={{ marginTop: '3px' }}
+                      />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                          <span style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>
+                            {msg.side === 'client' ? 'Клиент' : 'Собеседник'}
+                          </span>
+                          {msg.time && (
+                            <span style={{ fontSize: '11px', color: '#94a3b8' }}>{msg.time}</span>
+                          )}
+                        </div>
+                        <p style={{ margin: 0, fontSize: '13px', color: '#0f172a', whiteSpace: 'pre-wrap' }}>
+                          {msg.text}
+                        </p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          <div className={styles.storySectionCard}>
+            <div className={styles.sectionHeader}>
+              <div className={styles.sectionTitleArea}>
+                <div className={styles.sectionIconBadge}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="2" y1="12" x2="22" y2="12" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className={styles.sectionHeading}>Мессенджер переписки</h3>
+                  <p className={styles.sectionSubheading}>
+                    Определен по интерфейсу скриншота, вы можете переключить вручную
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              {[
+                { id: 'telegram', label: 'Telegram' },
+                { id: 'whatsapp', label: 'WhatsApp' },
+                { id: 'unknown', label: 'Переписка (нейтрально)' },
+              ].map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  className={styles.variantBtn}
+                  style={{
+                    backgroundColor: messenger === m.id ? '#0f172a' : '#f1f5f9',
+                    color: messenger === m.id ? '#ffffff' : '#0f172a',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    fontWeight: 600,
+                  }}
+                  onClick={() => handleSetMessenger?.(m.id)}
+                >
+                  {m.label}
+                </button>
+              ))}
             </div>
           </div>
 
           <QuoteField
-            quoteText={draft.quote.text}
-            authorLabel={draft.quote.authorLabel}
+            quoteText={draft.quote?.text || ''}
+            authorLabel={draft.quote?.authorLabel || 'Клиент'}
+            authorRole={draft.quote?.authorRole || ''}
+            authorCompany={draft.quote?.authorCompany || ''}
             isNeedsReview={isFieldNeedsReview('quote')}
             isModified={isFieldModified('quote.text')}
-            hasEvidence={Boolean(draft.quote.evidenceId)}
+            hasEvidence={Boolean(draft.quote?.evidenceId)}
             error={validationErrors['quote.text']}
             onQuoteChange={(val) => updateField('quote.text', val)}
             onAuthorChange={(val) => updateField('quote.authorLabel', val)}
+            onAuthorRoleChange={(val) => updateField('quote.authorRole', val)}
+            onAuthorCompanyChange={(val) => updateField('quote.authorCompany', val)}
             onOpenEvidence={() => openEvidence('quote')}
           />
 
@@ -322,16 +426,7 @@ export const CaseReviewEditor = ({ reviewState }) => {
             <div className={styles.sectionHeader}>
               <div className={styles.sectionTitleArea}>
                 <div className={styles.sectionIconBadge}>
-                  <svg
-                    width="15"
-                    height="15"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
                     <line x1="7" y1="7" x2="7.01" y2="7" />
                   </svg>
@@ -456,11 +551,23 @@ CaseReviewEditor.propTypes = {
     feedbackState: PropTypes.object.isRequired,
     activeTab: PropTypes.string.isRequired,
     cardPreviewData: PropTypes.object.isRequired,
+    sourcesDeletedAt: PropTypes.any,
+    storageRetentionDays: PropTypes.number,
+    messenger: PropTypes.string,
+    selectedChatMessages: PropTypes.array,
+    allChatMessages: PropTypes.array,
 
     setActiveTab: PropTypes.func.isRequired,
     updateField: PropTypes.func.isRequired,
+    updateSummaryRow: PropTypes.func,
+    confirmSummaryRow: PropTypes.func,
+    addSummaryRow: PropTypes.func,
+    removeSummaryRow: PropTypes.func,
+    toggleChatMessage: PropTypes.func,
+    handleSetMessenger: PropTypes.func,
     isFieldModified: PropTypes.func.isRequired,
     isFieldNeedsReview: PropTypes.func.isRequired,
+    isRowNeedsReview: PropTypes.func,
     openEvidence: PropTypes.func.isRequired,
     closeEvidence: PropTypes.func.isRequired,
     markAsVerified: PropTypes.func.isRequired,

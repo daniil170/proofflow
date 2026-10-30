@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { caseDraftSchema } from '@/entities/case/model/schemas'
+import { migrateCaseDraft } from '@/entities/case/model/migration.js'
 import { getCaseRepository, trackAnalyticsEvent } from '@/shared/api'
 
 export const REGENERATE_STYLES = Object.freeze({
@@ -57,29 +58,46 @@ export const useCaseReview = ({
   autosaveDelayMs = 600,
 } = {}) => {
   const initialDraft = useMemo(() => {
+    const migrated = migrateCaseDraft(caseItem?.draft) || {}
     return {
+      headline: {
+        text: String(migrated.headline?.text ?? ''),
+        evidenceId: migrated.headline?.evidenceId || null,
+      },
       metric: {
-        value: String(caseItem?.draft?.metric?.value ?? ''),
-        label: String(caseItem?.draft?.metric?.label ?? ''),
-        evidenceId: caseItem?.draft?.metric?.evidenceId || null,
+        value: String(migrated.metric?.value ?? ''),
+        label: String(migrated.metric?.label ?? ''),
+        evidenceId: migrated.metric?.evidenceId || null,
       },
-      problem: cleanPrefix(String(caseItem?.draft?.problem ?? ''), 'было'),
-      solution: cleanPrefix(String(caseItem?.draft?.solution ?? ''), 'сделано'),
-      result: cleanPrefix(String(caseItem?.draft?.result ?? ''), 'стало'),
+      problem: cleanPrefix(String(migrated.problem ?? ''), 'было'),
+      solution: cleanPrefix(String(migrated.solution ?? ''), 'сделано'),
+      result: cleanPrefix(String(migrated.result ?? ''), 'стало'),
+      summaryRows: Array.isArray(migrated.summaryRows) ? migrated.summaryRows : [],
       quote: {
-        text: String(caseItem?.draft?.quote?.text ?? ''),
-        authorLabel: caseItem?.draft?.quote?.authorLabel || 'Анна К.',
-        evidenceId: caseItem?.draft?.quote?.evidenceId || null,
-        authorRole: caseItem?.draft?.quote?.authorRole || '',
-        authorCompany: caseItem?.draft?.quote?.authorCompany || '',
+        text: String(migrated.quote?.text ?? ''),
+        authorLabel: migrated.quote?.authorLabel || 'Клиент',
+        evidenceId: migrated.quote?.evidenceId || null,
+        authorRole: migrated.quote?.authorRole || '',
+        authorCompany: migrated.quote?.authorCompany || '',
       },
-      tags: caseItem?.draft?.tags || [],
-      missingFields: caseItem?.draft?.missingFields || [],
-      needsReview: caseItem?.draft?.needsReview || [],
+      tags: migrated.tags || [],
+      missingFields: migrated.missingFields || [],
+      needsReview: migrated.needsReview || [],
     }
   }, [caseItem?.draft])
 
   const [draft, setDraft] = useState(initialDraft)
+  const [messenger, setMessengerState] = useState(() => caseItem?.messenger || 'unknown')
+  const [selectedChatMessages, setSelectedChatMessages] = useState(() => {
+    if (Array.isArray(caseItem?.selectedChatMessages) && caseItem.selectedChatMessages.length > 0) {
+      return caseItem.selectedChatMessages
+    }
+    if (Array.isArray(caseItem?.chatMessages) && caseItem.chatMessages.length > 0) {
+      return caseItem.chatMessages.slice(0, Math.min(3, caseItem.chatMessages.length))
+    }
+    return []
+  })
+
   const [modifiedFields, setModifiedFields] = useState(() => {
     return new Set(caseItem?.modifiedFields || [])
   })
@@ -88,6 +106,7 @@ export const useCaseReview = ({
   useEffect(() => {
     modifiedFieldsRef.current = modifiedFields
   }, [modifiedFields])
+
   const [activeEvidence, setActiveEvidence] = useState(null)
   const [saveStatus, setSaveStatus] = useState('idle')
   const [isRegenerating, setIsRegenerating] = useState(false)
@@ -101,7 +120,19 @@ export const useCaseReview = ({
   const [validationErrors, setValidationErrors] = useState({})
 
   const debounceTimerRef = useRef(null)
-  const isInitialMountRef = useRef(true)
+  const [prevCaseId, setPrevCaseId] = useState(caseItem?.id)
+  if (caseItem?.id !== prevCaseId) {
+    setPrevCaseId(caseItem?.id)
+    setDraft(initialDraft)
+    setMessengerState(caseItem?.messenger || 'unknown')
+    setSelectedChatMessages(
+      Array.isArray(caseItem?.selectedChatMessages) && caseItem.selectedChatMessages.length > 0
+        ? caseItem.selectedChatMessages
+        : Array.isArray(caseItem?.chatMessages)
+        ? caseItem.chatMessages.slice(0, Math.min(3, caseItem.chatMessages.length))
+        : []
+    )
+  }
 
   const evidences = useMemo(() => {
     return caseItem?.evidences || []
@@ -120,39 +151,10 @@ export const useCaseReview = ({
     }
   }, [caseItem?.id, caseItem?.ownerId])
 
-  useEffect(() => {
-    if (isInitialMountRef.current) {
-      isInitialMountRef.current = false
-      return
-    }
-    setDraft(initialDraft)
-  }, [initialDraft])
-
   const runValidation = useCallback((currentDraft) => {
     const errors = {}
 
-    const metricValue = String(currentDraft?.metric?.value ?? '').trim()
-    const metricLabel = String(currentDraft?.metric?.label ?? '').trim()
-    const problem = String(currentDraft?.problem ?? '').trim()
-    const solution = String(currentDraft?.solution ?? '').trim()
-    const result = String(currentDraft?.result ?? '').trim()
     const quoteText = String(currentDraft?.quote?.text ?? '').trim()
-
-    if (!metricValue) {
-      errors['metric.value'] = 'Укажите числовое значение или процент'
-    }
-    if (!metricLabel) {
-      errors['metric.label'] = 'Укажите подпись к метрике'
-    }
-    if (!problem) {
-      errors.problem = 'Опишите, какая была проблема'
-    }
-    if (!solution) {
-      errors.solution = 'Опишите, что было сделано'
-    }
-    if (!result) {
-      errors.result = 'Опишите полученный результат'
-    }
     if (!quoteText) {
       errors['quote.text'] = 'Цитата не может быть пустой'
     }
@@ -168,7 +170,7 @@ export const useCaseReview = ({
   }, [])
 
   const triggerAutosave = useCallback(
-    (nextDraft, nextModified) => {
+    (nextDraft, nextModified, extraUpdates = {}) => {
       if (!caseItem?.id) return
 
       if (debounceTimerRef.current) {
@@ -182,6 +184,7 @@ export const useCaseReview = ({
           await repository.update(caseItem.id, {
             draft: nextDraft,
             modifiedFields: Array.from(nextModified),
+            ...extraUpdates,
           })
           setSaveStatus('saved')
         } catch {
@@ -220,6 +223,9 @@ export const useCaseReview = ({
           next.quote.evidenceId = null
           next.missingFields = next.missingFields.filter((f) => f !== 'quote')
           next.needsReview = next.needsReview.filter((f) => f !== 'quote')
+        } else if (fieldPath === 'headline.text') {
+          next.headline.evidenceId = null
+          next.needsReview = next.needsReview.filter((f) => f !== 'headline')
         } else {
           next.needsReview = next.needsReview.filter((f) => f !== parts[0])
           next.missingFields = next.missingFields.filter((f) => f !== parts[0])
@@ -244,6 +250,133 @@ export const useCaseReview = ({
     [caseItem?.id, caseItem?.ownerId, runValidation, triggerAutosave]
   )
 
+  const updateSummaryRow = useCallback(
+    (index, patch) => {
+      setDraft((prev) => {
+        const next = JSON.parse(JSON.stringify(prev))
+        const rows = [...(next.summaryRows || [])]
+        if (!rows[index]) return prev
+
+        const targetId = rows[index].id || `row-${index}`
+        rows[index] = {
+          ...rows[index],
+          ...patch,
+          id: targetId,
+          origin: patch.text !== undefined ? 'user_written' : rows[index].origin,
+        }
+
+        if (patch.text !== undefined) {
+          next.needsReview = (next.needsReview || []).filter(
+            (item) => item !== `summaryRow:${targetId}` && item !== targetId && item !== `summaryRow:${rows[index].label}`
+          )
+        }
+
+        next.summaryRows = rows
+        const nextModified = new Set(modifiedFieldsRef.current)
+        nextModified.add(`summaryRows.${index}`)
+        modifiedFieldsRef.current = nextModified
+        setModifiedFields(nextModified)
+
+        triggerAutosave(next, nextModified)
+        return next
+      })
+    },
+    [triggerAutosave]
+  )
+
+  const confirmSummaryRow = useCallback(
+    (rowId) => {
+      setDraft((prev) => {
+        const next = JSON.parse(JSON.stringify(prev))
+        next.needsReview = (next.needsReview || []).filter(
+          (item) => item !== `summaryRow:${rowId}` && item !== rowId
+        )
+        triggerAutosave(next, modifiedFieldsRef.current)
+        return next
+      })
+    },
+    [triggerAutosave]
+  )
+
+  const addSummaryRow = useCallback(
+    (newRow = { label: 'Детали', text: '' }) => {
+      setDraft((prev) => {
+        const next = JSON.parse(JSON.stringify(prev))
+        const rows = [...(next.summaryRows || [])]
+        rows.push({
+          id: `user-row-${Date.now()}`,
+          label: newRow.label || 'Детали',
+          text: newRow.text || '',
+          evidenceId: null,
+          origin: 'user_written',
+        })
+        next.summaryRows = rows
+
+        const nextModified = new Set(modifiedFieldsRef.current)
+        nextModified.add('summaryRows')
+        modifiedFieldsRef.current = nextModified
+        setModifiedFields(nextModified)
+
+        triggerAutosave(next, nextModified)
+        return next
+      })
+    },
+    [triggerAutosave]
+  )
+
+  const removeSummaryRow = useCallback(
+    (index) => {
+      setDraft((prev) => {
+        const next = JSON.parse(JSON.stringify(prev))
+        const rows = [...(next.summaryRows || [])]
+        const removed = rows[index]
+        if (!removed) return prev
+
+        const targetId = removed.id || `row-${index}`
+        next.needsReview = (next.needsReview || []).filter(
+          (item) => item !== `summaryRow:${targetId}` && item !== targetId && item !== `summaryRow:${removed.label}`
+        )
+        rows.splice(index, 1)
+        next.summaryRows = rows
+
+        const nextModified = new Set(modifiedFieldsRef.current)
+        nextModified.add('summaryRows')
+        modifiedFieldsRef.current = nextModified
+        setModifiedFields(nextModified)
+
+        triggerAutosave(next, nextModified)
+        return next
+      })
+    },
+    [triggerAutosave]
+  )
+
+  const toggleChatMessage = useCallback(
+    (message) => {
+      setSelectedChatMessages((prev) => {
+        const exists = prev.some((m) => m.text === message.text && m.time === message.time)
+        let updated
+        if (exists) {
+          updated = prev.filter((m) => !(m.text === message.text && m.time === message.time))
+        } else {
+          if (prev.length >= 3) return prev
+          updated = [...prev, message]
+        }
+        triggerAutosave(draft, modifiedFieldsRef.current, { selectedChatMessages: updated })
+        return updated
+      })
+    },
+    [draft, triggerAutosave]
+  )
+
+  const handleSetMessenger = useCallback(
+    (newMessenger) => {
+      setMessengerState(newMessenger)
+      triggerAutosave(draft, modifiedFieldsRef.current, { messenger: newMessenger })
+    },
+    [draft, triggerAutosave]
+  )
+
   const isFieldModified = useCallback(
     (fieldPath) => {
       return modifiedFields.has(fieldPath)
@@ -253,7 +386,20 @@ export const useCaseReview = ({
 
   const isFieldNeedsReview = useCallback(
     (fieldName) => {
-      return draft.needsReview.includes(fieldName)
+      return (draft.needsReview || []).includes(fieldName)
+    },
+    [draft.needsReview]
+  )
+
+  const isRowNeedsReview = useCallback(
+    (row, index) => {
+      const rowId = row?.id || `row-${index}`
+      const reviewList = draft.needsReview || []
+      return (
+        reviewList.includes(`summaryRow:${rowId}`) ||
+        reviewList.includes(rowId) ||
+        reviewList.includes(`summaryRow:${row?.label}`)
+      )
     },
     [draft.needsReview]
   )
@@ -284,6 +430,8 @@ export const useCaseReview = ({
           matched = evidences.find((e) => e.id === draft.quote.evidenceId)
         } else if (evidenceIdOrField === 'metric' && draft.metric.evidenceId) {
           matched = evidences.find((e) => e.id === draft.metric.evidenceId)
+        } else if (evidenceIdOrField === 'headline' && draft.headline.evidenceId) {
+          matched = evidences.find((e) => e.id === draft.headline.evidenceId)
         }
       }
 
@@ -303,7 +451,7 @@ export const useCaseReview = ({
               ? draft.metric.value
               : evidenceIdOrField === 'quote'
               ? draft.quote.text
-              : draft.problem || draft.result || 'Подтверждённая цитата из диалога',
+              : draft.headline?.text || 'Подтверждённая цитата из диалога',
         }
       }
 
@@ -324,15 +472,11 @@ export const useCaseReview = ({
 
   const canMarkVerified = useMemo(() => {
     const hasErrors = Object.keys(validationErrors).length > 0
-    const hasNeedsReview = draft.needsReview.length > 0
+    const hasNeedsReview = (draft.needsReview || []).length > 0
     const hasMissingFields =
-      !draft.metric.value ||
-      !draft.metric.label ||
-      !draft.problem ||
-      !draft.solution ||
-      !draft.result ||
-      !draft.quote.text ||
-      draft.missingFields.length > 0
+      (draft.missingFields || []).includes('metric') ||
+      (draft.missingFields || []).includes('quote') ||
+      !draft.quote?.text?.trim()
 
     return !hasErrors && !hasNeedsReview && !hasMissingFields
   }, [validationErrors, draft])
@@ -344,6 +488,8 @@ export const useCaseReview = ({
       await repository.update(caseItem.id, {
         status: 'ready',
         draft,
+        messenger,
+        selectedChatMessages,
         modifiedFields: Array.from(modifiedFields),
       })
       trackAnalyticsEvent('case_confirmed', {
@@ -355,7 +501,7 @@ export const useCaseReview = ({
       setSaveStatus('error')
       throw err
     }
-  }, [caseItem, canMarkVerified, repository, draft, modifiedFields, onVerified])
+  }, [caseItem, canMarkVerified, repository, draft, messenger, selectedChatMessages, modifiedFields, onVerified])
 
   const regenerateDraft = useCallback(
     async (mode, preserveManualEdits = true) => {
@@ -442,28 +588,29 @@ export const useCaseReview = ({
 
   const cardPreviewData = useMemo(() => {
     return {
-      metric: draft.metric?.value || '+0%',
-      metricLabel: draft.metric?.label || 'метрика',
-      before: cleanPrefix(draft.problem, 'было') || 'Описание проблемы',
-      done: cleanPrefix(draft.solution, 'сделано') || 'Реализованное решение',
-      after: cleanPrefix(draft.result, 'стало') || 'Подтвержденный результат',
-      quote: draft.quote?.text || 'Цитата клиента',
-      author: draft.quote?.authorLabel || 'Анна К.',
+      headline: draft.headline?.text || '',
+      metric: draft.metric?.value || '',
+      metricLabel: draft.metric?.label || '',
+      before: cleanPrefix(draft.problem, 'было') || '',
+      done: cleanPrefix(draft.solution, 'сделано') || '',
+      after: cleanPrefix(draft.result, 'стало') || '',
+      summaryRows: draft.summaryRows || [],
+      quote: draft.quote?.text || '',
+      author: draft.quote?.authorLabel || 'Клиент',
       authorRole: draft.quote?.authorRole || '',
-      company:
-        caseItem?.branding?.companyName ||
-        draft.quote?.authorCompany ||
-        caseItem?.clientLabel ||
-        caseItem?.client ||
-        'Клиент',
+      authorCompany: draft.quote?.authorCompany || '',
+      company: draft.quote?.authorCompany || '',
       isVerifiedByChat: Boolean(
         draft.quote?.evidenceId || draft.metric?.evidenceId
       ),
-      title: caseItem?.title || `Кейс для ${caseItem?.clientLabel || 'клиента'}`,
-      category: draft.tags?.[0] || 'Кейс',
+      title: draft.headline?.text || '',
+      category: draft.tags?.[0] || 'Отзыв клиента',
       niche: draft.tags?.[1] || '',
+      messenger,
+      cardMessages: selectedChatMessages,
+      chatMessages: selectedChatMessages,
     }
-  }, [draft, caseItem])
+  }, [draft, messenger, selectedChatMessages])
 
   return {
     draft,
@@ -480,11 +627,21 @@ export const useCaseReview = ({
     cardPreviewData,
     sourcesDeletedAt: caseItem?.sourcesDeletedAt || null,
     storageRetentionDays: 14,
+    messenger,
+    selectedChatMessages,
+    allChatMessages: caseItem?.chatMessages || [],
 
     setActiveTab,
     updateField,
+    updateSummaryRow,
+    confirmSummaryRow,
+    addSummaryRow,
+    removeSummaryRow,
+    toggleChatMessage,
+    handleSetMessenger,
     isFieldModified,
     isFieldNeedsReview,
+    isRowNeedsReview,
     isFieldMissing,
     openEvidence,
     closeEvidence,
