@@ -2,47 +2,58 @@ import PropTypes from 'prop-types'
 import { PoweredByProofFlow } from '../PoweredByProofFlow'
 import styles from './ReceiptCard.module.css'
 
-export const ReceiptCard = ({ data, className }) => {
+export const ReceiptCard = ({ data = {}, className }) => {
+  const rows = Array.isArray(data.summaryRows) && data.summaryRows.length > 0
+    ? data.summaryRows
+    : [
+        data.before ? { label: 'ЗАДАЧА', text: data.before } : null,
+        data.done ? { label: 'РЕШЕНИЕ', text: data.done } : null,
+        data.after ? { label: 'РЕЗУЛЬТАТ', text: data.after } : null,
+      ].filter(Boolean)
+
+  const companyLine = (data.company && data.company !== 'ProofFlow' && !data.company.toLowerCase().startsWith('клиент')) ? data.company : ''
+
   return (
     <div className={`${styles.card} ${className || ''}`}>
       <div className={styles.header}>
         <h4 className={styles.title}>ЧЕК ОТ КЛИЕНТА</h4>
-        <span className={styles.subTitle}>{data.company} · [дата отзыва]</span>
+        {companyLine && <span className={styles.subTitle}>{companyLine}</span>}
       </div>
 
-      <div className={styles.dashedRule} aria-hidden="true" />
+      {rows.length > 0 && (
+        <>
+          <div className={styles.dashedRule} aria-hidden="true" />
+          <div className={styles.itemsList}>
+            {rows.map((row, idx) => (
+              <div key={row.id || `${row.label}-${idx}`} className={styles.itemRow}>
+                <span className={styles.itemKey}>{row.label.toUpperCase()}</span>
+                <span className={styles.itemDots} aria-hidden="true" />
+                <span className={styles.itemVal}>{row.text}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
-      <div className={styles.itemsList}>
-        <div className={styles.itemRow}>
-          <span className={styles.itemKey}>ЗАДАЧА</span>
-          <span className={styles.itemDots} aria-hidden="true" />
-          <span className={styles.itemVal}>{data.before}</span>
-        </div>
-        <div className={styles.itemRow}>
-          <span className={styles.itemKey}>СОМНЕНИЕ</span>
-          <span className={styles.itemDots} aria-hidden="true" />
-          <span className={styles.itemVal}>{data.done}</span>
-        </div>
-        <div className={styles.itemRow}>
-          <span className={styles.itemKey}>СРОК</span>
-          <span className={styles.itemDots} aria-hidden="true" />
-          <span className={styles.itemVal}>{data.after}</span>
-        </div>
-      </div>
+      {data.quote && (
+        <>
+          <div className={styles.dashedRule} aria-hidden="true" />
+          <div className={styles.reviewSection}>
+            <span className={styles.reviewLabel}>ОТЗЫВ КЛИЕНТА:</span>
+            <p className={styles.reviewText}>{data.quote}</p>
+          </div>
+        </>
+      )}
 
-      <div className={styles.dashedRule} aria-hidden="true" />
-
-      <div className={styles.reviewSection}>
-        <span className={styles.reviewLabel}>ОТЗЫВ КЛИЕНТА:</span>
-        <p className={styles.reviewText}>{data.quote}</p>
-      </div>
-
-      <div className={styles.dashedRule} aria-hidden="true" />
-
-      <div className={styles.totalBox}>
-        <span className={styles.totalLabel}>ИТОГО</span>
-        <span className={styles.totalValue}>{data.metric}</span>
-      </div>
+      {data.metric && (
+        <>
+          <div className={styles.dashedRule} aria-hidden="true" />
+          <div className={styles.totalBox}>
+            <span className={styles.totalLabel}>ИТОГО</span>
+            <span className={styles.totalValue}>{data.metric}</span>
+          </div>
+        </>
+      )}
 
       <div className={styles.barcodeBlock}>
         <svg
@@ -102,17 +113,28 @@ export const ReceiptCard = ({ data, className }) => {
 
 ReceiptCard.propTypes = {
   data: PropTypes.shape({
-    metric: PropTypes.string.isRequired,
-    metricLabel: PropTypes.string.isRequired,
-    before: PropTypes.string.isRequired,
-    done: PropTypes.string.isRequired,
-    after: PropTypes.string.isRequired,
-    quote: PropTypes.string.isRequired,
-    author: PropTypes.string.isRequired,
-    company: PropTypes.string.isRequired,
-    isVerifiedByChat: PropTypes.bool.isRequired,
+    headline: PropTypes.string,
+    metric: PropTypes.string,
+    metricLabel: PropTypes.string,
+    before: PropTypes.string,
+    done: PropTypes.string,
+    after: PropTypes.string,
+    summaryRows: PropTypes.arrayOf(
+      PropTypes.shape({
+        id: PropTypes.string,
+        label: PropTypes.string.isRequired,
+        text: PropTypes.string.isRequired,
+        origin: PropTypes.string,
+      })
+    ),
+    quote: PropTypes.string,
+    author: PropTypes.string,
+    authorRole: PropTypes.string,
+    authorCompany: PropTypes.string,
+    company: PropTypes.string,
+    isVerifiedByChat: PropTypes.bool,
     title: PropTypes.string,
     category: PropTypes.string,
-  }).isRequired,
+  }),
   className: PropTypes.string,
 }
