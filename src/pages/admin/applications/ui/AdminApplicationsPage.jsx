@@ -100,11 +100,11 @@ export const AdminApplicationsPage = () => {
         <ApplicationDetailsDrawer
           application={selectedApplication}
           onClose={() => setSelectedAppId(null)}
-          onSaveNote={(_id, note) => updateOwnerNote(selectedApplication.id, note)}
-          onUpdateStatus={(_id, status, rejectReason) =>
+          onSaveNote={(_, note) => updateOwnerNote(selectedApplication.id, note)}
+          onUpdateStatus={(_, status, rejectReason) =>
             updateApplication(selectedApplication.id, { status, rejectReason })
           }
-          onDelete={(_id) => deleteApplication(selectedApplication.id)}
+          onDelete={() => deleteApplication(selectedApplication.id)}
         />
       )}
     </div>

@@ -81,24 +81,27 @@ export const useCasePublish = ({
   const buildExportPayload = useCallback(() => {
     const draft = caseItem?.draft || {}
     const tags = Array.isArray(draft.tags) ? draft.tags.filter(Boolean) : []
-    const authorRole =
-      draft.quote?.authorRole ||
-      (tags[0] ? `Клиент · ${tags[0]}` : 'Постоянный клиент')
-    const category = caseItem?.clientLabel || tags[0] || 'ФИТНЕС'
+    const authorRole = draft.quote?.authorRole || ''
+    const category = tags[0] || ''
 
     return {
-      metric: draft.metric?.value || '+45%',
-      metricLabel: draft.metric?.label || 'рост ключевых показателей',
-      before: draft.problem || 'Сложности на старте проекта',
-      done: draft.solution || 'Комплекс проведенных мероприятий',
-      after: draft.result || 'Достигнутый финальный результат',
-      quote: draft.quote?.text || 'Отличный результат!',
+      headline: draft.headline?.text || '',
+      metric: draft.metric?.value || '',
+      metricLabel: draft.metric?.label || '',
+      before: draft.problem || '',
+      done: draft.solution || '',
+      after: draft.result || '',
+      summaryRows: draft.summaryRows || [],
+      quote: draft.quote?.text || '',
       author: draft.quote?.authorLabel || 'Клиент',
       authorRole,
+      authorCompany: draft.quote?.authorCompany || '',
       category,
       tags,
-      company: caseItem?.branding?.companyName || '',
+      company: caseItem?.branding?.companyName || draft.quote?.authorCompany || '',
       accentColor: caseItem?.branding?.accentColor || '#d6f94c',
+      messenger: caseItem?.messenger || 'unknown',
+      cardMessages: caseItem?.selectedChatMessages || caseItem?.cardMessages || [],
     }
   }, [caseItem])
 

@@ -83,11 +83,21 @@ export class ClaudeCaseAnalyzer implements CaseAnalyzer {
       const cleanJson = rawJson.replace(/```json/g, '').replace(/```/g, '').trim()
       const parsed = JSON.parse(cleanJson)
 
+      const rawHeadline = typeof parsed.headline === 'string'
+        ? { text: parsed.headline.trim(), evidenceId: null }
+        : (parsed.headline && typeof parsed.headline === 'object'
+            ? parsed.headline
+            : { text: '', evidenceId: null })
+
       return caseDraftSchema.parse({
         ...parsed,
+        headline: rawHeadline,
+        summaryRows: Array.isArray(parsed.summaryRows) ? parsed.summaryRows : [],
         quote: {
-          ...parsed.quote,
-          authorCompany: parsed.quote?.authorCompany || input.clientLabel || undefined,
+          text: String(parsed.quote?.text || ''),
+          authorLabel: 'Клиент',
+          authorRole: typeof parsed.quote?.authorRole === 'string' ? parsed.quote.authorRole : '',
+          authorCompany: typeof parsed.quote?.authorCompany === 'string' ? parsed.quote.authorCompany : '',
         },
         missingFields: parsed.missingFields || [],
         needsReview: parsed.needsReview || [],

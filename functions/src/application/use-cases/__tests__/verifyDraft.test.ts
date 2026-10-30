@@ -27,6 +27,7 @@ describe('verifyDraft anti-hallucination guard', () => {
 
   const sampleChat: ChatExtraction = {
     screenshotSourceId: 'src-screenshot-1',
+    messenger: 'telegram',
     order: 0,
     confidence: 0.98,
     messages: [
@@ -64,15 +65,17 @@ describe('verifyDraft anti-hallucination guard', () => {
     expect(anonymizeAuthorLabel('john@example.com')).toBe('Клиент')
     expect(anonymizeAuthorLabel('@ivan_ceo')).toBe('Клиент')
     expect(anonymizeAuthorLabel('+7 999 123-45-67')).toBe('Клиент')
-    expect(anonymizeAuthorLabel('')).toBe('Анна К.')
+    expect(anonymizeAuthorLabel('')).toBe('Клиент')
   })
 
   it('verifies verbatim quote from chat and creates evidence', () => {
     const draft: CaseDraft = {
+      headline: { text: '', evidenceId: null },
       metric: { value: '3x', label: 'Ускорение обработки' },
       problem: 'Заявки терялись в почте',
       solution: 'Автоматическая интеграция в CRM',
       result: 'Время обработки упало в 3 раза',
+      summaryRows: [],
       quote: {
         text: 'Команда в восторге, время обработки упало в 3 раза!',
         authorLabel: 'Алексей Смирнов',
@@ -100,10 +103,12 @@ describe('verifyDraft anti-hallucination guard', () => {
 
   it('verifies quote from transcript segments', () => {
     const draft: CaseDraft = {
+      headline: { text: '', evidenceId: null },
       metric: { value: '35%', label: 'Рост конверсии' },
       problem: 'Заявки терялись в почте',
       solution: 'Внедрение CRM',
       result: 'Конверсия выросла на 35 процентов',
+      summaryRows: [],
       quote: {
         text: 'Раньше заявки терялись в почте, а теперь всё автоматически попадает в CRM.',
         authorLabel: 'Анна Кузнецова',
@@ -126,10 +131,12 @@ describe('verifyDraft anti-hallucination guard', () => {
 
   it('discards fabricated quote not present in sources', () => {
     const draft: CaseDraft = {
+      headline: { text: '', evidenceId: null },
       metric: { value: '35%', label: 'Рост конверсии' },
       problem: 'Проблема',
       solution: 'Решение',
       result: 'Результат',
+      summaryRows: [],
       quote: {
         text: 'Мы заработали миллион долларов за один день!',
         authorLabel: 'Анна К.',
@@ -156,10 +163,12 @@ describe('verifyDraft anti-hallucination guard', () => {
 
   it('verifies metric numbers when present in sources', () => {
     const draft: CaseDraft = {
+      headline: { text: '', evidenceId: null },
       metric: { value: '+35%', label: 'Рост конверсии' },
       problem: 'Заявки терялись',
       solution: 'Внедрение CRM',
       result: 'Конверсия выросла',
+      summaryRows: [],
       quote: {
         text: 'Команда в восторге, время обработки упало в 3 раза!',
         authorLabel: 'Клиент',
@@ -182,10 +191,12 @@ describe('verifyDraft anti-hallucination guard', () => {
 
   it('flags fabricated metric numbers as unverified and adds to missingFields', () => {
     const draft: CaseDraft = {
+      headline: { text: '', evidenceId: null },
       metric: { value: '+99%', label: 'Нереальный рост' },
       problem: 'Заявки терялись',
       solution: 'Внедрение CRM',
       result: 'Результат',
+      summaryRows: [],
       quote: { text: '', authorLabel: 'Клиент' },
       tags: [],
       missingFields: [],
@@ -205,12 +216,225 @@ describe('verifyDraft anti-hallucination guard', () => {
     expect(verified.missingFields).toContain('metric')
   })
 
+  it('verifies verbatim headline (2-6 words) from chat and creates evidence', () => {
+    const draft: CaseDraft = {
+      headline: { text: 'Команда в восторге', evidenceId: null },
+      metric: { value: '', label: '' },
+      summaryRows: [],
+      quote: { text: '', authorLabel: 'Клиент' },
+      tags: [],
+      missingFields: [],
+      needsReview: [],
+    }
+
+    const { draft: verified, evidences } = verifyDraft({
+      draft,
+      transcripts: [sampleTranscript],
+      chatExtractions: [sampleChat],
+    })
+
+    expect(verified.headline.text).toBe('Команда в восторге')
+    expect(verified.headline.evidenceId).toBeTruthy()
+    expect(evidences.some((e) => e.id === verified.headline.evidenceId)).toBe(true)
+  })
+
+  it('resets modified headline not found verbatim in sources to empty string', () => {
+    const draft: CaseDraft = {
+      headline: { text: 'Команда безумно в восторге сейчас', evidenceId: null },
+      metric: { value: '', label: '' },
+      summaryRows: [],
+      quote: { text: '', authorLabel: 'Клиент' },
+      tags: [],
+      missingFields: [],
+      needsReview: [],
+    }
+
+    const { draft: verified } = verifyDraft({
+      draft,
+      transcripts: [sampleTranscript],
+      chatExtractions: [sampleChat],
+    })
+
+    expect(verified.headline.text).toBe('')
+    expect(verified.headline.evidenceId).toBeNull()
+  })
+
+  it('resets headline with out-of-range word counts to empty string', () => {
+    const draftOneWord: CaseDraft = {
+      headline: { text: 'Восторге', evidenceId: null },
+      metric: { value: '', label: '' },
+      summaryRows: [],
+      quote: { text: '', authorLabel: 'Клиент' },
+      tags: [],
+      missingFields: [],
+      needsReview: [],
+    }
+
+    const { draft: verifiedOneWord } = verifyDraft({
+      draft: draftOneWord,
+      transcripts: [sampleTranscript],
+      chatExtractions: [sampleChat],
+    })
+    expect(verifiedOneWord.headline.text).toBe('')
+
+    const draftTooLong: CaseDraft = {
+      headline: {
+        text: 'Команда в восторге время обработки упало в три',
+        evidenceId: null,
+      },
+      metric: { value: '', label: '' },
+      summaryRows: [],
+      quote: { text: '', authorLabel: 'Клиент' },
+      tags: [],
+      missingFields: [],
+      needsReview: [],
+    }
+
+    const { draft: verifiedTooLong } = verifyDraft({
+      draft: draftTooLong,
+      transcripts: [sampleTranscript],
+      chatExtractions: [sampleChat],
+    })
+    expect(verifiedTooLong.headline.text).toBe('')
+  })
+
+  it('forms headline from verified metric when metric is present', () => {
+    const draft: CaseDraft = {
+      headline: { text: 'Какое-то название', evidenceId: null },
+      metric: { value: '+35%', label: 'рост конверсии' },
+      summaryRows: [],
+      quote: { text: '', authorLabel: 'Клиент' },
+      tags: [],
+      missingFields: [],
+      needsReview: [],
+    }
+
+    const { draft: verified } = verifyDraft({
+      draft,
+      transcripts: [sampleTranscript],
+      chatExtractions: [sampleChat],
+    })
+
+    expect(verified.headline.text).toBe('+35% рост конверсии')
+    expect(verified.headline.evidenceId).toBe(verified.metric.evidenceId)
+  })
+
+  it('discards summary row without grounding in source materials', () => {
+    const draft: CaseDraft = {
+      headline: { text: '', evidenceId: null },
+      metric: { value: '', label: '' },
+      summaryRows: [
+        {
+          id: 'row-fake',
+          label: 'Задача',
+          text: 'Клиент боялся что его похитят инопланетяне и заберут деньги',
+          origin: 'ai_paraphrase',
+        },
+      ],
+      quote: { text: '', authorLabel: 'Клиент' },
+      tags: [],
+      missingFields: [],
+      needsReview: [],
+    }
+
+    const { draft: verified } = verifyDraft({
+      draft,
+      transcripts: [sampleTranscript],
+      chatExtractions: [sampleChat],
+    })
+
+    expect(verified.summaryRows).toHaveLength(0)
+  })
+
+  it('keeps grounded summary row and flags ai_paraphrase in needsReview', () => {
+    const draft: CaseDraft = {
+      headline: { text: '', evidenceId: null },
+      metric: { value: '', label: '' },
+      summaryRows: [
+        {
+          id: 'row-grounded',
+          label: 'Задача',
+          text: 'Раньше заявки терялись в почте и долго висели',
+          origin: 'ai_paraphrase',
+        },
+      ],
+      quote: { text: '', authorLabel: 'Клиент' },
+      tags: [],
+      missingFields: [],
+      needsReview: [],
+    }
+
+    const { draft: verified } = verifyDraft({
+      draft,
+      transcripts: [sampleTranscript],
+      chatExtractions: [sampleChat],
+    })
+
+    expect(verified.summaryRows).toHaveLength(1)
+    expect(verified.summaryRows[0].label).toBe('Задача')
+    expect(verified.needsReview).toContain('summaryRow:row-grounded')
+  })
+
+  it('keeps user_written summary row unconditionally without grounding check', () => {
+    const draft: CaseDraft = {
+      headline: { text: '', evidenceId: null },
+      metric: { value: '', label: '' },
+      summaryRows: [
+        {
+          id: 'row-user',
+          label: 'Контекст',
+          text: 'Ручное добавление пользователем для важного акцента',
+          origin: 'user_written',
+        },
+      ],
+      quote: { text: '', authorLabel: 'Клиент' },
+      tags: [],
+      missingFields: [],
+      needsReview: [],
+    }
+
+    const { draft: verified } = verifyDraft({
+      draft,
+      transcripts: [sampleTranscript],
+      chatExtractions: [sampleChat],
+    })
+
+    expect(verified.summaryRows).toHaveLength(1)
+    expect(verified.summaryRows[0].origin).toBe('user_written')
+  })
+
+  it('migrates legacy problem, solution, result to summaryRows if summaryRows is empty', () => {
+    const draft: CaseDraft = {
+      headline: { text: '', evidenceId: null },
+      metric: { value: '', label: '' },
+      problem: 'Заявки терялись в почте',
+      solution: 'Внедрение системы',
+      result: 'Конверсия выросла на 35 процентов',
+      summaryRows: [],
+      quote: { text: '', authorLabel: 'Клиент' },
+      tags: [],
+      missingFields: [],
+      needsReview: [],
+    }
+
+    const { draft: verified } = verifyDraft({
+      draft,
+      transcripts: [sampleTranscript],
+      chatExtractions: [sampleChat],
+    })
+
+    expect(verified.summaryRows.length).toBeGreaterThanOrEqual(2)
+    expect(verified.summaryRows.some((r) => r.label === 'Задача')).toBe(true)
+  })
+
   it('keeps empty result without hallucinating and records in missingFields', () => {
     const draft: CaseDraft = {
+      headline: { text: '', evidenceId: null },
       metric: { value: '3x', label: 'Ускорение' },
       problem: 'Заявки терялись в почте',
       solution: 'Интеграция CRM',
       result: '',
+      summaryRows: [],
       quote: { text: '', authorLabel: 'Клиент' },
       tags: [],
       missingFields: [],
@@ -225,5 +449,282 @@ describe('verifyDraft anti-hallucination guard', () => {
 
     expect(verified.result).toBe('')
     expect(verified.missingFields).toContain('result')
+  })
+
+  it('accepts verbatim headline "Реально мозги кипят" from chat extraction and links evidence', () => {
+    const chat: ChatExtraction = {
+      screenshotSourceId: 'scr-1',
+      messenger: 'telegram',
+      confidence: 0.98,
+      order: 0,
+      messages: [
+        {
+          id: 'msg-1',
+          side: 'client',
+          text: 'Супер! Мозги кипят, но мне понравилось !',
+          time: '19:30',
+          order: 0,
+        },
+        {
+          id: 'msg-2',
+          side: 'client',
+          text: 'До субботы, всё было хорошо 😊',
+          time: '19:30',
+          order: 1,
+        },
+        {
+          id: 'msg-3',
+          side: 'client',
+          text: 'но делаются успехи реально мозги кипят',
+          time: '19:30',
+          order: 2,
+        },
+        {
+          id: 'msg-4',
+          side: 'client',
+          text: 'Было очень круто, и всё понятно! Спасибо большое за занятие 🥰',
+          time: '19:31',
+          order: 3,
+        },
+      ],
+    }
+
+    const draft: CaseDraft = {
+      headline: { text: 'Реально мозги кипят', evidenceId: null },
+      metric: { value: '', label: '' },
+      summaryRows: [],
+      quote: {
+        text: 'Было очень круто, и всё понятно! Спасибо большое за занятие 🥰',
+        authorLabel: 'Клиент',
+      },
+      tags: [],
+      missingFields: [],
+      needsReview: [],
+    }
+
+    const { draft: verified, evidences } = verifyDraft({
+      draft,
+      transcripts: [],
+      chatExtractions: [chat],
+    })
+
+    expect(verified.headline.text).toBe('Реально мозги кипят')
+    expect(verified.headline.evidenceId).toBeDefined()
+    const headlineEvidence = evidences.find((e) => e.id === verified.headline.evidenceId)
+    expect(headlineEvidence).toBeDefined()
+    expect(headlineEvidence?.exactQuote).toContain('реально мозги кипят')
+  })
+
+  it('rejects candidate headline "Реально мозги кипят очень" with word not in source', () => {
+    const chat: ChatExtraction = {
+      screenshotSourceId: 'scr-1',
+      messenger: 'telegram',
+      confidence: 0.98,
+      order: 0,
+      messages: [
+        {
+          id: 'msg-3',
+          side: 'client',
+          text: 'но делаются успехи реально мозги кипят',
+          time: '19:30',
+          order: 0,
+        },
+      ],
+    }
+
+    const draft: CaseDraft = {
+      headline: { text: 'Реально мозги кипят очень', evidenceId: null },
+      metric: { value: '', label: '' },
+      summaryRows: [],
+      quote: { text: 'но делаются успехи реально мозги кипят', authorLabel: 'Клиент' },
+      tags: [],
+      missingFields: [],
+      needsReview: [],
+    }
+
+    const { draft: verified } = verifyDraft({
+      draft,
+      transcripts: [],
+      chatExtractions: [chat],
+    })
+
+    expect(verified.headline.text).toBe('')
+    expect(verified.headline.evidenceId).toBeNull()
+  })
+
+  it('rejects candidate headline with skipped words in the middle', () => {
+    const chat: ChatExtraction = {
+      screenshotSourceId: 'scr-1',
+      messenger: 'telegram',
+      confidence: 0.98,
+      order: 0,
+      messages: [
+        {
+          id: 'msg-3',
+          side: 'client',
+          text: 'но делаются успехи реально мозги кипят',
+          time: '19:30',
+          order: 0,
+        },
+      ],
+    }
+
+    const draft: CaseDraft = {
+      headline: { text: 'Реально кипят', evidenceId: null },
+      metric: { value: '', label: '' },
+      summaryRows: [],
+      quote: { text: 'но делаются успехи реально мозги кипят', authorLabel: 'Клиент' },
+      tags: [],
+      missingFields: [],
+      needsReview: [],
+    }
+
+    const { draft: verified } = verifyDraft({
+      draft,
+      transcripts: [],
+      chatExtractions: [chat],
+    })
+
+    expect(verified.headline.text).toBe('')
+    expect(verified.headline.evidenceId).toBeNull()
+  })
+
+  it('accepts quote with altered punctuation and case matching source', () => {
+    const chat: ChatExtraction = {
+      screenshotSourceId: 'scr-1',
+      messenger: 'telegram',
+      confidence: 0.98,
+      order: 0,
+      messages: [
+        {
+          id: 'msg-4',
+          side: 'client',
+          text: 'Было очень круто, и всё понятно! Спасибо большое за занятие 🥰',
+          time: '19:31',
+          order: 0,
+        },
+      ],
+    }
+
+    const draft: CaseDraft = {
+      headline: { text: '', evidenceId: null },
+      metric: { value: '', label: '' },
+      summaryRows: [],
+      quote: {
+        text: 'было очень круто и все понятно спасибо большое за занятие',
+        authorLabel: 'Клиент',
+      },
+      tags: [],
+      missingFields: [],
+      needsReview: [],
+    }
+
+    const { draft: verified, report } = verifyDraft({
+      draft,
+      transcripts: [],
+      chatExtractions: [chat],
+    })
+
+    expect(report.isQuoteVerified).toBe(true)
+    expect(verified.quote.evidenceId).toBeDefined()
+  })
+
+  it('rejects quote that glues two separate messages together', () => {
+    const chat: ChatExtraction = {
+      screenshotSourceId: 'scr-1',
+      messenger: 'telegram',
+      confidence: 0.98,
+      order: 0,
+      messages: [
+        {
+          id: 'msg-2',
+          side: 'client',
+          text: 'До субботы, всё было хорошо 😊',
+          time: '19:30',
+          order: 0,
+        },
+        {
+          id: 'msg-3',
+          side: 'client',
+          text: 'но делаются успехи реально мозги кипят',
+          time: '19:30',
+          order: 1,
+        },
+      ],
+    }
+
+    const draft: CaseDraft = {
+      headline: { text: '', evidenceId: null },
+      metric: { value: '', label: '' },
+      summaryRows: [],
+      quote: {
+        text: 'До субботы всё было хорошо но делаются успехи',
+        authorLabel: 'Клиент',
+      },
+      tags: [],
+      missingFields: [],
+      needsReview: [],
+    }
+
+    const { draft: verified, report } = verifyDraft({
+      draft,
+      transcripts: [],
+      chatExtractions: [chat],
+    })
+
+    expect(report.isQuoteVerified).toBe(false)
+    expect(verified.quote.text).toBe('')
+    expect(verified.quote.evidenceId).toBeNull()
+    expect(report.missingFields).toContain('quote')
+  })
+
+  it('produces empty summaryRows when draft summary rows are not grounded in source', () => {
+    const chat: ChatExtraction = {
+      screenshotSourceId: 'scr-1',
+      messenger: 'telegram',
+      confidence: 0.98,
+      order: 0,
+      messages: [
+        {
+          id: 'msg-1',
+          side: 'client',
+          text: 'Было очень круто, спасибо большое!',
+          time: '19:31',
+          order: 0,
+        },
+      ],
+    }
+
+    const draft: CaseDraft = {
+      headline: { text: '', evidenceId: null },
+      metric: { value: '', label: '' },
+      summaryRows: [
+        {
+          label: 'Задача',
+          text: 'Интенсивное обучение и сложная тема с нуля',
+          origin: 'ai_paraphrase',
+        },
+        {
+          label: 'Сомнение',
+          text: 'Боязнь запутаться и не уложить информацию в голове',
+          origin: 'ai_paraphrase',
+        },
+      ],
+      quote: {
+        text: 'Было очень круто, спасибо большое!',
+        authorLabel: 'Клиент',
+      },
+      tags: [],
+      missingFields: [],
+      needsReview: [],
+    }
+
+    const { draft: verified } = verifyDraft({
+      draft,
+      transcripts: [],
+      chatExtractions: [chat],
+    })
+
+    expect(verified.summaryRows).toHaveLength(0)
   })
 })

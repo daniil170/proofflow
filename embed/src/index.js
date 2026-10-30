@@ -222,8 +222,8 @@ const renderCardIntoShadow = (shadow, data) => {
 
       <div class="pf-footer">
         <div>
-          <span class="pf-author">${escapeHtml(data.author || 'Анна К.')}</span>
-          <span class="pf-company">, ${escapeHtml(data.companyName || 'ProofFlow')}</span>
+          <span class="pf-author">${escapeHtml(data.author || 'Клиент')}</span>
+          ${data.companyName && data.companyName !== 'ProofFlow' && !data.companyName.toLowerCase().includes('клиент') ? `<span class="pf-company">, ${escapeHtml(data.companyName)}</span>` : ''}
         </div>
         <a href="https://proofflow.ru" target="_blank" rel="noopener" class="pf-watermark">
           <svg width="16" height="16" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">

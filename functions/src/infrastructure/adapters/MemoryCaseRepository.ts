@@ -1,4 +1,11 @@
-import { Case, CaseDraft, Evidence, PipelineStage } from '../../domain/types.js'
+import {
+  Case,
+  CaseDraft,
+  Evidence,
+  MessengerType,
+  PersistedChatMessage,
+  PipelineStage,
+} from '../../domain/types.js'
 import { CaseRepositoryPort } from '../ports/CaseRepositoryPort.js'
 
 export class MemoryCaseRepository implements CaseRepositoryPort {
@@ -66,7 +73,12 @@ export class MemoryCaseRepository implements CaseRepositoryPort {
     caseId: string,
     draft: CaseDraft,
     evidences: Evidence[],
-    finalStatus: 'review' | 'ready' = 'review'
+    finalStatus: 'review' | 'ready' = 'review',
+    options?: {
+      chatMessages?: PersistedChatMessage[]
+      selectedChatMessages?: PersistedChatMessage[]
+      messenger?: MessengerType
+    }
   ): Promise<void> {
     const item = this.cases.get(caseId)
     if (!item) return
@@ -74,6 +86,15 @@ export class MemoryCaseRepository implements CaseRepositoryPort {
     item.status = finalStatus
     item.stage = 'done'
     item.stageProgress = 100
+    if (options?.chatMessages !== undefined) {
+      item.chatMessages = options.chatMessages
+    }
+    if (options?.selectedChatMessages !== undefined) {
+      item.selectedChatMessages = options.selectedChatMessages
+    }
+    if (options?.messenger !== undefined) {
+      item.messenger = options.messenger
+    }
     item.updatedAt = Date.now()
     this.cases.set(caseId, item)
   }

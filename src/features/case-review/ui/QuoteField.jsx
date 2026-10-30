@@ -5,12 +5,16 @@ import styles from './QuoteField.module.css'
 export const QuoteField = ({
   quoteText = '',
   authorLabel = '',
+  authorRole = '',
+  authorCompany = '',
   isNeedsReview = false,
   isModified = false,
   hasEvidence = false,
   error = null,
   onQuoteChange,
   onAuthorChange,
+  onAuthorRoleChange,
+  onAuthorCompanyChange,
   onOpenEvidence,
 }) => {
   return (
@@ -22,7 +26,7 @@ export const QuoteField = ({
     >
       <div className={styles.headerRow}>
         <div className={styles.titleArea}>
-          <h3 className={styles.title}>Цитата клиента</h3>
+          <h3 className={styles.title}>Цитата и автор</h3>
           {isNeedsReview && (
             <span className={styles.badgeNeedsReview}>Проверьте</span>
           )}
@@ -66,7 +70,7 @@ export const QuoteField = ({
 
       <div className={styles.inputGroup}>
         <label htmlFor="quote-author-input" className={styles.inputLabel}>
-          Автор (обезличенно по умолчанию):
+          Подпись автора:
         </label>
         <input
           id="quote-author-input"
@@ -74,13 +78,42 @@ export const QuoteField = ({
           className={styles.textInput}
           value={authorLabel}
           onChange={(e) => onAuthorChange(e.target.value)}
-          placeholder="например: Анна К., Head of Product"
+          placeholder="Клиент"
           aria-describedby="quote-author-hint"
         />
-        <p id="quote-author-hint" className={styles.anonymizedHint}>
-          Полные фамилии и контакты клиента автоматически скрываются для сохранения
-          конфиденциальности.
+        <p id="quote-author-hint" className={styles.inputHint}>
+          Имя и первая буква фамилии, только если клиент согласен. По умолчанию «Клиент».
         </p>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <div className={styles.inputGroup}>
+          <label htmlFor="quote-role-input" className={styles.inputLabel}>
+            Роль клиента (необязательно):
+          </label>
+          <input
+            id="quote-role-input"
+            type="text"
+            className={styles.textInput}
+            value={authorRole}
+            onChange={(e) => onAuthorRoleChange?.(e.target.value)}
+            placeholder="например: Студент курса"
+          />
+        </div>
+
+        <div className={styles.inputGroup}>
+          <label htmlFor="quote-company-input" className={styles.inputLabel}>
+            Компания клиента (необязательно):
+          </label>
+          <input
+            id="quote-company-input"
+            type="text"
+            className={styles.textInput}
+            value={authorCompany}
+            onChange={(e) => onAuthorCompanyChange?.(e.target.value)}
+            placeholder="например: Яндекс"
+          />
+        </div>
       </div>
     </div>
   )
@@ -89,11 +122,15 @@ export const QuoteField = ({
 QuoteField.propTypes = {
   quoteText: PropTypes.string,
   authorLabel: PropTypes.string,
+  authorRole: PropTypes.string,
+  authorCompany: PropTypes.string,
   isNeedsReview: PropTypes.bool,
   isModified: PropTypes.bool,
   hasEvidence: PropTypes.bool,
   error: PropTypes.string,
   onQuoteChange: PropTypes.func.isRequired,
   onAuthorChange: PropTypes.func.isRequired,
+  onAuthorRoleChange: PropTypes.func,
+  onAuthorCompanyChange: PropTypes.func,
   onOpenEvidence: PropTypes.func,
 }

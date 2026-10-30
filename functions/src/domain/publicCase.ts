@@ -1,16 +1,27 @@
 import { z } from 'zod'
-import { caseBrandingSchema, caseCardVariantSchema } from './schemas.js'
+import {
+  caseBrandingSchema,
+  caseCardVariantSchema,
+  messengerSchema,
+  persistedChatMessageSchema,
+  summaryRowSchema,
+} from './schemas.js'
 
 export const publicCaseSchema = z.object({
   id: z.string().min(1),
-  metric: z.string(),
-  metricLabel: z.string(),
-  problem: z.string(),
-  solution: z.string(),
-  result: z.string(),
-  quote: z.string(),
-  author: z.string(),
+  headline: z.string().default(''),
+  metric: z.string().default(''),
+  metricLabel: z.string().default(''),
+  problem: z.string().default(''),
+  solution: z.string().default(''),
+  result: z.string().default(''),
+  summaryRows: z.array(summaryRowSchema).default([]),
+  quote: z.string().default(''),
+  author: z.string().default('Клиент'),
   authorRole: z.string().optional(),
+  authorCompany: z.string().optional(),
+  messenger: messengerSchema.default('unknown'),
+  cardMessages: z.array(persistedChatMessageSchema).default([]),
   tags: z.array(z.string()).default([]),
   selectedVariant: caseCardVariantSchema.default('dark'),
   branding: caseBrandingSchema.default({ showLogo: true }),

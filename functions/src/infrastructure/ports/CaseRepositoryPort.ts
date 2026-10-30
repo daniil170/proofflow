@@ -1,4 +1,17 @@
-import { Case, CaseDraft, Evidence, PipelineStage } from '../../domain/types.js'
+import {
+  Case,
+  CaseDraft,
+  Evidence,
+  MessengerType,
+  PersistedChatMessage,
+  PipelineStage,
+} from '../../domain/types.js'
+
+export interface SaveDraftOptions {
+  chatMessages?: PersistedChatMessage[]
+  selectedChatMessages?: PersistedChatMessage[]
+  messenger?: MessengerType
+}
 
 export interface CaseRepositoryPort {
   getCase(caseId: string): Promise<Case | null>
@@ -13,7 +26,8 @@ export interface CaseRepositoryPort {
     caseId: string,
     draft: CaseDraft,
     evidences: Evidence[],
-    finalStatus?: 'review' | 'ready'
+    finalStatus?: 'review' | 'ready',
+    options?: SaveDraftOptions
   ): Promise<void>
   countCasesByOwner?(ownerId: string): Promise<number>
 }

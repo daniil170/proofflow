@@ -163,6 +163,52 @@ describe('publishCase use-case', () => {
     expect(updatedCase?.publishedAt).toBeDefined()
   })
 
+  it('projects only selected card messages (up to 3) and excludes full chatMessages and raw sources', async () => {
+    const caseWithChat = {
+      ...readyCaseData,
+      id: 'case-200',
+      messenger: 'telegram',
+      chatMessages: [
+        { id: 'm1', side: 'client', text: 'Первое сообщение', order: 0 },
+        { id: 'm2', side: 'client', text: 'Второе сообщение (цитата)', order: 1 },
+        { id: 'm3', side: 'me', text: 'Третье ответ', order: 2 },
+        { id: 'm4', side: 'client', text: 'Четвертое секретное сообщение', order: 3 },
+      ],
+      selectedChatMessages: [
+        { id: 'm1', side: 'client', text: 'Первое сообщение', order: 0 },
+        { id: 'm2', side: 'client', text: 'Второе сообщение (цитата)', order: 1 },
+      ],
+      draft: {
+        ...readyCaseData.draft,
+        headline: { text: 'Крутой результат', evidenceId: 'ev-1' },
+        summaryRows: [
+          { label: 'Задача', text: 'Мало заявок', origin: 'client_words', evidenceId: 'ev-1' },
+        ],
+      },
+    }
+
+    const mockDb = createMockDb({ 'case-200': caseWithChat })
+
+    const result = await executePublishCase({
+      caseId: 'case-200',
+      uid: 'alice',
+      db: mockDb as never,
+    })
+
+    expect(result.success).toBe(true)
+    const publicCopy = mockDb.publicCasesStore.get('case-200')
+    expect(publicCopy?.headline).toBe('Крутой результат')
+    expect(publicCopy?.messenger).toBe('telegram')
+    expect(publicCopy?.summaryRows).toHaveLength(1)
+    expect(publicCopy?.cardMessages).toHaveLength(2)
+    expect(publicCopy?.cardMessages[0].text).toBe('Первое сообщение')
+    expect(publicCopy?.cardMessages[1].text).toBe('Второе сообщение (цитата)')
+
+    expect(publicCopy).not.toHaveProperty('chatMessages')
+    expect(publicCopy).not.toHaveProperty('sources')
+    expect(publicCopy).not.toHaveProperty('ownerId')
+  })
+
   it('unpublishes case, removes public copy and reverts status to ready', async () => {
     const mockDb = createMockDb({
       'case-100': { ...readyCaseData, status: 'published', publishedAt: 1730000000000 },

@@ -83,16 +83,33 @@ export const executePublishCase = async (
   const draft = caseData.draft || {}
   const now = Date.now()
 
+  const cardMessages = Array.isArray(caseData.selectedChatMessages) &&
+    caseData.selectedChatMessages.length > 0
+    ? caseData.selectedChatMessages.slice(0, 3)
+    : Array.isArray(caseData.chatMessages)
+    ? caseData.chatMessages.slice(0, 3)
+    : []
+
+  const rawAuthor = draft.quote?.authorLabel
+  const author = !rawAuthor || rawAuthor === 'Анна К.' ? 'Клиент' : rawAuthor
+  const headline = draft.headline?.text ||
+    (draft.metric?.value ? `${draft.metric.value} ${draft.metric.label || ''}`.trim() : '')
+
   const publicCaseData: PublicCase = {
     id: caseId,
+    headline,
     metric: draft.metric?.value || '',
     metricLabel: draft.metric?.label || '',
     problem: draft.problem || '',
     solution: draft.solution || '',
     result: draft.result || '',
+    summaryRows: Array.isArray(draft.summaryRows) ? draft.summaryRows : [],
     quote: draft.quote?.text || '',
-    author: draft.quote?.authorLabel || 'Анна К.',
+    author,
     authorRole: draft.quote?.authorRole || '',
+    authorCompany: draft.quote?.authorCompany || '',
+    messenger: caseData.messenger || 'unknown',
+    cardMessages,
     tags: Array.isArray(draft.tags) ? draft.tags : [],
     selectedVariant: caseData.selectedVariant || 'dark',
     branding: {
@@ -104,9 +121,9 @@ export const executePublishCase = async (
       logoPath: caseData.branding?.logoPath || null,
     },
     companyName,
-    title: caseData.title || `Кейс: ${draft.metric?.value || ''} ${draft.metric?.label || ''}`.trim(),
+    title: headline || (draft.metric?.value ? `Кейс: ${draft.metric.value} ${draft.metric.label || ''}`.trim() : ''),
     publishedAt: caseData.publishedAt || now,
-    isVerifiedByChat: true,
+    isVerifiedByChat: Boolean(draft.quote?.evidenceId || draft.metric?.evidenceId),
     ogImageUrl: caseData.ogImageUrl || null,
   }
 

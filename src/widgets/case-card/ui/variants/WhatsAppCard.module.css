@@ -123,6 +123,19 @@
   border: 1px solid #c7e8b0;
 }
 
+.quoteBlock {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #1a221e;
+  font-style: italic;
+  font-weight: 500;
+  padding: 8px 12px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  border-left: 3px solid #157347;
+}
+
 .divider {
   width: 100%;
   height: 1px;
