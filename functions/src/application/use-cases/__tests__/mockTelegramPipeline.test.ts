@@ -15,43 +15,45 @@ import {
 } from '../../../infrastructure/adapters/index.js'
 import { CaseAnalyzer } from '../../../infrastructure/ports/CaseAnalyzer.js'
 
-describe('Real Telegram screenshot acceptance test', () => {
-  it('extracts, verifies, and projects real telegram feedback with zero demo strings', async () => {
+describe('Mock Telegram pipeline contract test (mocked adapters)', () => {
+  it('verifies that cardMessages are selected verbatim as whole messages and headline links to message 3', async () => {
+    const rawSampleMessages = [
+      {
+        id: 'msg-1',
+        side: 'client' as const,
+        text: 'Супер! Мозги кипят, но мне понравилось !',
+        time: '19:30',
+        order: 0,
+      },
+      {
+        id: 'msg-2',
+        side: 'client' as const,
+        text: 'До субботы, всё было хорошо 😊',
+        time: '19:30',
+        order: 1,
+      },
+      {
+        id: 'msg-3',
+        side: 'client' as const,
+        text: 'но делаются успехи реально мозги кипят',
+        time: '19:30',
+        order: 2,
+      },
+      {
+        id: 'msg-4',
+        side: 'client' as const,
+        text: 'Было очень круто, и всё понятно! Спасибо большое за занятие 🥰',
+        time: '19:31',
+        order: 3,
+      },
+    ]
+
     const telegramExtraction: ChatExtraction = {
       screenshotSourceId: 'src-telegram-1',
       messenger: 'telegram',
       confidence: 0.98,
       order: 0,
-      messages: [
-        {
-          id: 'msg-1',
-          side: 'client',
-          text: 'Супер! Мозги кипят, но мне понравилось !',
-          time: '19:30',
-          order: 0,
-        },
-        {
-          id: 'msg-2',
-          side: 'client',
-          text: 'До субботы, всё было хорошо 😊',
-          time: '19:30',
-          order: 1,
-        },
-        {
-          id: 'msg-3',
-          side: 'client',
-          text: 'но делаются успехи реально мозги кипят',
-          time: '19:30',
-          order: 2,
-        },
-        {
-          id: 'msg-4',
-          side: 'client',
-          text: 'Было очень круто, и всё понятно! Спасибо большое за занятие 🥰',
-          time: '19:31',
-          order: 3,
-        },
-      ],
+      messages: rawSampleMessages,
     }
 
     const mockAnalyzer: CaseAnalyzer = {
@@ -61,20 +63,7 @@ describe('Real Telegram screenshot acceptance test', () => {
             text: 'Реально мозги кипят',
             evidenceId: null,
           },
-          summaryRows: [
-            {
-              label: 'Задача',
-              text: 'Интенсивное обучение и сложная тема',
-              origin: 'ai_paraphrase',
-              evidenceId: null,
-            },
-            {
-              label: 'Результат',
-              text: 'Было очень круто, и всё понятно',
-              origin: 'client_words',
-              evidenceId: null,
-            },
-          ],
+          summaryRows: [],
           quote: {
             text: 'Было очень круто, и всё понятно! Спасибо большое за занятие 🥰',
             authorLabel: 'Клиент',
@@ -82,7 +71,7 @@ describe('Real Telegram screenshot acceptance test', () => {
             authorCompany: '',
             evidenceId: null,
           },
-          tags: ['Обучение'],
+          tags: ['Отзыв'],
           missingFields: [],
           needsReview: [],
         }
@@ -101,10 +90,10 @@ describe('Real Telegram screenshot acceptance test', () => {
     ]
 
     const initialCase: Case = {
-      id: 'case-real-telegram',
-      ownerId: 'user-tutor',
+      id: 'case-mock-telegram-contract',
+      ownerId: 'user-tester',
       status: 'processing',
-      clientLabel: 'Студент',
+      clientLabel: 'Клиент',
       consentConfirmed: true,
       createdAt: Date.now(),
       updatedAt: Date.now(),
@@ -133,31 +122,36 @@ describe('Real Telegram screenshot acceptance test', () => {
 
     expect(result.report).toBeDefined()
     expect(finalCase.status).toBe('review')
-    expect(finalCase.stage).toBe('done')
     expect(finalCase.messenger).toBe('telegram')
     expect(finalCase.draft?.headline?.text).toBe('Реально мозги кипят')
     expect(finalCase.draft?.quote?.authorLabel).toBe('Клиент')
     expect(finalCase.draft?.quote?.authorRole).toBe('')
     expect(finalCase.draft?.quote?.authorCompany).toBe('')
 
-    expect(finalCase.selectedChatMessages).toBeDefined()
-    expect(finalCase.selectedChatMessages!.length).toBeGreaterThanOrEqual(2)
-    const quoteMsg = finalCase.selectedChatMessages!.find((m) =>
-      m.text.includes('Спасибо большое за занятие 🥰')
+    const headlineEvidence = result.report.evidences.find(
+      (e) => e.id === finalCase.draft?.headline?.evidenceId
     )
-    expect(quoteMsg).toBeDefined()
-    expect(quoteMsg?.time).toBe('19:31')
+    expect(headlineEvidence).toBeDefined()
+    expect(headlineEvidence?.exactQuote).toBe(rawSampleMessages[2].text)
+    expect(headlineEvidence?.exactQuote).toContain('реально мозги кипят')
 
-    const summaryLabels = (finalCase.draft?.summaryRows || []).map((r) => r.label.toLowerCase())
-    expect(summaryLabels).not.toContain('сомнение')
+    const selected = finalCase.selectedChatMessages || []
+    expect(selected.length).toBe(2)
 
-    const cardMessages = Array.isArray(finalCase.selectedChatMessages) &&
-      finalCase.selectedChatMessages.length > 0
-      ? finalCase.selectedChatMessages.slice(0, 3)
-      : Array.isArray(finalCase.chatMessages)
-      ? finalCase.chatMessages.slice(0, 3)
-      : []
+    expect(selected[0].text).toBe(rawSampleMessages[2].text)
+    expect(selected[1].text).toBe(rawSampleMessages[3].text)
 
+    selected.forEach((selMsg) => {
+      const original = rawSampleMessages.find((orig) => orig.text === selMsg.text)
+      expect(original).toBeDefined()
+      expect(selMsg.text).toBe(original!.text)
+      expect(selMsg.side).toBe(original!.side)
+      expect(selMsg.time).toBe(original!.time)
+    })
+
+    expect(finalCase.draft?.summaryRows).toHaveLength(0)
+
+    const cardMessages = selected.slice(0, 3)
     const published = {
       id: finalCase.id,
       headline: finalCase.draft?.headline?.text || '',
@@ -173,9 +167,7 @@ describe('Real Telegram screenshot acceptance test', () => {
     expect(published.messenger).toBe('telegram')
     expect(published.headline).toBe('Реально мозги кипят')
     expect(published.authorLabel).toBe('Клиент')
-    expect(published.authorRole).toBe('')
-    expect(published.authorCompany).toBe('')
-    expect(published.cardMessages.length).toBeGreaterThanOrEqual(2)
+    expect(published.cardMessages.length).toBe(2)
 
     const serialized = JSON.stringify(published)
     expect(serialized).not.toContain('кондитерск')

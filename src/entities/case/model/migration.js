@@ -1,35 +1,65 @@
-export const migrateCaseDraft = (draft) => {
+export const normalizeMigrationText = (text) => {
+  if (!text) return ''
+  return text
+    .toLowerCase()
+    .replace(/ё/g, 'е')
+    .replace(/[\u2010\u2011\u2012\u2013\u2014\u2015-]/g, '-')
+    .replace(/[^\p{L}\p{N}\s]/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+export const migrateCaseDraft = (draft, sourcesText = '') => {
   if (!draft) return null
 
+  const normSources = normalizeMigrationText(sourcesText)
   const existingRows = Array.isArray(draft.summaryRows) ? draft.summaryRows : []
   let summaryRows = [...existingRows]
+  const needsReview = Array.isArray(draft.needsReview) ? [...draft.needsReview] : []
 
   if (summaryRows.length === 0) {
     if (draft.problem && typeof draft.problem === 'string' && draft.problem.trim()) {
+      const clean = draft.problem.trim().replace(/^было:\s*/i, '')
+      const isVerbatim = normSources.length > 0 && normSources.includes(normalizeMigrationText(clean))
+      const origin = isVerbatim ? 'client_words' : 'ai_paraphrase'
+      const id = 'legacy-problem'
       summaryRows.push({
-        id: 'legacy-problem',
+        id,
         label: 'Задача',
-        text: draft.problem.trim(),
+        text: clean,
         evidenceId: null,
-        origin: 'ai_paraphrase',
+        origin,
+        needsReview: !isVerbatim,
       })
     }
+
     if (draft.solution && typeof draft.solution === 'string' && draft.solution.trim()) {
+      const clean = draft.solution.trim().replace(/^сделано:\s*/i, '')
+      const isVerbatim = normSources.length > 0 && normSources.includes(normalizeMigrationText(clean))
+      const origin = isVerbatim ? 'client_words' : 'ai_paraphrase'
+      const id = 'legacy-solution'
       summaryRows.push({
-        id: 'legacy-solution',
+        id,
         label: 'Сделано',
-        text: draft.solution.trim(),
+        text: clean,
         evidenceId: null,
-        origin: 'ai_paraphrase',
+        origin,
+        needsReview: !isVerbatim,
       })
     }
+
     if (draft.result && typeof draft.result === 'string' && draft.result.trim()) {
+      const clean = draft.result.trim().replace(/^стало:\s*/i, '')
+      const isVerbatim = normSources.length > 0 && normSources.includes(normalizeMigrationText(clean))
+      const origin = isVerbatim ? 'client_words' : 'ai_paraphrase'
+      const id = 'legacy-result'
       summaryRows.push({
-        id: 'legacy-result',
+        id,
         label: 'Результат',
-        text: draft.result.trim(),
+        text: clean,
         evidenceId: null,
-        origin: 'ai_paraphrase',
+        origin,
+        needsReview: !isVerbatim,
       })
     }
   }
@@ -40,10 +70,8 @@ export const migrateCaseDraft = (draft) => {
         evidenceId: draft.headline.evidenceId || null,
       }
     : {
-        text: draft.metric?.value
-          ? `${draft.metric.value} ${draft.metric.label || ''}`.trim()
-          : '',
-        evidenceId: draft.metric?.evidenceId || null,
+        text: '',
+        evidenceId: null,
       }
 
   const rawAuthor = draft.quote?.authorLabel
@@ -67,7 +95,7 @@ export const migrateCaseDraft = (draft) => {
       evidenceId: draft.metric?.evidenceId || null,
     },
     missingFields: Array.isArray(draft.missingFields) ? draft.missingFields : [],
-    needsReview: Array.isArray(draft.needsReview) ? draft.needsReview : [],
+    needsReview: Array.from(new Set(needsReview)),
     tags: Array.isArray(draft.tags) ? draft.tags : [],
   }
 }
@@ -75,7 +103,20 @@ export const migrateCaseDraft = (draft) => {
 export const migrateCase = (caseItem) => {
   if (!caseItem) return null
 
-  const migratedDraft = caseItem.draft ? migrateCaseDraft(caseItem.draft) : null
+  const sourcesTextParts = []
+  if (Array.isArray(caseItem.chatMessages)) {
+    caseItem.chatMessages.forEach((m) => {
+      if (m && m.text) sourcesTextParts.push(m.text)
+    })
+  }
+  if (Array.isArray(caseItem.evidences)) {
+    caseItem.evidences.forEach((e) => {
+      if (e && e.exactQuote) sourcesTextParts.push(e.exactQuote)
+    })
+  }
+
+  const sourcesText = sourcesTextParts.join(' ')
+  const migratedDraft = caseItem.draft ? migrateCaseDraft(caseItem.draft, sourcesText) : null
 
   return {
     ...caseItem,

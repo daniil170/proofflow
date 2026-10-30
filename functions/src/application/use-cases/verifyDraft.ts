@@ -10,6 +10,7 @@ import {
 export const normalizeText = (text: string): string => {
   return text
     .toLowerCase()
+    .replace(/ё/g, 'е')
     .replace(/[\u2010\u2011\u2012\u2013\u2014\u2015-]/g, '-')
     .replace(/[^\p{L}\p{N}\s]/gu, '')
     .replace(/\s+/g, ' ')
@@ -82,12 +83,9 @@ export const verifyDraft = ({
       for (const msg of extraction.messages) {
         if (msg.side !== 'client') continue
         const normMsg = normalizeText(msg.text)
-        if (
-          normMsg.includes(normalizedQuote) ||
-          normalizedQuote.includes(normMsg)
-        ) {
+        if (normMsg.includes(normalizedQuote)) {
           matchedEvidence = {
-            id: `ev-quote-${extraction.screenshotSourceId}-${Date.now()}`,
+            id: `ev-quote-${extraction.screenshotSourceId}-${msg.id || msg.order || Date.now()}`,
             sourceId: extraction.screenshotSourceId,
             kind: 'chatMessage',
             reference: `message:${msg.time || msg.order}`,
@@ -388,11 +386,15 @@ export const verifyDraft = ({
     const rowWords = normRowText.split(' ').filter((w) => w.length > 3)
 
     let isGrounded = false
-    if (rowWords.length === 0) {
+    if (row.origin === 'client_words') {
       isGrounded = combinedSourceText.includes(normRowText)
     } else {
-      const matchCount = rowWords.filter((w) => combinedSourceText.includes(w)).length
-      isGrounded = matchCount / rowWords.length >= 0.25
+      if (rowWords.length === 0) {
+        isGrounded = combinedSourceText.includes(normRowText)
+      } else {
+        const matchCount = rowWords.filter((w) => combinedSourceText.includes(w)).length
+        isGrounded = matchCount / rowWords.length >= 0.6
+      }
     }
 
     if (!isGrounded) {

@@ -4,7 +4,7 @@ Your task is to analyze raw transcripts of client calls, voice notes, and extrac
 Output format requirement:
 You must respond with valid JSON matching this schema:
 {
-  "headline": "A short, punchy VERBATIM client phrase of 2-6 words taken strictly from the client's own messages or transcripts (e.g. 'Реально мозги кипят', 'Все было понятно'). Never invent headlines. Never use template titles like 'Кейс для...'. If no short punchy phrase exists in client words, return empty string.",
+  "headline": "A short, punchy VERBATIM client phrase of 2-6 words taken strictly from the client's own messages or transcripts (e.g. 'Сделки закрыли за сутки', 'Все прошло отлично'). Never invent headlines. Never use template titles like 'Кейс для...'. If no short punchy phrase exists in client words, return empty string.",
   "metric": {
     "value": "Exact quantitative indicator found in text, e.g. +140%, 3x, 48 hours. If no metric exists, return empty string",
     "label": "Short description of the metric, e.g. рост конверсии воронки. If no metric, return empty string"
