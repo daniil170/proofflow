@@ -6,11 +6,8 @@ import { TelegramIcon, UserIcon, FolderIcon, DownloadIcon, ShieldIcon } from '@/
 import styles from './SettingsPage.module.css'
 
 export const SettingsPage = () => {
-  const { user, userRecord, logout, createTelegramLinkToken } = useAuth()
+  const { user, userRecord, logout } = useAuth()
   const navigate = useNavigate()
-
-  const [isLinking, setIsLinking] = useState(false)
-  const [linkError, setLinkError] = useState('')
 
   const [userCases, setUserCases] = useState([])
   const [isLoadingCases, setIsLoadingCases] = useState(true)
@@ -51,21 +48,6 @@ export const SettingsPage = () => {
   const handleLogout = async () => {
     await logout()
     navigate('/login')
-  }
-
-  const handleConnectTelegram = async () => {
-    setIsLinking(true)
-    setLinkError('')
-    try {
-      const { token, botUsername } = await createTelegramLinkToken()
-      const targetBot = botUsername || 'proofflowbot'
-      const url = `https://t.me/${targetBot}?start=link_${token}`
-      window.open(url, '_blank', 'noopener,noreferrer')
-    } catch (err) {
-      setLinkError(err?.message || 'Не удалось сформировать ссылку для привязки Telegram')
-    } finally {
-      setIsLinking(false)
-    }
   }
 
   const handleDeleteCase = async () => {
@@ -119,7 +101,6 @@ export const SettingsPage = () => {
   }
 
   const profile = userRecord?.profile || {}
-  const telegramUserId = userRecord?.telegramUserId
 
   return (
     <div className={styles.container}>
