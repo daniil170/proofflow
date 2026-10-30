@@ -242,4 +242,59 @@ describe('useCaseReview hook', () => {
       })
     )
   })
+
+  it('updates draft and selected messages when caseItem transitions from processing to review with populated draft', () => {
+    const repo = createMockRepo()
+    const processingCase = {
+      id: 'case-processing-1',
+      ownerId: 'user-1',
+      status: 'processing',
+      draft: null,
+      chatMessages: [],
+      selectedChatMessages: [],
+    }
+
+    const { result, rerender } = renderHook(
+      ({ item }) => useCaseReview({ caseItem: item, repository: repo }),
+      { initialProps: { item: processingCase } }
+    )
+
+    expect(result.current.draft.headline.text).toBe('')
+    expect(result.current.selectedChatMessages).toHaveLength(0)
+
+    const completedCase = {
+      id: 'case-processing-1',
+      ownerId: 'user-1',
+      status: 'review',
+      messenger: 'telegram',
+      draft: {
+        headline: { text: 'Было очень круто', evidenceId: 'ev-1' },
+        metric: { value: '', label: '', evidenceId: null },
+        problem: '',
+        solution: '',
+        result: 'Делаются успехи',
+        summaryRows: [
+          { id: 'row-1', label: 'Впечатление', text: 'Было очень круто', origin: 'client_words' },
+        ],
+        quote: { text: 'Было очень круто! Спасибо', authorLabel: 'Клиент', evidenceId: 'ev-1' },
+        tags: [],
+        missingFields: [],
+        needsReview: [],
+      },
+      chatMessages: [
+        { id: 'm-1', text: 'Супер!', time: '19:30' },
+        { id: 'm-2', text: 'Было очень круто! Спасибо', time: '19:31' },
+      ],
+      selectedChatMessages: [
+        { id: 'm-2', text: 'Было очень круто! Спасибо', time: '19:31' },
+      ],
+    }
+
+    rerender({ item: completedCase })
+
+    expect(result.current.draft.headline.text).toBe('Было очень круто')
+    expect(result.current.draft.summaryRows).toHaveLength(1)
+    expect(result.current.selectedChatMessages).toHaveLength(1)
+    expect(result.current.messenger).toBe('telegram')
+  })
 })

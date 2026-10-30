@@ -120,9 +120,20 @@ export const useCaseReview = ({
   const [validationErrors, setValidationErrors] = useState({})
 
   const debounceTimerRef = useRef(null)
-  const [prevCaseId, setPrevCaseId] = useState(caseItem?.id)
-  if (caseItem?.id !== prevCaseId) {
-    setPrevCaseId(caseItem?.id)
+  const [lastSyncedCaseId, setLastSyncedCaseId] = useState(caseItem?.id)
+  const [lastSyncedStatus, setLastSyncedStatus] = useState(caseItem?.status)
+  const [lastSyncedDraftText, setLastSyncedDraftText] = useState(() => JSON.stringify(caseItem?.draft || null))
+
+  const currentDraftText = JSON.stringify(caseItem?.draft || null)
+
+  if (
+    caseItem?.id !== lastSyncedCaseId ||
+    (caseItem?.status === 'review' && lastSyncedStatus !== 'review') ||
+    (modifiedFields.size === 0 && currentDraftText !== lastSyncedDraftText && caseItem?.draft)
+  ) {
+    setLastSyncedCaseId(caseItem?.id)
+    setLastSyncedStatus(caseItem?.status)
+    setLastSyncedDraftText(currentDraftText)
     setDraft(initialDraft)
     setMessengerState(caseItem?.messenger || 'unknown')
     setSelectedChatMessages(
@@ -132,6 +143,9 @@ export const useCaseReview = ({
         ? caseItem.chatMessages.slice(0, Math.min(3, caseItem.chatMessages.length))
         : []
     )
+    if (caseItem?.id !== lastSyncedCaseId) {
+      setModifiedFields(new Set(caseItem?.modifiedFields || []))
+    }
   }
 
   const evidences = useMemo(() => {
