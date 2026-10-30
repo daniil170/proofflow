@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import { runPipeline } from '../runPipeline.js'
-import { publishCase } from '../publishCase.js'
 import {
   Case,
   CaseDraft,
