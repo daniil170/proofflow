@@ -31,6 +31,17 @@ export const useCaseStyle = ({
   const [isSaving, setIsSaving] = useState(false)
   const [activeMode, setActiveMode] = useState('card')
 
+  const [lastSyncedCaseId, setLastSyncedCaseId] = useState(caseItem?.id)
+  if (caseItem?.id && caseItem.id !== lastSyncedCaseId) {
+    setLastSyncedCaseId(caseItem.id)
+    if (caseItem.selectedVariant) setSelectedVariant(caseItem.selectedVariant)
+    if (caseItem.branding?.accentColor) setAccentColor(caseItem.branding.accentColor)
+    if (caseItem.branding?.showLogo !== undefined) setShowLogo(caseItem.branding.showLogo)
+    if (caseItem.branding?.companyName) setCompanyName(caseItem.branding.companyName)
+    if (caseItem.branding?.logoPath) setLogoPath(caseItem.branding.logoPath)
+    if (caseItem.branding?.logoUrl) setLogoUrl(caseItem.branding.logoUrl)
+  }
+
   const bgColor = VARIANT_BACKGROUND_COLORS[selectedVariant] || '#0d1714'
   const contrastInfo = useMemo(() => {
     return calculateContrastRatio(accentColor, bgColor)
@@ -38,30 +49,52 @@ export const useCaseStyle = ({
 
   const previewData = useMemo(() => {
     const draft = caseItem?.draft || {}
-    const metric = draft.metric?.value || caseItem?.metric || '+45%'
-    const metricLabel = draft.metric?.label || caseItem?.metricLabel || 'рост конверсии'
-    const before = draft.problem || caseItem?.before || 'Клиент терял лиды на первом шаге'
-    const done = draft.solution || caseItem?.done || 'Полностью переработали интерфейс'
-    const after = draft.result || caseItem?.after || 'Увеличили показатель почти в полтора раза'
-    const quote = draft.quote?.text || caseItem?.quote || 'Отличный результат!'
-    const author = draft.quote?.authorLabel || caseItem?.author || 'Анна К.'
+    const headline = draft.headline?.text || ''
+    const metric = draft.metric?.value || ''
+    const metricLabel = draft.metric?.label || ''
+    const before = draft.problem || ''
+    const done = draft.solution || ''
+    const after = draft.result || ''
+    const summaryRows = Array.isArray(draft.summaryRows) ? draft.summaryRows : []
+    const quote = draft.quote?.text || ''
+    const rawAuthor = draft.quote?.authorLabel
+    const author = (!rawAuthor || rawAuthor === 'Анна К.') ? 'Клиент' : rawAuthor
     const authorRole = draft.quote?.authorRole || ''
+    const authorCompany = draft.quote?.authorCompany || ''
+
+    const rawSelected =
+      Array.isArray(caseItem?.selectedChatMessages) && caseItem.selectedChatMessages.length > 0
+        ? caseItem.selectedChatMessages
+        : Array.isArray(caseItem?.cardMessages) && caseItem.cardMessages.length > 0
+        ? caseItem.cardMessages
+        : Array.isArray(caseItem?.chatMessages)
+        ? caseItem.chatMessages.slice(0, 3)
+        : []
+
+    const messenger = caseItem?.messenger || 'unknown'
+    const category = draft.tags?.[0] || 'Отзыв клиента'
+    const niche = draft.tags?.[1] || ''
 
     return {
+      headline,
+      title: headline,
       metric,
       metricLabel,
       before,
       done,
       after,
+      summaryRows,
       quote,
       author,
-      company: companyName || 'ProofFlow',
-      isVerifiedByChat: true,
-      category: 'КЕЙС',
-      niche: draft.tags?.[0] || 'B2B',
-      channel: draft.tags?.[1] || 'Сайт',
-      duration: '3 недели',
       authorRole,
+      authorCompany,
+      company: companyName || authorCompany || '',
+      isVerifiedByChat: Boolean(draft.quote?.evidenceId || draft.metric?.evidenceId || rawSelected.length > 0),
+      category,
+      niche,
+      messenger,
+      cardMessages: rawSelected,
+      chatMessages: rawSelected,
       logoUrl: showLogo ? logoUrl : null,
       accentColor,
     }
