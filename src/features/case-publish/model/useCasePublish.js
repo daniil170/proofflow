@@ -84,14 +84,24 @@ export const useCasePublish = ({
     const authorRole = draft.quote?.authorRole || ''
     const category = tags[0] || ''
 
+    const rawSelected =
+      Array.isArray(caseItem?.selectedChatMessages) && caseItem.selectedChatMessages.length > 0
+        ? caseItem.selectedChatMessages
+        : Array.isArray(caseItem?.cardMessages) && caseItem.cardMessages.length > 0
+        ? caseItem.cardMessages
+        : Array.isArray(caseItem?.chatMessages)
+        ? caseItem.chatMessages.slice(0, 3)
+        : []
+
     return {
+      variant: caseItem?.selectedVariant || 'dark',
       headline: draft.headline?.text || '',
       metric: draft.metric?.value || '',
       metricLabel: draft.metric?.label || '',
       before: draft.problem || '',
       done: draft.solution || '',
       after: draft.result || '',
-      summaryRows: draft.summaryRows || [],
+      summaryRows: Array.isArray(draft.summaryRows) && draft.summaryRows.length > 0 ? draft.summaryRows : [],
       quote: draft.quote?.text || '',
       author: draft.quote?.authorLabel || 'Клиент',
       authorRole,
@@ -99,9 +109,11 @@ export const useCasePublish = ({
       category,
       tags,
       company: caseItem?.branding?.companyName || draft.quote?.authorCompany || '',
-      accentColor: caseItem?.branding?.accentColor || '#d6f94c',
+      accentColor: caseItem?.branding?.accentColor || (caseItem?.selectedVariant === 'whatsapp' ? '#ffd13b' : '#d6f94c'),
       messenger: caseItem?.messenger || 'unknown',
-      cardMessages: caseItem?.selectedChatMessages || caseItem?.cardMessages || [],
+      cardMessages: rawSelected,
+      chatMessages: rawSelected,
+      isVerifiedByChat: Boolean(draft.quote?.evidenceId || draft.metric?.evidenceId || rawSelected.length > 0),
     }
   }, [caseItem])
 

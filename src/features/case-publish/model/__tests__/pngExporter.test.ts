@@ -44,4 +44,35 @@ describe('pngExporter', () => {
     expect(storyCanvas.width).toBe(1080)
     expect(cardCanvas.width).toBe(1200)
   })
+
+  it('renders whatsapp variant with chat messages and headline', () => {
+    const whatsappData = {
+      variant: 'whatsapp',
+      headline: 'Было очень круто, и всё понятно!',
+      summaryRows: [
+        { label: 'Задача', text: 'Сложная тема, интенсивное обучение с нуля' },
+        { label: 'Результат', text: 'Всё понятно, занятие прошло круто' },
+      ],
+      messenger: 'telegram',
+      cardMessages: [
+        { text: 'но делаются успехи\nреально мозги кипят', side: 'client', time: '19:30' },
+        { text: 'Было очень круто, и всё понятно!', side: 'me', time: '19:31' },
+      ],
+      author: 'Елена К.',
+      authorRole: 'Студент курса',
+      isVerifiedByChat: true,
+      accentColor: '#ffd13b',
+    }
+
+    const cardCanvas = renderCardPng(whatsappData)
+    const storyCanvas = renderStoryPng(whatsappData)
+
+    expect(cardCanvas).toBeDefined()
+    expect(cardCanvas.width).toBe(1200)
+    expect(cardCanvas.height).toBeGreaterThanOrEqual(760)
+
+    expect(storyCanvas).toBeDefined()
+    expect(storyCanvas.width).toBe(1080)
+    expect(storyCanvas.height).toBe(1920)
+  })
 })
