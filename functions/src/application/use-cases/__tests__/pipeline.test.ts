@@ -156,4 +156,136 @@ describe('runPipeline end-to-end integration', () => {
     expect(updated?.status).toBe('failed')
     expect(updated?.failReason).toContain('Превышен лимит кейсов')
   })
+
+  it('respects custom user caseLimit from user doc', async () => {
+    const caseId = 'case-custom-limit'
+    const ownerId = 'user-custom-limit'
+    const casesMap = new Map<string, Case>()
+
+    casesMap.set(caseId, {
+      id: caseId,
+      ownerId,
+      status: 'processing',
+      clientLabel: 'Custom Limit Case',
+      consentConfirmed: true,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      sources: [],
+      selectedVariant: 'dark',
+      branding: { showLogo: true },
+    })
+
+    const repo = new MemoryCaseRepository(casesMap)
+    repo.setUserLimits(ownerId, { caseLimit: 10 })
+    repo.countCasesByOwner = async () => 11
+
+    const storage = new LocalStorageAdapter()
+    const normalizer = new MediaNormalizerImpl()
+    const transcriber = new MockTranscriber()
+    const chatReader = new MockChatReader()
+    const analyzer = new MockCaseAnalyzer()
+
+    const result = await runPipeline({
+      caseId,
+      caseRepository: repo,
+      storage,
+      normalizer,
+      transcriber,
+      chatReader,
+      analyzer,
+    })
+
+    const updated = await repo.getCase(caseId)
+    expect(updated?.status).toBe('failed')
+    expect(updated?.failReason).toContain('Превышен лимит кейсов на аккаунт (максимум 10)')
+  })
+
+  it('fails case when user access has expired', async () => {
+    const caseId = 'case-expired'
+    const ownerId = 'user-expired'
+    const casesMap = new Map<string, Case>()
+
+    casesMap.set(caseId, {
+      id: caseId,
+      ownerId,
+      status: 'processing',
+      clientLabel: 'Expired Access Case',
+      consentConfirmed: true,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      sources: [],
+      selectedVariant: 'dark',
+      branding: { showLogo: true },
+    })
+
+    const repo = new MemoryCaseRepository(casesMap)
+    repo.setUserLimits(ownerId, {
+      caseLimit: 5,
+      accessExpiresAt: Date.now() - 60000,
+    })
+
+    const storage = new LocalStorageAdapter()
+    const normalizer = new MediaNormalizerImpl()
+    const transcriber = new MockTranscriber()
+    const chatReader = new MockChatReader()
+    const analyzer = new MockCaseAnalyzer()
+
+    await runPipeline({
+      caseId,
+      caseRepository: repo,
+      storage,
+      normalizer,
+      transcriber,
+      chatReader,
+      analyzer,
+    })
+
+    const updated = await repo.getCase(caseId)
+    expect(updated?.status).toBe('failed')
+    expect(updated?.failReason).toBe('Срок действия доступа истёк')
+  })
+
+  it('fails case when user access is blocked', async () => {
+    const caseId = 'case-blocked'
+    const ownerId = 'user-blocked'
+    const casesMap = new Map<string, Case>()
+
+    casesMap.set(caseId, {
+      id: caseId,
+      ownerId,
+      status: 'processing',
+      clientLabel: 'Blocked Access Case',
+      consentConfirmed: true,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      sources: [],
+      selectedVariant: 'dark',
+      branding: { showLogo: true },
+    })
+
+    const repo = new MemoryCaseRepository(casesMap)
+    repo.setUserLimits(ownerId, {
+      accessStatus: 'blocked',
+    })
+
+    const storage = new LocalStorageAdapter()
+    const normalizer = new MediaNormalizerImpl()
+    const transcriber = new MockTranscriber()
+    const chatReader = new MockChatReader()
+    const analyzer = new MockCaseAnalyzer()
+
+    await runPipeline({
+      caseId,
+      caseRepository: repo,
+      storage,
+      normalizer,
+      transcriber,
+      chatReader,
+      analyzer,
+    })
+
+    const updated = await repo.getCase(caseId)
+    expect(updated?.status).toBe('failed')
+    expect(updated?.failReason).toBe('Доступ к аккаунту заблокирован')
+  })
 })

@@ -194,11 +194,26 @@ export const executeRedeemInvite = async (
         usedAt: now,
       })
 
+      const caseLimit =
+        typeof invite.caseLimit === 'number' && invite.caseLimit > 0
+          ? invite.caseLimit
+          : 3
+
+      const defaultAccessDurationMs = 14 * 24 * 60 * 60 * 1000
+      const accessExpiresAt =
+        typeof invite.accessExpiresAt === 'number' && invite.accessExpiresAt > 0
+          ? invite.accessExpiresAt
+          : typeof invite.expiresAt === 'number' && invite.expiresAt > now
+            ? invite.expiresAt
+            : now + defaultAccessDurationMs
+
       const userPayload: Record<string, unknown> = {
         id: uid,
         email: userEmail || existingUserData?.email || '',
         accessStatus: 'active',
         workspaceId: uid,
+        caseLimit,
+        accessExpiresAt,
         updatedAt: now,
       }
 

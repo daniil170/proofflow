@@ -52,10 +52,46 @@ export interface ApplicationRepository {
 }
 
 export interface AdminInviteRepository {
-  createInvite(applicationId: string): Promise<{ success: boolean; invite: Invite; reused?: boolean }>
-  recreateInvite(applicationId: string): Promise<{ success: boolean; invite: Invite }>
+  createInvite(
+    applicationId: string,
+    options?: { caseLimit?: number; expiresDays?: number }
+  ): Promise<{ success: boolean; invite: Invite; reused?: boolean }>
+  recreateInvite(
+    applicationId: string,
+    options?: { caseLimit?: number; expiresDays?: number }
+  ): Promise<{ success: boolean; invite: Invite }>
   revokeInvite(code: string, reason?: string): Promise<{ success: boolean }>
   subscribeInvites(callback: (invites: Invite[]) => void): () => void
+}
+
+export interface AdminUserStats {
+  id: string
+  email?: string
+  displayName?: string
+  companyName?: string
+  businessType?: string
+  telegramUserId?: string | number
+  accessStatus: 'waitlist' | 'active' | 'blocked'
+  caseLimit?: number
+  accessExpiresAt?: number | null
+  casesCount: number
+  downloadsCount: number
+  sharesCount: number
+  lastActiveAt?: number | null
+  createdAt?: number
+  updatedAt?: number
+}
+
+export interface AdminUsersRepository {
+  getUsers(): Promise<AdminUserStats[]>
+  updateUserLimits(
+    userId: string,
+    payload: {
+      caseLimit?: number
+      accessExpiresAt?: number | null
+      accessStatus?: 'waitlist' | 'active' | 'blocked'
+    }
+  ): Promise<{ success: boolean; user: AdminUserStats }>
 }
 
 export interface AnalyticsRepository {

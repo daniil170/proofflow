@@ -354,4 +354,49 @@ describe('useCaseUpload hook', () => {
     expect(result.current.errorMessage).toContain('Достигнут лимит кейсов на аккаунт')
     expect(mockUploader.upload).not.toHaveBeenCalled()
   })
+
+  it('respects custom user caseLimit and accessExpiresAt', async () => {
+    const limitedRepository = {
+      ...mockRepository,
+      countByOwner: vi.fn().mockResolvedValue(2),
+    }
+
+    // User has custom caseLimit = 2 -> limit exhausted
+    const { result } = renderHook(() =>
+      useCaseUpload({
+        user: { id: 'user-custom', caseLimit: 2 },
+        uploader: mockUploader,
+        repository: limitedRepository,
+      })
+    )
+
+    await act(async () => {
+      // allow countByOwner promise to resolve
+      await Promise.resolve()
+    })
+
+    expect(result.current.maxCases).toBe(2)
+    expect(result.current.isLimitExhausted).toBe(true)
+    expect(result.current.remainingCases).toBe(0)
+    expect(result.current.canSubmit).toBe(false)
+  })
+
+  it('detects expired user access', async () => {
+    const freshRepository = {
+      ...mockRepository,
+      countByOwner: vi.fn().mockResolvedValue(0),
+    }
+
+    const { result } = renderHook(() =>
+      useCaseUpload({
+        user: { id: 'user-expired', accessExpiresAt: Date.now() - 10000 },
+        uploader: mockUploader,
+        repository: freshRepository,
+      })
+    )
+
+    expect(result.current.isExpired).toBe(true)
+    expect(result.current.isLimitExhausted).toBe(true)
+    expect(result.current.canSubmit).toBe(false)
+  })
 })

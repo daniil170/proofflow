@@ -1,10 +1,12 @@
 import {
   firestoreAdminInviteRepository,
+  firestoreAdminUsersRepository,
   firestoreAnalyticsRepository,
   firestoreApplicationRepository,
 } from './firestoreAdminRepository.js'
 import {
   mockAdminInviteRepository,
+  mockAdminUsersRepository,
   mockAnalyticsRepository,
   mockApplicationRepository,
 } from './mockAdminRepository.js'
@@ -34,6 +36,18 @@ export const getAdminInviteRepository = () => {
   }
 
   return firestoreAdminInviteRepository
+}
+
+export const getAdminUsersRepository = () => {
+  assertNoMocksInProduction()
+  const isMockExplicitlyRequested = import.meta.env.VITE_USE_MOCK_API === 'true'
+  const hasFirebaseProjectId = Boolean(import.meta.env.VITE_FIREBASE_PROJECT_ID)
+
+  if (isMockExplicitlyRequested || !hasFirebaseProjectId) {
+    return mockAdminUsersRepository
+  }
+
+  return firestoreAdminUsersRepository
 }
 
 export const getAnalyticsRepository = () => {

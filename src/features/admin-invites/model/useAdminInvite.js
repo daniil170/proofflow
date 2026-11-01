@@ -38,11 +38,11 @@ export const useAdminInvite = ({
   }, [])
 
   const createInvite = useCallback(
-    async (applicationId) => {
+    async (applicationId, options = {}) => {
       setIsLoading(true)
       setError(null)
       try {
-        const res = await inviteRepository.createInvite(applicationId)
+        const res = await inviteRepository.createInvite(applicationId, options)
         return res
       } catch (err) {
         setError(err?.message || 'Не удалось создать приглашение')
@@ -55,11 +55,11 @@ export const useAdminInvite = ({
   )
 
   const recreateInvite = useCallback(
-    async (applicationId) => {
+    async (applicationId, options = {}) => {
       setIsLoading(true)
       setError(null)
       try {
-        const res = await inviteRepository.recreateInvite(applicationId)
+        const res = await inviteRepository.recreateInvite(applicationId, options)
         return res
       } catch (err) {
         setError(err?.message || 'Не удалось перевыпустить приглашение')

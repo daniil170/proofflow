@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom'
 import {
   AdminAnalyticsPage,
   AdminApplicationsPage,
+  AdminUsersPage,
   CaseProcessPage,
   CasesListPage,
   ConsentPage,
@@ -125,6 +126,10 @@ export const router = createBrowserRouter([
       {
         path: 'applications',
         element: <AdminApplicationsPage />,
+      },
+      {
+        path: 'users',
+        element: <AdminUsersPage />,
       },
       {
         path: 'analytics',

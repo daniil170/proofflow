@@ -30,4 +30,9 @@ export interface CaseRepositoryPort {
     options?: SaveDraftOptions
   ): Promise<void>
   countCasesByOwner?(ownerId: string): Promise<number>
+  getUserLimits?(userId: string): Promise<{
+    caseLimit?: number
+    accessExpiresAt?: number | null
+    accessStatus?: string
+  } | null>
 }

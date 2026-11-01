@@ -34,6 +34,8 @@ export const ApplicationDetailsDrawer = ({
   const [isSavingNote, setIsSavingNote] = useState(false)
   const [rejectPromptOpen, setRejectPromptOpen] = useState(false)
   const [rejectReason, setRejectReason] = useState('')
+  const [customCaseLimit, setCustomCaseLimit] = useState(5)
+  const [customExpiresDays, setCustomExpiresDays] = useState(14)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [actionError, setActionError] = useState('')
@@ -59,7 +61,10 @@ export const ApplicationDetailsDrawer = ({
   const handleApprove = async () => {
     setActionError('')
     try {
-      await createInvite(application.id)
+      await createInvite(application.id, {
+        caseLimit: Number(customCaseLimit) || 3,
+        expiresDays: Number(customExpiresDays) || 14,
+      })
     } catch (err) {
       setActionError(err?.message || 'Не удалось создать приглашение')
     }
@@ -68,7 +73,10 @@ export const ApplicationDetailsDrawer = ({
   const handleRecreate = async () => {
     setActionError('')
     try {
-      await recreateInvite(application.id)
+      await recreateInvite(application.id, {
+        caseLimit: Number(customCaseLimit) || 3,
+        expiresDays: Number(customExpiresDays) || 14,
+      })
     } catch (err) {
       setActionError(err?.message || 'Не удалось перевыпустить код')
     }
@@ -177,6 +185,48 @@ export const ApplicationDetailsDrawer = ({
                   }}
                 >
                   {actionError}
+                </div>
+              )}
+              {!code && application.status !== 'approved' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                  <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <label style={{ flex: 1, fontSize: '0.8rem', color: '#64748b' }}>
+                      Лимит кейсов:
+                      <input
+                        type="number"
+                        min="1"
+                        max="100"
+                        value={customCaseLimit}
+                        onChange={(e) => setCustomCaseLimit(e.target.value)}
+                        style={{
+                          width: '100%',
+                          marginTop: '4px',
+                          padding: '6px 8px',
+                          borderRadius: '6px',
+                          border: '1px solid #cbd5e1',
+                          fontSize: '0.875rem',
+                        }}
+                      />
+                    </label>
+                    <label style={{ flex: 1, fontSize: '0.8rem', color: '#64748b' }}>
+                      Срок (дней):
+                      <input
+                        type="number"
+                        min="1"
+                        max="365"
+                        value={customExpiresDays}
+                        onChange={(e) => setCustomExpiresDays(e.target.value)}
+                        style={{
+                          width: '100%',
+                          marginTop: '4px',
+                          padding: '6px 8px',
+                          borderRadius: '6px',
+                          border: '1px solid #cbd5e1',
+                          fontSize: '0.875rem',
+                        }}
+                      />
+                    </label>
+                  </div>
                 </div>
               )}
               <div className={styles.actionsButtons}>

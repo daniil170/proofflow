@@ -10,6 +10,14 @@ import { CaseRepositoryPort } from '../ports/CaseRepositoryPort.js'
 
 export class MemoryCaseRepository implements CaseRepositoryPort {
   private cases: Map<string, Case> = new Map()
+  private userLimitsMap: Map<
+    string,
+    {
+      caseLimit?: number
+      accessExpiresAt?: number | null
+      accessStatus?: string
+    }
+  > = new Map()
   private onStageChange?: (
     caseId: string,
     stage: PipelineStage,
@@ -101,6 +109,26 @@ export class MemoryCaseRepository implements CaseRepositoryPort {
 
   setCase(caseItem: Case): void {
     this.cases.set(caseItem.id, { ...caseItem })
+  }
+
+  setUserLimits(
+    userId: string,
+    limits: {
+      caseLimit?: number
+      accessExpiresAt?: number | null
+      accessStatus?: string
+    }
+  ): void {
+    this.userLimitsMap.set(userId, { ...limits })
+  }
+
+  async getUserLimits(userId: string): Promise<{
+    caseLimit?: number
+    accessExpiresAt?: number | null
+    accessStatus?: string
+  } | null> {
+    const limits = this.userLimitsMap.get(userId)
+    return limits ? { ...limits } : null
   }
 
   async countCasesByOwner(ownerId: string): Promise<number> {

@@ -24,6 +24,8 @@ export const userRecordSchema = z.object({
   profile: userProfileSchema.optional(),
   consent: consentRecordSchema.optional(),
   telegramUserId: z.union([z.string(), z.number()]).optional(),
+  caseLimit: z.number().int().nonnegative().optional(),
+  accessExpiresAt: z.number().int().positive().nullable().optional(),
   createdAt: z.number().int().positive().optional(),
   updatedAt: z.number().int().positive().optional(),
 })

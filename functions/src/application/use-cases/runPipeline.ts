@@ -61,14 +61,19 @@ export const runPipeline = async ({
       throw new Error(`Case ${caseId} not found`)
     }
 
-    if (caseRepository.countCasesByOwner && currentCase.ownerId) {
-      const caseCount = await caseRepository.countCasesByOwner(currentCase.ownerId)
-      const maxAllowed = MAX_CASES_PER_ACCOUNT
-      if (caseCount > maxAllowed) {
+    if (currentCase.ownerId) {
+      const userLimits = caseRepository.getUserLimits
+        ? await caseRepository.getUserLimits(currentCase.ownerId)
+        : null
+
+      if (
+        typeof userLimits?.accessExpiresAt === 'number' &&
+        Date.now() > userLimits.accessExpiresAt
+      ) {
         await caseRepository.failCase(
           caseId,
           'preparing',
-          `Превышен лимит кейсов на аккаунт (максимум ${maxAllowed})`
+          'Срок действия доступа истёк'
         )
         return {
           report: {
@@ -80,6 +85,51 @@ export const runPipeline = async ({
             unverifiedMetrics: [],
             evidences: [],
           },
+        }
+      }
+
+      if (userLimits?.accessStatus === 'blocked') {
+        await caseRepository.failCase(
+          caseId,
+          'preparing',
+          'Доступ к аккаунту заблокирован'
+        )
+        return {
+          report: {
+            isQuoteVerified: false,
+            isMetricVerified: false,
+            missingFields: ['metric', 'problem', 'solution', 'result', 'quote'],
+            needsReview: ['metric', 'problem', 'solution', 'result', 'quote'],
+            unverifiedQuotes: [],
+            unverifiedMetrics: [],
+            evidences: [],
+          },
+        }
+      }
+
+      if (caseRepository.countCasesByOwner) {
+        const caseCount = await caseRepository.countCasesByOwner(currentCase.ownerId)
+        const maxAllowed =
+          typeof userLimits?.caseLimit === 'number' && userLimits.caseLimit > 0
+            ? userLimits.caseLimit
+            : MAX_CASES_PER_ACCOUNT
+        if (caseCount > maxAllowed) {
+          await caseRepository.failCase(
+            caseId,
+            'preparing',
+            `Превышен лимит кейсов на аккаунт (максимум ${maxAllowed})`
+          )
+          return {
+            report: {
+              isQuoteVerified: false,
+              isMetricVerified: false,
+              missingFields: ['metric', 'problem', 'solution', 'result', 'quote'],
+              needsReview: ['metric', 'problem', 'solution', 'result', 'quote'],
+              unverifiedQuotes: [],
+              unverifiedMetrics: [],
+              evidences: [],
+            },
+          }
         }
       }
     }

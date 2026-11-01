@@ -93,17 +93,17 @@ export const createFirestoreAdminInviteRepository = () => ({
     )
   },
 
-  async createInvite(applicationId) {
+  async createInvite(applicationId, options = {}) {
     const functions = getFunctionsInstance()
     const call = httpsCallable(functions, 'createInvite')
-    const res = await call({ applicationId })
+    const res = await call({ applicationId, ...options })
     return res.data
   },
 
-  async recreateInvite(applicationId) {
+  async recreateInvite(applicationId, options = {}) {
     const functions = getFunctionsInstance()
     const call = httpsCallable(functions, 'recreateInvite')
-    const res = await call({ applicationId })
+    const res = await call({ applicationId, ...options })
     return res.data
   },
 
@@ -281,7 +281,25 @@ export const createFirestoreAnalyticsRepository = () => ({
   },
 })
 
+export const createFirestoreAdminUsersRepository = () => ({
+  async getUsers() {
+    const functions = getFunctionsInstance()
+    const call = httpsCallable(functions, 'getAdminUsers')
+    const res = await call({})
+    return res.data?.users || []
+  },
+
+  async updateUserLimits(userId, payload) {
+    const functions = getFunctionsInstance()
+    const call = httpsCallable(functions, 'updateUserLimits')
+    const res = await call({ userId, ...payload })
+    return res.data
+  },
+})
+
 export const firestoreApplicationRepository = createFirestoreApplicationRepository()
 export const firestoreAdminInviteRepository = createFirestoreAdminInviteRepository()
 export const firestoreAnalyticsRepository = createFirestoreAnalyticsRepository()
+export const firestoreAdminUsersRepository = createFirestoreAdminUsersRepository()
+
 

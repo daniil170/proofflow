@@ -21,6 +21,8 @@ export const CaseUploadForm = ({ uploadState }) => {
 
     remainingCases,
     isLimitExhausted,
+    isExpired,
+    accessExpiresAt,
     maxCases = 50,
     storageRetentionDays = 14,
     supportUrl = 'https://t.me/proofflowbot',
@@ -58,9 +60,15 @@ export const CaseUploadForm = ({ uploadState }) => {
     <form onSubmit={handleSubmit} className={styles.formContainer}>
       {isLimitExhausted ? (
         <div className={styles.limitsExhaustedAlert} role="alert">
-          <strong>Лимит создания кейсов исчерпан</strong>
+          <strong>
+            {isExpired
+              ? 'Срок действия тестового периода истёк'
+              : 'Лимит создания кейсов исчерпан'}
+          </strong>
           <span>
-            В рамках текущего тарифа беты доступно {maxCases} кейсов.{' '}
+            {isExpired
+              ? `Доступ к генерации кейсов действовал до ${new Date(accessExpiresAt).toLocaleDateString('ru-RU')}. `
+              : `Вам выделено ${maxCases} генераций в рамках беты. `}
             <a
               href={supportUrl}
               target="_blank"
@@ -69,7 +77,7 @@ export const CaseUploadForm = ({ uploadState }) => {
             >
               Написать нам
             </a>
-            , чтобы запросить расширение лимита для вашего аккаунта.
+            , чтобы продлить доступ или увеличить лимит для вашего аккаунта.
           </span>
         </div>
       ) : (
@@ -81,7 +89,12 @@ export const CaseUploadForm = ({ uploadState }) => {
               {formatRemainingCases(remainingCases ?? maxCases)}
             </span>
           </span>
-          <span className={styles.privacyText}>Лимит: {maxCases} кейсов</span>
+          <span className={styles.privacyText}>
+            Лимит: {maxCases} кейсов
+            {accessExpiresAt && (
+              <> · до {new Date(accessExpiresAt).toLocaleDateString('ru-RU')}</>
+            )}
+          </span>
         </div>
       )}
 

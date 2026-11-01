@@ -36,6 +36,7 @@ export {
   ADMIN_STORAGE_KEYS,
   getApplicationRepository,
   getAdminInviteRepository,
+  getAdminUsersRepository,
   getAnalyticsRepository,
 } from './admin/index.js'
 

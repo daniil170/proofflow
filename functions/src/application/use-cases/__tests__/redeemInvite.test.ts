@@ -111,7 +111,70 @@ describe('executeRedeemInvite', () => {
     expect(updatedInvite?.usedBy).toBe('user-123')
     expect(updatedUser?.accessStatus).toBe('active')
     expect(updatedUser?.telegramUserId).toBe(998877)
+    expect(updatedUser?.caseLimit).toBe(3)
+    expect(typeof updatedUser?.accessExpiresAt).toBe('number')
     expect(setCustomUserClaims).toHaveBeenCalledWith('user-123', { access: 'active' })
+  })
+
+  it('transfers custom caseLimit and accessExpiresAt onto user document', async () => {
+    const customExpires = Date.now() + 30 * 24 * 60 * 60 * 1000
+    const inviteDoc = {
+      code: 'PF-CUSTOM-LIMIT',
+      status: 'issued',
+      expiresAt: Date.now() + 100000,
+      caseLimit: 10,
+      accessExpiresAt: customExpires,
+      createdBy: 'admin',
+      channel: 'web',
+    }
+
+    const setCustomUserClaims = vi.fn().mockResolvedValue(undefined)
+    const auth = { setCustomUserClaims } as unknown as Auth
+
+    let updatedUser: Record<string, unknown> | null = null
+
+    const transaction = {
+      get: vi.fn().mockImplementation((ref: { id: string }) => {
+        if (ref.id === 'PF-CUSTOM-LIMIT') {
+          return Promise.resolve({
+            exists: true,
+            data: () => inviteDoc,
+          })
+        }
+        return Promise.resolve({
+          exists: false,
+          data: () => null,
+        })
+      }),
+      update: vi.fn(),
+      set: vi.fn().mockImplementation((_ref: unknown, data: Record<string, unknown>) => {
+        updatedUser = data
+      }),
+    }
+
+    const db = {
+      collection: (name: string) => ({
+        doc: (id: string) => ({
+          id,
+          collection: name,
+          get: vi.fn().mockResolvedValue({ exists: false }),
+          delete: vi.fn().mockResolvedValue(undefined),
+        }),
+      }),
+      runTransaction: (fn: (tx: unknown) => Promise<unknown>) => fn(transaction),
+    } as unknown as Firestore
+
+    const result = await executeRedeemInvite({
+      code: 'PF-CUSTOM-LIMIT',
+      uid: 'user-vip',
+      userEmail: 'vip@test.com',
+      db,
+      auth,
+    })
+
+    expect(result.success).toBe(true)
+    expect(updatedUser?.caseLimit).toBe(10)
+    expect(updatedUser?.accessExpiresAt).toBe(customExpires)
   })
 
   it('rejects expired invite', async () => {

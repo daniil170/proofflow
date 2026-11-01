@@ -195,13 +195,13 @@ export const mockAdminInviteRepository = Object.freeze({
     }
   },
 
-  async createInvite(applicationId) {
+  async createInvite(applicationId, options = {}) {
     const app = applications.find((a) => a.id === applicationId)
     if (!app) {
       throw new Error('Заявка не найдена')
     }
 
-    if (app.inviteCode) {
+    if (app.inviteCode && !options.caseLimit && !options.expiresDays) {
       const existing = invites.find((i) => i.code === app.inviteCode)
       if (existing && existing.status === 'issued' && existing.expiresAt > Date.now()) {
         return {
@@ -214,13 +214,16 @@ export const mockAdminInviteRepository = Object.freeze({
 
     const code = generateMockCode()
     const now = Date.now()
-    const expiresAt = now + 14 * 86400000
+    const days = options.expiresDays || 14
+    const expiresAt = now + days * 86400000
 
     const newInvite = {
       code,
       status: 'issued',
       applicationId,
       expiresAt,
+      caseLimit: options.caseLimit || 3,
+      accessExpiresAt: expiresAt,
       channel: app.channel || app.source || 'web',
       email: app.email || null,
       telegramUserId: app.telegramUserId || null,
@@ -258,7 +261,7 @@ export const mockAdminInviteRepository = Object.freeze({
     }
   },
 
-  async recreateInvite(applicationId) {
+  async recreateInvite(applicationId, options = {}) {
     const app = applications.find((a) => a.id === applicationId)
     if (!app) {
       throw new Error('Заявка не найдена')
@@ -272,13 +275,16 @@ export const mockAdminInviteRepository = Object.freeze({
 
     const code = generateMockCode()
     const now = Date.now()
-    const expiresAt = now + 14 * 86400000
+    const days = options.expiresDays || 14
+    const expiresAt = now + days * 86400000
 
     const newInvite = {
       code,
       status: 'issued',
       applicationId,
       expiresAt,
+      caseLimit: options.caseLimit || 3,
+      accessExpiresAt: expiresAt,
       channel: app.channel || app.source || 'web',
       email: app.email || null,
       telegramUserId: app.telegramUserId || null,
@@ -505,3 +511,79 @@ export const mockAnalyticsRepository = Object.freeze({
     }
   },
 })
+
+export const mockAdminUsersRepository = Object.freeze({
+  async getUsers() {
+    let storedUsers = []
+    try {
+      const raw = window.localStorage?.getItem('proofflow_mock_users')
+      if (raw) storedUsers = JSON.parse(raw)
+    } catch {
+      storedUsers = []
+    }
+
+    if (!Array.isArray(storedUsers) || storedUsers.length === 0) {
+      storedUsers = [
+        {
+          id: 'user_1',
+          email: 'founder@example.com',
+          displayName: 'Алексей Смирнов',
+          companyName: 'Nova Marketing',
+          businessType: 'marketing_agency',
+          accessStatus: 'active',
+          caseLimit: 5,
+          accessExpiresAt: Date.now() + 14 * 86400000,
+          casesCount: 2,
+          downloadsCount: 4,
+          sharesCount: 1,
+          lastActiveAt: Date.now() - 3600000,
+          createdAt: Date.now() - 3 * 86400000,
+          updatedAt: Date.now() - 3600000,
+        },
+        {
+          id: 'user_2',
+          email: 'elena@webflow-studio.ru',
+          displayName: 'Елена Ковалева',
+          companyName: 'Kovaleva Design',
+          businessType: 'web_studio',
+          accessStatus: 'active',
+          caseLimit: 3,
+          accessExpiresAt: Date.now() + 7 * 86400000,
+          casesCount: 1,
+          downloadsCount: 2,
+          sharesCount: 0,
+          lastActiveAt: Date.now() - 86400000,
+          createdAt: Date.now() - 5 * 86400000,
+          updatedAt: Date.now() - 86400000,
+        },
+      ]
+    }
+    return storedUsers
+  },
+
+  async updateUserLimits(userId, payload) {
+    let users = await this.getUsers()
+    let updatedUser = null
+    users = users.map((u) => {
+      if (u.id === userId) {
+        updatedUser = {
+          ...u,
+          ...payload,
+          updatedAt: Date.now(),
+        }
+        return updatedUser
+      }
+      return u
+    })
+    try {
+      window.localStorage?.setItem('proofflow_mock_users', JSON.stringify(users))
+    } catch {
+      // ignore
+    }
+    return {
+      success: true,
+      user: updatedUser || { id: userId, ...payload },
+    }
+  },
+})
+

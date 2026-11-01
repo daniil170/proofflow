@@ -17,6 +17,11 @@ import {
   executeConfirmTelegramLink,
   ConfirmTelegramLinkError,
 } from '../application/use-cases/confirmTelegramLink.js'
+import {
+  executeGetAdminUsers,
+  executeUpdateUserLimits,
+  UpdateUserLimitsError,
+} from '../application/use-cases/adminUsers.js'
 import { telegramBotSecret } from './secrets.js'
 
 import { RATE_LIMIT_CONFIGS } from '../domain/rateLimits.js'
@@ -261,9 +266,43 @@ export const createInvite = onCall(
   async (request) => {
     await requireAdmin(request as { auth?: { uid: string; token: Record<string, unknown> } })
 
-    const { applicationId } = (request.data as { applicationId?: string }) || {}
+    const {
+      applicationId,
+      caseLimit: rawCaseLimit,
+      expiresDays: rawExpiresDays,
+      accessExpiresDays: rawAccessExpiresDays,
+    } = (request.data as {
+      applicationId?: string
+      caseLimit?: number
+      expiresDays?: number
+      accessExpiresDays?: number
+    }) || {}
+
     if (!applicationId || typeof applicationId !== 'string') {
       throw new HttpsError('invalid-argument', 'Не указан ID заявки')
+    }
+
+    if (rawCaseLimit !== undefined) {
+      if (
+        typeof rawCaseLimit !== 'number' ||
+        !Number.isInteger(rawCaseLimit) ||
+        rawCaseLimit <= 0
+      ) {
+        throw new HttpsError(
+          'invalid-argument',
+          'caseLimit должен быть положительным целым числом'
+        )
+      }
+    }
+
+    const rawDays = rawExpiresDays ?? rawAccessExpiresDays
+    if (rawDays !== undefined) {
+      if (typeof rawDays !== 'number' || rawDays <= 0) {
+        throw new HttpsError(
+          'invalid-argument',
+          'Срок действия должен быть положительным числом'
+        )
+      }
     }
 
     const appRef = admin.firestore().collection('beta_signups').doc(applicationId)
@@ -276,7 +315,7 @@ export const createInvite = onCall(
     const appData = appSnap.data()!
     const existingCode = appData.inviteCode
 
-    if (existingCode) {
+    if (existingCode && rawCaseLimit === undefined && rawDays === undefined) {
       const existingInviteSnap = await admin
         .firestore()
         .collection('invites')
@@ -296,15 +335,20 @@ export const createInvite = onCall(
     }
 
     const code = generateInviteCode()
-    const expiresDays = parseInt(process.env.INVITE_EXPIRES_DAYS || '14', 10)
+    const expiresDays = rawDays
+      ? Math.floor(rawDays)
+      : parseInt(process.env.INVITE_EXPIRES_DAYS || '14', 10)
     const now = Date.now()
     const expiresAt = now + expiresDays * 24 * 60 * 60 * 1000
+    const caseLimit = rawCaseLimit ? rawCaseLimit : 3
 
     const invitePayload = {
       code,
       status: 'issued',
       applicationId,
       expiresAt,
+      caseLimit,
+      accessExpiresAt: expiresAt,
       channel: appData.channel || appData.source || 'web',
       email: appData.email || null,
       telegramUserId: appData.telegramUserId || null,
@@ -346,9 +390,43 @@ export const recreateInvite = onCall(
   async (request) => {
     await requireAdmin(request as { auth?: { uid: string; token: Record<string, unknown> } })
 
-    const { applicationId } = (request.data as { applicationId?: string }) || {}
+    const {
+      applicationId,
+      caseLimit: rawCaseLimit,
+      expiresDays: rawExpiresDays,
+      accessExpiresDays: rawAccessExpiresDays,
+    } = (request.data as {
+      applicationId?: string
+      caseLimit?: number
+      expiresDays?: number
+      accessExpiresDays?: number
+    }) || {}
+
     if (!applicationId || typeof applicationId !== 'string') {
       throw new HttpsError('invalid-argument', 'Не указан ID заявки')
+    }
+
+    if (rawCaseLimit !== undefined) {
+      if (
+        typeof rawCaseLimit !== 'number' ||
+        !Number.isInteger(rawCaseLimit) ||
+        rawCaseLimit <= 0
+      ) {
+        throw new HttpsError(
+          'invalid-argument',
+          'caseLimit должен быть положительным целым числом'
+        )
+      }
+    }
+
+    const rawDays = rawExpiresDays ?? rawAccessExpiresDays
+    if (rawDays !== undefined) {
+      if (typeof rawDays !== 'number' || rawDays <= 0) {
+        throw new HttpsError(
+          'invalid-argument',
+          'Срок действия должен быть положительным числом'
+        )
+      }
     }
 
     const appRef = admin.firestore().collection('beta_signups').doc(applicationId)
@@ -373,15 +451,20 @@ export const recreateInvite = onCall(
     }
 
     const code = generateInviteCode()
-    const expiresDays = parseInt(process.env.INVITE_EXPIRES_DAYS || '14', 10)
+    const expiresDays = rawDays
+      ? Math.floor(rawDays)
+      : parseInt(process.env.INVITE_EXPIRES_DAYS || '14', 10)
     const now = Date.now()
     const expiresAt = now + expiresDays * 24 * 60 * 60 * 1000
+    const caseLimit = rawCaseLimit ? rawCaseLimit : 3
 
     const invitePayload = {
       code,
       status: 'issued',
       applicationId,
       expiresAt,
+      caseLimit,
+      accessExpiresAt: expiresAt,
       channel: appData.channel || appData.source || 'web',
       email: appData.email || null,
       telegramUserId: appData.telegramUserId || null,
@@ -1162,6 +1245,71 @@ export const confirmTelegramLink = onCall(
         throw new HttpsError(functionsCode, err.message)
       }
       throw err
+    }
+  }
+)
+
+export const getAdminUsers = onCall(
+  {
+    enforceAppCheck: false,
+    timeoutSeconds: 30,
+  },
+  async (request) => {
+    await requireAdmin(request as { auth?: { uid: string; token: Record<string, unknown> } })
+
+    try {
+      const users = await executeGetAdminUsers(admin.firestore())
+      return {
+        success: true,
+        users,
+      }
+    } catch (err: unknown) {
+      throw new HttpsError(
+        'internal',
+        (err as Error)?.message || 'Ошибка загрузки пользователей'
+      )
+    }
+  }
+)
+
+export const updateUserLimits = onCall(
+  {
+    enforceAppCheck: false,
+    timeoutSeconds: 20,
+  },
+  async (request) => {
+    await requireAdmin(request as { auth?: { uid: string; token: Record<string, unknown> } })
+
+    const data = (request.data || {}) as {
+      userId?: string
+      caseLimit?: number
+      accessExpiresAt?: number | null
+      accessStatus?: 'active' | 'blocked' | 'waitlist'
+    }
+
+    try {
+      const user = await executeUpdateUserLimits(
+        admin.firestore(),
+        admin.auth(),
+        {
+          userId: data.userId || '',
+          caseLimit: data.caseLimit,
+          accessExpiresAt: data.accessExpiresAt,
+          accessStatus: data.accessStatus,
+        }
+      )
+      return {
+        success: true,
+        user,
+      }
+    } catch (err: unknown) {
+      if (err instanceof UpdateUserLimitsError) {
+        throw new HttpsError(err.code, err.message)
+      }
+      throw new HttpsError(
+        'internal',
+        (err as Error)?.message || 'Ошибка обновления пользователя'
+      )
     }
   }
 )

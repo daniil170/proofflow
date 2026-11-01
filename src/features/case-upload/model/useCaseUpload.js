@@ -556,8 +556,18 @@ export const useCaseUpload = ({
     onSuccess,
   ])
 
-  const remainingCases = Math.max(0, MAX_CASES_PER_ACCOUNT - userCasesCount)
-  const isLimitExhausted = userCasesCount >= MAX_CASES_PER_ACCOUNT
+  const effectiveMaxCases =
+    typeof user?.caseLimit === 'number' && user.caseLimit >= 0
+      ? user.caseLimit
+      : MAX_CASES_PER_ACCOUNT
+
+  const isExpired =
+    typeof user?.accessExpiresAt === 'number' && user.accessExpiresAt > 0
+      ? Date.now() > user.accessExpiresAt
+      : false
+
+  const remainingCases = Math.max(0, effectiveMaxCases - userCasesCount)
+  const isLimitExhausted = userCasesCount >= effectiveMaxCases || isExpired
   const canSubmit =
     consentConfirmed && files.length > 0 && !isSubmitting && !isLimitExhausted
 
@@ -576,8 +586,10 @@ export const useCaseUpload = ({
 
     remainingCases,
     isLimitExhausted,
+    isExpired,
+    accessExpiresAt: user?.accessExpiresAt || null,
     userCasesCount,
-    maxCases: MAX_CASES_PER_ACCOUNT,
+    maxCases: effectiveMaxCases,
     storageRetentionDays: STORAGE_RETENTION_DAYS,
     supportUrl: SUPPORT_TELEGRAM_URL,
 

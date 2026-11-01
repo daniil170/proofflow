@@ -260,8 +260,18 @@ export const CasesListPage = () => {
     )
   }
 
-  const remainingCases = Math.max(0, MAX_CASES_PER_ACCOUNT - cases.length)
-  const isLimitExhausted = cases.length >= MAX_CASES_PER_ACCOUNT
+  const effectiveMaxCases =
+    typeof user?.caseLimit === 'number' && user.caseLimit >= 0
+      ? user.caseLimit
+      : MAX_CASES_PER_ACCOUNT
+
+  const isExpired =
+    typeof user?.accessExpiresAt === 'number' && user.accessExpiresAt > 0
+      ? Date.now() > user.accessExpiresAt
+      : false
+
+  const remainingCases = Math.max(0, effectiveMaxCases - cases.length)
+  const isLimitExhausted = cases.length >= effectiveMaxCases || isExpired
 
   return (
     <div className={styles.container}>
@@ -276,7 +286,7 @@ export const CasesListPage = () => {
               <span className={styles.remainingBadge}>
                 {isLimitExhausted ? (
                   <span>
-                    Лимит исчерпан ·{' '}
+                    {isExpired ? 'Доступ истёк' : 'Лимит исчерпан'} ·{' '}
                     <a
                       href={SUPPORT_TELEGRAM_URL}
                       target="_blank"
@@ -287,7 +297,14 @@ export const CasesListPage = () => {
                     </a>
                   </span>
                 ) : (
-                  formatRemainingCases(remainingCases)
+                  <>
+                    {formatRemainingCases(remainingCases)}
+                    {user?.accessExpiresAt && (
+                      <span style={{ opacity: 0.85, marginLeft: '6px' }}>
+                        (до {new Date(user.accessExpiresAt).toLocaleDateString('ru-RU')})
+                      </span>
+                    )}
+                  </>
                 )}
               </span>
             )}

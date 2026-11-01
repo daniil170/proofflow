@@ -103,4 +103,26 @@ export class FirestoreCaseRepository implements CaseRepositoryPort {
       .get()
     return snapshot.data().count
   }
+
+  async getUserLimits(userId: string): Promise<{
+    caseLimit?: number
+    accessExpiresAt?: number | null
+    accessStatus?: string
+  } | null> {
+    const userSnap = await this.getDb().collection('users').doc(userId).get()
+    if (!userSnap.exists) {
+      return null
+    }
+    const data = userSnap.data()
+    return {
+      caseLimit: typeof data?.caseLimit === 'number' ? data.caseLimit : undefined,
+      accessExpiresAt:
+        typeof data?.accessExpiresAt === 'number'
+          ? data.accessExpiresAt
+          : data?.accessExpiresAt === null
+            ? null
+            : undefined,
+      accessStatus: data?.accessStatus,
+    }
+  }
 }

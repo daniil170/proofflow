@@ -13,6 +13,8 @@ export const inviteSchema = z.object({
   channel: inviteChannelSchema,
   email: z.string().email().nullable().optional(),
   telegramUserId: z.union([z.string(), z.number()]).nullable().optional(),
+  caseLimit: z.number().int().positive().optional(),
+  accessExpiresAt: z.number().int().positive().nullable().optional(),
   createdBy: z.string().min(1),
   createdAt: z.number().int().positive(),
   usedAt: z.number().int().positive().nullable().optional(),
