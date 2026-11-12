@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { BUSINESS_TYPE_OPTIONS } from '@/pages/landing'
 import { Button, Checkbox, Input, Select, Textarea } from '@/shared/ui'
 import { LegalModal } from '@/components/legal'
+import logoSvg from '@/assets/logo/proofflow-logo-horizontal-on-dark.svg'
 import { useOnboarding } from '../model/useOnboarding.js'
 import styles from './OnboardingForm.module.css'
 
@@ -22,15 +23,30 @@ export const OnboardingForm = ({ onSuccess }) => {
 
   return (
     <div className={styles.container}>
-      <div className={styles.card}>
-        <div className={styles.header}>
-          <span className={styles.badge}>Шаг 1 из 1</span>
-          <h1 className={styles.title}>Знакомство</h1>
-          <p className={styles.subtitle}>
-            Заполните данные о себе и проекте. Название компании и логотип будут
-            использоваться в оформлении готовых кейсов.
-          </p>
-        </div>
+      <main className={styles.shell}>
+        <aside className={styles.intro}>
+          <img src={logoSvg} alt="ProofFlow" className={styles.logo} />
+          <div className={styles.introContent}>
+            <span className={styles.badge}>Последний шаг</span>
+            <h1 className={styles.introTitle}>Настроим рабочее пространство</h1>
+            <p className={styles.introText}>
+              Эти данные помогут оформить первый кейс в стиле вашей компании.
+            </p>
+          </div>
+          <div className={styles.promise}>
+            <span className={styles.promiseIcon}>✓</span>
+            <span>Настройку можно изменить позже</span>
+          </div>
+        </aside>
+
+        <section className={styles.card}>
+          <div className={styles.header}>
+            <span className={styles.mobileBadge}>Шаг 1 из 1</span>
+            <h2 className={styles.title}>Расскажите о себе</h2>
+            <p className={styles.subtitle}>
+              Заполните основные данные — это займёт меньше минуты.
+            </p>
+          </div>
 
         {serverError && <div className={styles.serverError}>{serverError}</div>}
 
@@ -149,7 +165,8 @@ export const OnboardingForm = ({ onSuccess }) => {
             onClose={() => setLegalModalState({ isOpen: false, doc: 'terms' })}
           />
         )}
-      </div>
+        </section>
+      </main>
     </div>
   )
 }

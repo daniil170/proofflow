@@ -121,9 +121,35 @@ export const AuthProvider = ({
     }
   }, [gateway, setIsAdmin, setUserRecord])
 
+  const updateProfile = useCallback(
+    async (profile) => {
+      if (!user?.id) throw new Error('Не удалось определить пользователя')
+      const result = await userRepository.updateProfile(user.id, profile)
+      setUserRecord((current) => ({
+        ...current,
+        profile: { ...current?.profile, ...profile },
+        updatedAt: Date.now(),
+      }))
+      return result
+    },
+    [user, userRepository, setUserRecord]
+  )
+
+  const acceptConsent = useCallback(
+    async (consent) => {
+      if (!user?.id) throw new Error('Не удалось определить пользователя')
+      const result = await userRepository.acceptConsent(user.id, consent)
+      setUserRecord((current) => ({ ...current, consent, updatedAt: Date.now() }))
+      return result
+    },
+    [user, userRepository, setUserRecord]
+  )
+
   const value = useMemo(() => {
     const accessStatus = isAdmin ? 'active' : userRecord?.accessStatus || 'waitlist'
-    const isOnboarded = isAdmin ? true : Boolean(userRecord?.isOnboarded ?? userRecord?.profile?.name ?? false)
+    const isOnboarded = isAdmin
+      ? true
+      : Boolean(userRecord?.isOnboarded ?? userRecord?.profile?.displayName ?? false)
 
     return {
       user,
@@ -140,6 +166,8 @@ export const AuthProvider = ({
       sendEmailLink,
       signInWithEmailLink,
       redeemInvite,
+      updateProfile,
+      acceptConsent,
       logout,
       isAuthenticated: Boolean(user),
       isEmailLink: (href) => gateway.isEmailLink(href),
@@ -157,6 +185,8 @@ export const AuthProvider = ({
       sendEmailLink,
       signInWithEmailLink,
       redeemInvite,
+      updateProfile,
+      acceptConsent,
       logout,
       gateway,
     ]
@@ -180,5 +210,7 @@ AuthProvider.propTypes = {
   userRepository: PropTypes.shape({
     subscribeToUser: PropTypes.func.isRequired,
     redeemInvite: PropTypes.func.isRequired,
+    updateProfile: PropTypes.func.isRequired,
+    acceptConsent: PropTypes.func.isRequired,
   }),
 }
