@@ -108,7 +108,7 @@ export const useAdminInvite = ({
     if (typeof window !== 'undefined') {
       return `${window.location.origin}/invite/${code}`
     }
-    return `https://proofflow.ru/invite/${code}`
+    return `${window.location.origin}/invite/${code}`
   }, [])
 
   const buildMessage = useCallback(

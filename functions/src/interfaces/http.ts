@@ -122,32 +122,16 @@ export const ogPage = onRequest(
     const data = snap.data()!
     const title = `${data.metric || ''} ${data.metricLabel || ''} — Кейс ${data.companyName || 'ProofFlow'}`.trim()
     const description = `${data.problem || ''} ${data.solution || ''} ${data.result || ''}`.trim() || 'Кейс, подтверждённый перепиской с клиентом в ProofFlow'
-    const imageUrl = data.ogImageUrl || 'https://proofflow.ru/og-default.png'
-    const pageUrl = `https://proofflow.ru/c/${caseId}`
+    const publicBaseUrl = process.env.PUBLIC_BASE_URL || 'https://proofflow-b6955.web.app'
+    const imageUrl = data.ogImageUrl || `${publicBaseUrl}/og-default.png`
+    const pageUrl = `${publicBaseUrl}/c/${caseId}`
 
-    const html = `<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="utf-8" />
-  <title>${escapeHtml(title)}</title>
-  <meta name="description" content="${escapeHtml(description)}" />
-  <meta property="og:title" content="${escapeHtml(title)}" />
-  <meta property="og:description" content="${escapeHtml(description)}" />
-  <meta property="og:image" content="${escapeHtml(imageUrl)}" />
-  <meta property="og:url" content="${escapeHtml(pageUrl)}" />
-  <meta property="og:type" content="article" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="${escapeHtml(title)}" />
-  <meta name="twitter:description" content="${escapeHtml(description)}" />
-  <meta name="twitter:image" content="${escapeHtml(imageUrl)}" />
-  <meta http-equiv="refresh" content="0; url=${escapeHtml(pageUrl)}" />
-</head>
-<body>
-  <h1>${escapeHtml(title)}</h1>
-  <p>${escapeHtml(description)}</p>
-  <p><a href="${escapeHtml(pageUrl)}">Перейти к кейсу</a></p>
-</body>
-</html>`
+    const hostingOrigin = publicBaseUrl.replace(/\/$/, '')
+    const appHtml = await fetch(hostingOrigin, { redirect: 'follow' }).then((response) => {
+      if (!response.ok) throw new Error('Не удалось загрузить страницу приложения')
+      return response.text()
+    })
+    const html = appHtml.replace('</head>', `  <meta property="og:title" content="${escapeHtml(title)}" />\n  <meta property="og:description" content="${escapeHtml(description)}" />\n  <meta property="og:image" content="${escapeHtml(imageUrl)}" />\n  <meta property="og:url" content="${escapeHtml(pageUrl)}" />\n</head>`)
 
     res.set('Cache-Control', 'public, max-age=300, s-maxage=600')
     res.status(200).send(html)

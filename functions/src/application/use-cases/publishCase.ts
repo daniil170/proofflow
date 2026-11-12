@@ -33,7 +33,7 @@ export class PublishCaseError extends Error {
 export const executePublishCase = async (
   params: PublishCaseParams
 ): Promise<PublishCaseResult> => {
-  const { caseId, uid, consentConfirmed = false, db, publicBaseUrl = 'https://proofflow.ru' } = params
+  const { caseId, uid, consentConfirmed = false, db, publicBaseUrl = 'https://proofflow-b6955.web.app' } = params
 
   if (!uid) {
     throw new PublishCaseError('unauthenticated', 'Пользователь не авторизован')

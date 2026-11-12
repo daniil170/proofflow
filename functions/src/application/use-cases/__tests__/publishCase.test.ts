@@ -140,7 +140,7 @@ describe('publishCase use-case', () => {
     })
 
     expect(result.success).toBe(true)
-    expect(result.publicUrl).toBe('https://proofflow.ru/c/case-100')
+    expect(result.publicUrl).toBe('https://proofflow-b6955.web.app/c/case-100')
 
     const publicCopy = mockDb.publicCasesStore.get('case-100')
     expect(publicCopy).toBeDefined()

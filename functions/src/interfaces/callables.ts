@@ -853,7 +853,7 @@ export const publishCase = onCall(
 
     try {
       const db = admin.firestore()
-      const publicBaseUrl = process.env.PUBLIC_BASE_URL || 'https://proofflow.ru'
+      const publicBaseUrl = process.env.PUBLIC_BASE_URL || 'https://proofflow-b6955.web.app'
       const result = await executePublishCase({
         caseId,
         uid: request.auth.uid,
@@ -964,7 +964,7 @@ export const createConsentRequest = onCall(
       updatedAt: now,
     })
 
-    const publicBaseUrl = process.env.PUBLIC_BASE_URL || 'https://proofflow.ru'
+    const publicBaseUrl = process.env.PUBLIC_BASE_URL || 'https://proofflow-b6955.web.app'
     return {
       token,
       url: `${publicBaseUrl}/consent/${token}`,

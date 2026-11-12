@@ -1,4 +1,4 @@
-export const getEmbedCode = (caseId, baseUrl = 'https://proofflow.ru') => {
+export const getEmbedCode = (caseId, baseUrl = 'https://proofflow-b6955.web.app') => {
   return `<div data-proofflow-case="${caseId}"></div>\n<script async defer src="${baseUrl}/embed.js"></script>`
 }
 
