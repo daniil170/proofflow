@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import {
   createCaseAnalyzer,
   createChatReader,
+  createPipelineAdapters,
   createTranscriber,
   resolveAnalyzerProvider,
   resolveChatReaderProvider,
@@ -124,5 +125,22 @@ describe('provider resolution & factory', () => {
       geminiConfig,
     })
     expect(geminiAnalyzer).toBeInstanceOf(GeminiCaseAnalyzer)
+  })
+
+  it('forces the complete mock bundle when useMocks is true even if env providers select Google', () => {
+    process.env.TRANSCRIBER_PROVIDER = 'google'
+    process.env.CHAT_READER_PROVIDER = 'google'
+    process.env.ANALYZER_PROVIDER = 'google'
+    delete process.env.GEMINI_API_KEY
+
+    const adapters = createPipelineAdapters({
+      isProd: false,
+      useMocks: true,
+      geminiConfig: { mode: 'api' },
+    })
+
+    expect(adapters.transcriber).toBeInstanceOf(MockTranscriber)
+    expect(adapters.chatReader).toBeInstanceOf(MockChatReader)
+    expect(adapters.analyzer).toBeInstanceOf(MockCaseAnalyzer)
   })
 })

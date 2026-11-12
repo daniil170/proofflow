@@ -185,6 +185,14 @@ export interface PipelineAdaptersBundle {
 export const createPipelineAdapters = (
   options: ProviderResolutionOptions
 ): PipelineAdaptersBundle => {
+  if (options.useMocks) {
+    return {
+      transcriber: new MockTranscriber(),
+      chatReader: new MockChatReader(),
+      analyzer: new MockCaseAnalyzer(),
+    }
+  }
+
   const transcriberProvider = resolveTranscriberProvider(undefined, options.useMocks)
   const chatReaderProvider = resolveChatReaderProvider(undefined, options.useMocks)
   const analyzerProvider = resolveAnalyzerProvider(undefined, options.useMocks)

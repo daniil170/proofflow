@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1100" viewBox="0 0 900 1100">
+  <rect width="900" height="1100" fill="#e7eef3"/>
+  <rect width="900" height="112" fill="#17212b"/>
+  <circle cx="72" cy="56" r="34" fill="#d4ff3a"/>
+  <text x="72" y="68" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="#17212b">NT</text>
+  <text x="128" y="50" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="#ffffff">Nordic Tech</text>
+  <text x="128" y="82" font-family="Arial, sans-serif" font-size="20" fill="#9fb0bf">Алексей · CEO</text>
+
+  <rect x="220" y="138" width="460" height="48" rx="24" fill="#ffffff" opacity="0.9"/>
+  <text x="450" y="170" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#52616d">ВЫМЫШЛЕННЫЙ ТЕСТОВЫЙ ДИАЛОГ</text>
+
+  <rect x="62" y="235" width="620" height="116" rx="24" fill="#ffffff"/>
+  <text x="92" y="280" font-family="Arial, sans-serif" font-size="28" fill="#17212b">Привет! Хотел сказать, что мы</text>
+  <text x="92" y="320" font-family="Arial, sans-serif" font-size="28" fill="#17212b">протестировали новую связку.</text>
+  <text x="620" y="334" font-family="Arial, sans-serif" font-size="18" fill="#7d8b96">14:22</text>
+
+  <rect x="62" y="382" width="760" height="156" rx="24" fill="#ffffff"/>
+  <text x="92" y="427" font-family="Arial, sans-serif" font-size="28" fill="#17212b">Вчера за сутки закрыли 8 сделок</text>
+  <text x="92" y="467" font-family="Arial, sans-serif" font-size="28" fill="#17212b">вместо обычных двух, клиенты</text>
+  <text x="92" y="507" font-family="Arial, sans-serif" font-size="28" fill="#17212b">довольны.</text>
+  <text x="756" y="519" font-family="Arial, sans-serif" font-size="18" fill="#7d8b96">14:23</text>
+
+  <rect x="258" y="575" width="566" height="116" rx="24" fill="#d4ff3a"/>
+  <text x="288" y="620" font-family="Arial, sans-serif" font-size="28" fill="#17212b">Отличный результат! Рады помочь</text>
+  <text x="288" y="660" font-family="Arial, sans-serif" font-size="28" fill="#17212b">вашей команде.</text>
+  <text x="758" y="674" font-family="Arial, sans-serif" font-size="18" fill="#52616d">14:25 ✓✓</text>
+
+  <rect x="62" y="724" width="760" height="156" rx="24" fill="#ffffff"/>
+  <text x="92" y="769" font-family="Arial, sans-serif" font-size="28" fill="#17212b">Спасибо огромное, теперь</text>
+  <text x="92" y="809" font-family="Arial, sans-serif" font-size="28" fill="#17212b">масштабируем на весь отдел</text>
+  <text x="92" y="849" font-family="Arial, sans-serif" font-size="28" fill="#17212b">продаж.</text>
+  <text x="756" y="861" font-family="Arial, sans-serif" font-size="18" fill="#7d8b96">14:28</text>
+
+  <rect x="62" y="958" width="776" height="80" rx="40" fill="#ffffff"/>
+  <text x="102" y="1008" font-family="Arial, sans-serif" font-size="24" fill="#8d9aa5">Сообщение</text>
+</svg>

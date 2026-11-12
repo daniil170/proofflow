@@ -31,3 +31,6 @@ dist-ssr
 *.sln
 *.sw?
 .firebase/
+
+# Local product-validation workspace (may contain interview contacts and CRM data)
+ops/
