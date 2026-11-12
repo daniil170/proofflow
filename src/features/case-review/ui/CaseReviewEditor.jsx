@@ -56,6 +56,7 @@ export const CaseReviewEditor = ({ reviewState }) => {
   } = reviewState
 
   const [tagInput, setTagInput] = useState(() => (draft.tags || []).join(', '))
+  const [showDetails, setShowDetails] = useState(false)
 
   const handleTagsBlur = () => {
     const parsed = tagInput
@@ -113,6 +114,14 @@ export const CaseReviewEditor = ({ reviewState }) => {
                 ? 'Исходные файлы удалены по сроку хранения, сохранённые цитаты зафиксированы.'
                 : 'Исходные файлы автоматически удаляются через 14 дней после готовности черновика, цитаты сохраняются навсегда.'}
             </span>
+          </div>
+
+          <div className={styles.reviewIntro}>
+            <div>
+              <h2>Проверьте главное</h2>
+              <p>Заголовок, цифра, факты и цитата. Изменения сразу видны справа.</p>
+            </div>
+            <span>{summaryRows.length} пунктов</span>
           </div>
 
           <div className={styles.storySectionCard}>
@@ -298,7 +307,12 @@ export const CaseReviewEditor = ({ reviewState }) => {
             </div>
           </div>
 
-          {allChatMessages.length > 0 && (
+          <button type="button" className={styles.detailsToggle} onClick={() => setShowDetails((value) => !value)} aria-expanded={showDetails}>
+            <span>Дополнительные настройки <small>Переписка, мессенджер и теги</small></span>
+            <span aria-hidden="true">{showDetails ? '−' : '+'}</span>
+          </button>
+
+          {showDetails && allChatMessages.length > 0 && (
             <div className={styles.storySectionCard}>
               <div className={styles.sectionHeader}>
                 <div className={styles.sectionTitleArea}>
@@ -363,7 +377,7 @@ export const CaseReviewEditor = ({ reviewState }) => {
             </div>
           )}
 
-          <div className={styles.storySectionCard}>
+          {showDetails && <div className={styles.storySectionCard}>
             <div className={styles.sectionHeader}>
               <div className={styles.sectionTitleArea}>
                 <div className={styles.sectionIconBadge}>
@@ -404,7 +418,7 @@ export const CaseReviewEditor = ({ reviewState }) => {
                 </button>
               ))}
             </div>
-          </div>
+          </div>}
 
           <QuoteField
             quoteText={draft.quote?.text || ''}
@@ -422,7 +436,7 @@ export const CaseReviewEditor = ({ reviewState }) => {
             onOpenEvidence={() => openEvidence('quote')}
           />
 
-          <div className={styles.tagsCard}>
+          {showDetails && <div className={styles.tagsCard}>
             <div className={styles.sectionHeader}>
               <div className={styles.sectionTitleArea}>
                 <div className={styles.sectionIconBadge}>
@@ -481,7 +495,7 @@ export const CaseReviewEditor = ({ reviewState }) => {
             <p id="tags-hint" className={styles.inputHint}>
               Нажмите Enter или кликните в сторону, чтобы сохранить теги.
             </p>
-          </div>
+          </div>}
 
           <ReviewActions
             canMarkVerified={canMarkVerified}

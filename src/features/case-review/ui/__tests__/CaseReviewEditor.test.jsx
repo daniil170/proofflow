@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { CaseReviewEditor } from '../CaseReviewEditor.jsx'
 
 describe('CaseReviewEditor', () => {
@@ -93,6 +93,7 @@ describe('CaseReviewEditor', () => {
 
     expect(screen.getByDisplayValue('Мозги кипят, но мне понравилось.')).toBeDefined()
     expect(screen.getByDisplayValue('Делаются успехи.')).toBeDefined()
+    fireEvent.click(screen.getByRole('button', { name: /Дополнительные настройки/ }))
     expect(screen.getByText(/выбрано: 1 из 3/)).toBeDefined()
   })
 })

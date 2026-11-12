@@ -5,6 +5,14 @@
   width: 100%;
 }
 
+.reviewIntro { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 20px; border-radius: 16px; background: #111; color: #fff; }
+.reviewIntro h2 { margin: 0 0 4px; font-size: 19px; }
+.reviewIntro p { margin: 0; color: #b8b8b3; font-size: 13px; line-height: 1.5; }
+.reviewIntro > span { flex-shrink: 0; border-radius: 99px; padding: 7px 10px; background: #d6f94c; color: #111; font-size: 12px; font-weight: 700; }
+.detailsToggle { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 16px 20px; border: 1px solid #deddd3; border-radius: 14px; background: #f8f8f3; color: #111; font-size: 15px; font-weight: 700; text-align: left; cursor: pointer; }
+.detailsToggle small { display: block; margin-top: 3px; color: #666; font-size: 12px; font-weight: 400; }
+.detailsToggle > span:last-child { font-size: 24px; line-height: 1; }
+
 .retentionNotice {
   display: flex;
   align-items: center;
